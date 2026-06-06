@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useAuth } from "../../contexts/useAuth";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Register() {
   const { register } = useAuth();
