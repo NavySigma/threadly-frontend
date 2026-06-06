@@ -1,4 +1,4 @@
-import { apiFetch, setToken } from './client'
+import { apiFetch } from './index'
 import type { AuthResponse, RegisterPayload, LoginPayload, User } from '../types/auth'
 
 export async function register(payload: RegisterPayload): Promise<User> {
