@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useContext, type ReactNode } from "react";
 import type { User } from "../types";
 import {
   login as apiLogin,
@@ -7,6 +7,12 @@ import {
 } from "../api/auth";
 import type { RegisterPayload, LoginPayload } from "../types";
 import { AuthContext } from "./AuthContextValue";
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
