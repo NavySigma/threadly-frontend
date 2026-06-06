@@ -6,7 +6,7 @@ export interface RegisterPayload {
 }
 
 export interface LoginPayload {
-  email: string
+  username: string
   password: string
 }
 
@@ -22,12 +22,16 @@ export interface User {
   roles?: { id: string; name: string }[]
 }
 
-export interface AuthResponse {
+export interface LoginResponse {
   message: string
-  data: {
-    user: User
-    token: string
-  }
+  access_token: string
+  token_type: string
+  user: User
+}
+
+export interface RegisterResponse {
+  message: string
+  data: User
 }
 
 export interface ApiError {
