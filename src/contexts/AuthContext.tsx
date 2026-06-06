@@ -7,6 +7,7 @@ import {
 } from "../api/auth";
 import type { RegisterPayload, LoginPayload } from "../types";
 
+
 interface AuthContextType {
   user: User | null;
   login: (payload: LoginPayload) => Promise<void>;
