@@ -1,1 +1,71 @@
-export type { RegisterPayload, LoginPayload, User, AuthResponse, ApiError } from './auth'
+// ── Entities ──────────────────────────────────────────────────────────
+export interface User {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  reputation_points: number;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  parent_id?: string | null;
+  children?: Category[];
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  slug: string;
+  color: string | null;
+}
+
+export interface Post {
+  id: string;
+  title: string;
+  body: string;
+  status: "open" | "closed" | "deleted";
+  view_count: number;
+  vote_score: number;
+  is_answered: boolean;
+  accepted_answer_id: string | null;
+  created_at: string;
+  updated_at: string;
+  user: User;
+  category: Category;
+  tags: Tag[];
+}
+
+// ── Filter & Sort ──────────────────────────────────────────────────────
+export type SortOption = "latest" | "oldest" | "highest_vote" | "most_viewed";
+export type AnswerFilter = "all" | "answered" | "unanswered";
+
+export interface PostFilter {
+  search: string;
+  category_id: string;
+  sort: SortOption;
+  answer: AnswerFilter;
+}
+
+// ── API Response ───────────────────────────────────────────────────────
+export interface PaginationMeta {
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+  links: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
+}
