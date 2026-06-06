@@ -1,67 +1,49 @@
+import { useState, useContext, type ReactNode } from "react";
+import type { User } from "../types";
 import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
+  login as apiLogin,
+  register as apiRegister,
+  logout as apiLogout,
+} from "../api/auth";
+import type { RegisterPayload, LoginPayload } from "../types";
+import { AuthContext } from "./AuthContextValue";
 
-interface AuthUser {
-  id: string;
-  username: string;
-  email: string;
-  avatar_url: string | null;
-  reputation_points: number;
-  roles: { id: string; name: string }[];
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  token: string | null;
-  setAuth: (user: AuthUser, token: string) => void;
-  clearAuth: () => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
-
-const TOKEN_KEY = "threadly_token";
-const USER_KEY  = "threadly_user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem(TOKEN_KEY)
-  );
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const stored = localStorage.getItem(USER_KEY);
-    return stored ? (JSON.parse(stored) as AuthUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
 
-  const setAuth = useCallback((user: AuthUser, token: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    setToken(token);
-    setUser(user);
-  }, []);
+  const login = async (payload: LoginPayload) => {
+    const u = await apiLogin(payload);
+    setUser(u);
+  };
 
-  const clearAuth = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setToken(null);
+  const register = async (payload: RegisterPayload) => {
+    const u = await apiRegister(payload);
+    setUser(u);
+  };
+
+  const logout = async () => {
+    await apiLogout();
     setUser(null);
-  }, []);
+  };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, setAuth, clearAuth, isAuthenticated: !!token }}
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        setUser,
+        isAuthenticated: !!user,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
-  return ctx;
 }
