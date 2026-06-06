@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
@@ -13,7 +13,7 @@ export default function Login() {
     e.preventDefault()
     setError('')
     try {
-      await login({ email, password })
+      await login({ username, password })
       navigate('/')
     } catch {
       setError('Invalid credentials')
@@ -32,8 +32,8 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label htmlFor="username">Username</label>
+            <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>

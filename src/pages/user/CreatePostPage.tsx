@@ -47,7 +47,7 @@ function TagBadge({
 
 export default function CreatePostPage() {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
 
   const {
     form,
@@ -70,10 +70,10 @@ export default function CreatePostPage() {
   const tagInputRef = useRef<HTMLInputElement>(null);
   const tagDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Redirect kalau belum login
+  // Redirect kalau belum login (tunggu loading selesai)
   useEffect(() => {
-    if (!isAuthenticated) navigate("/login", { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (!loading && !isAuthenticated) navigate("/login", { replace: true });
+  }, [loading, isAuthenticated, navigate]);
 
   // Tutup dropdown kalau klik di luar
   useEffect(() => {

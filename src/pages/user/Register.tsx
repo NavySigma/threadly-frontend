@@ -33,13 +33,7 @@ export default function Register() {
 
       <input name="username" placeholder="Username" required />
       <input name="email" type="email" placeholder="Email" required />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        required
-        minLength={8}
-      />
+      <input name="password" type="password" placeholder="Password" required />
       <input
         name="password_confirmation"
         type="password"
