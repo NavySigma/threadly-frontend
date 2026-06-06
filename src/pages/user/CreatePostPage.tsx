@@ -2,7 +2,7 @@ import type { Tag } from "../../api/posts";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreatePost } from "../../hooks/useCreatePost";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/useAuth";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -98,7 +98,7 @@ export default function CreatePostPage() {
 
   const hasEnoughPoints = (user?.reputation_points ?? 0) >= 15;
   const filteredTags = tags.filter(
-    (t) => !form.selectedTags.some((s) => s.id === t.id)
+    (t) => !form.selectedTags.some((s) => s.id === t.id),
   );
 
   // Poin tidak cukup
@@ -260,7 +260,9 @@ export default function CreatePostPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
               Tags{" "}
-              <span className="text-gray-400 font-normal">(opsional, maks. 5)</span>
+              <span className="text-gray-400 font-normal">
+                (opsional, maks. 5)
+              </span>
             </label>
 
             {form.selectedTags.length > 0 && (

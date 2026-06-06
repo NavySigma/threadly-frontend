@@ -30,20 +30,25 @@ export function useCreatePost() {
 
   useEffect(() => {
     let cancelled = false;
-        
-    categoriesApi.getAll().then((res) => {
-      if (!cancelled) {
-        const flat: Category[] = [];
-        for (const cat of res.data) {
-          flat.push(cat);
-          if (cat.children?.length) flat.push(...cat.children);
+
+    categoriesApi
+      .getAll()
+      .then((res) => {
+        if (!cancelled) {
+          const flat: Category[] = [];
+          for (const cat of res.data) {
+            flat.push(cat);
+            if (cat.children?.length) flat.push(...cat.children);
+          }
+          setCategories(flat);
         }
-        setCategories(flat);
-      }
-    }).finally(() => {
-      if (!cancelled) setIsLoadingMeta(false);
-    });
-    return () => { cancelled = true; };
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMeta(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -51,9 +56,10 @@ export function useCreatePost() {
     tagSearchTimer.current = setTimeout(async () => {
       try {
         const res = await tagsApi.getAll({ search: tagSearch || undefined });
-        const list = Array.isArray(res) ? res : (res as any).data ?? [];
-        setTags(list);
-      } catch {}
+        setTags(res.data);
+      } catch (error) {
+        console.error("Failed to load tags:", error);
+      }
     }, 300);
     return () => {
       if (tagSearchTimer.current) clearTimeout(tagSearchTimer.current);
@@ -70,7 +76,7 @@ export function useCreatePost() {
         return next;
       });
     },
-    []
+    [],
   );
 
   const addTag = useCallback((tag: Tag) => {
@@ -88,7 +94,7 @@ export function useCreatePost() {
     }));
   }, []);
 
-  const validate = (): boolean => {
+  const validate = useCallback((): boolean => {
     const errs: Record<string, string> = {};
     if (!form.category_id) errs.category_id = "Pilih kategori terlebih dahulu.";
     if (!form.title.trim()) {
@@ -105,7 +111,7 @@ export function useCreatePost() {
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  };
+  }, [form]);
 
   const submit = useCallback(async (): Promise<string | null> => {
     setGlobalError(null);
@@ -122,14 +128,19 @@ export function useCreatePost() {
       setIsSuccess(true);
       setForm(INITIAL_FORM);
       return res.data.id;
-    } catch (err: any) {
-      if (err?.errors) {
+    } catch (error: unknown) {
+      const err = error as Record<string, unknown>;
+      if (err?.errors && typeof err.errors === "object") {
         const mapped: Record<string, string> = {};
-        for (const [field, messages] of Object.entries(err.errors)) {
-          mapped[field] = Array.isArray(messages) ? messages[0] : String(messages);
+        for (const [field, messages] of Object.entries(
+          err.errors as Record<string, unknown>,
+        )) {
+          mapped[field] = Array.isArray(messages)
+            ? String(messages[0])
+            : String(messages);
         }
         setErrors(mapped);
-      } else if (err?.message) {
+      } else if (typeof err?.message === "string") {
         setGlobalError(err.message);
       } else {
         setGlobalError("Terjadi kesalahan tak terduga. Coba lagi.");
@@ -138,7 +149,7 @@ export function useCreatePost() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [form]);
+  }, [form, validate]);
 
   const reset = useCallback(() => {
     setForm(INITIAL_FORM);
