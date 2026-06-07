@@ -1,5 +1,5 @@
-import { useState, useEffect, FormEvent } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useState, useEffect, type FormEvent } from "react";
+import { useAuth } from "../../contexts/useAuth";
 import { useEditProfile } from "../../hooks/useEditProfile";
 import { useChangePassword } from "../../hooks/useChangePassword";
 
