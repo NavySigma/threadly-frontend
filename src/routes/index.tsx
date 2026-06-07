@@ -22,7 +22,7 @@ export const router = createBrowserRouter([
           { path: "register", element: <Register /> },
           { path: "login", element: <Login /> },
           { path: "posts/create", element: <CreatePostPage /> },
-          { path: "posts/edit", element: <EditPostPage /> },
+          { path: "posts/:id/edit", element: <EditPostPage /> },
         ],
       },
     ],

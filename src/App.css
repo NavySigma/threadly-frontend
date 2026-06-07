@@ -31,7 +31,7 @@
   height: var(--navbar-height);
   background: var(--black-050);
   border-top: 3px solid var(--orange);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -491,6 +491,369 @@
   color: var(--black-500);
 }
 
+/* ── Create Post Page ── */
+.create-post-page {
+  padding: 24px;
+  background: var(--white);
+}
+
+.create-post-header {
+  margin-bottom: 24px;
+}
+
+.create-post-header-top {
+  margin-bottom: 16px;
+}
+
+.create-post-header-back {
+  background: none;
+  border: none;
+  color: var(--black-500);
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.create-post-header-back:hover {
+  color: var(--blue);
+}
+
+.create-post-header h1 {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--black);
+  margin: 0 0 4px;
+}
+
+.create-post-header p {
+  font-size: 13px;
+  color: var(--black-500);
+  margin: 0;
+}
+
+.create-post-form {
+  background: var(--white);
+  border: 1px solid var(--black-100);
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.form-field {
+  margin-bottom: 24px;
+}
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--black-700);
+  margin-bottom: 6px;
+}
+
+.form-field label .required {
+  color: var(--red);
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--black-200);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--sans);
+  background: var(--white);
+  color: var(--black);
+  outline: none;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px var(--powder);
+}
+
+.form-field input[disabled],
+.form-field textarea[disabled],
+.form-field select[disabled] {
+  background: var(--black-050);
+  color: var(--black-300);
+  cursor: not-allowed;
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 200px;
+  font-family: var(--sans);
+}
+
+.form-field-counter {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--black-400);
+  margin-top: 4px;
+}
+
+.form-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-field-with-counter {
+  position: relative;
+}
+
+.tags-input-container {
+  position: relative;
+}
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: white;
+  background: var(--black-500);
+}
+
+.tag-badge-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tag-badge-remove:hover {
+  opacity: 0.8;
+}
+
+.tags-dropdown {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--white);
+  border: 1px solid var(--black-200);
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tags-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--black);
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  font-size: 13px;
+}
+
+.tags-dropdown-item:hover {
+  background: var(--black-050);
+}
+
+.tags-dropdown-usage {
+  font-size: 11px;
+  color: var(--black-400);
+}
+
+.tags-empty-message {
+  padding: 12px;
+  text-align: center;
+  color: var(--black-400);
+  font-size: 12px;
+}
+
+.form-divider {
+  border: none;
+  border-top: 1px solid var(--black-100);
+  margin: 24px 0;
+}
+
+.form-points-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--black-500);
+  padding: 8px;
+  background: var(--black-050);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.form-points-info strong {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel {
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: var(--black-500);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.btn-cancel:hover {
+  background: var(--black-050);
+  color: var(--black);
+}
+
+.btn-submit {
+  padding: 8px 14px;
+  border: none;
+  background: var(--orange);
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: var(--orange-hover);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.create-post-tips {
+  background: var(--powder);
+  border: 1px solid var(--black-150);
+  border-radius: 4px;
+  padding: 16px;
+  font-size: 12px;
+  color: var(--black-500);
+}
+
+.create-post-tips h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--black);
+  margin: 0 0 8px;
+}
+
+.create-post-tips ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.create-post-tips li {
+  color: var(--black-500);
+  margin-bottom: 4px;
+}
+
+.insufficient-points-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100svh - var(--navbar-height));
+  padding: 24px;
+}
+
+.insufficient-points-card {
+  max-width: 400px;
+  text-align: center;
+}
+
+.insufficient-points-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.insufficient-points-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 8px;
+}
+
+.insufficient-points-text {
+  font-size: 13px;
+  color: var(--black-500);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.insufficient-points-current {
+  font-size: 12px;
+  color: var(--black-400);
+  margin-bottom: 20px;
+}
+
+.insufficient-points-current strong {
+  color: var(--black-700);
+  font-weight: 600;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .sidebar {
@@ -505,5 +868,18 @@
   .post-votes {
     flex-direction: row;
     min-width: unset;
+  }
+
+  .create-post-form {
+    padding: 16px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
   }
 }

@@ -1,125 +1,274 @@
-import { Link } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { usePosts } from "../hooks/usePosts";
+import type { Post } from "../api/posts";
 
-const dummyPosts = [
-  {
-    id: '1',
-    title: 'How to implement authentication in React with JWT tokens?',
-    excerpt: 'I am building a React application and need to implement JWT-based authentication. What are the best practices for storing tokens and handling refresh logic?',
-    tags: ['react', 'jwt', 'authentication', 'security'],
-    votes: 24,
-    answers: 3,
-    views: 1452,
-    author: 'johndoe',
-    authorAvatar: 'J',
-    timeAgo: '2 hours ago',
-  },
-  {
-    id: '2',
-    title: 'TypeScript strict mode: what does `noUncheckedIndexedAccess` do?',
-    excerpt: 'I recently enabled strict mode in my TypeScript project and noticed the `noUncheckedIndexedAccess` flag. Can someone explain what it does and how it affects object access?',
-    tags: ['typescript', 'strict-mode'],
-    votes: 18,
-    answers: 2,
-    views: 876,
-    author: 'devgirl',
-    authorAvatar: 'D',
-    timeAgo: '5 hours ago',
-  },
-  {
-    id: '3',
-    title: 'Why is my CSS Grid not working in Firefox but works in Chrome?',
-    excerpt: 'I have a simple grid layout that renders perfectly in Chrome but breaks in Firefox. I am using `grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))`.',
-    tags: ['css', 'grid', 'firefox', 'cross-browser'],
-    votes: 32,
-    answers: 5,
-    views: 2103,
-    author: 'cssmasta',
-    authorAvatar: 'C',
-    timeAgo: '1 day ago',
-  },
-  {
-    id: '4',
-    title: 'Understanding Laravel Service Providers and the container',
-    excerpt: 'I am trying to wrap my head around how service providers work in Laravel. When should I create a custom service provider versus binding directly in AppServiceProvider?',
-    tags: ['laravel', 'php', 'service-provider', 'ioc'],
-    votes: 15,
-    answers: 1,
-    views: 654,
-    author: 'phpdev99',
-    authorAvatar: 'P',
-    timeAgo: '2 days ago',
-  },
-  {
-    id: '5',
-    title: 'PostgreSQL: how to optimize a query with multiple JOINs on large tables?',
-    excerpt: 'I have a query that JOINs 5 tables, each with millions of rows. Execution time is over 30 seconds. I already indexed the foreign key columns. What else can I try?',
-    tags: ['postgresql', 'performance', 'query-optimization', 'indexing'],
-    votes: 41,
-    answers: 7,
-    views: 3201,
-    author: 'dba_expert',
-    authorAvatar: 'D',
-    timeAgo: '3 days ago',
-  },
-]
+function timeAgo(dateStr: string): string {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
+function PostCard({ post }: { post: Post }) {
+  return (
+    <div className="post-item">
+      <div className="post-votes">
+        <span className="vote-count">{post.vote_score}</span>
+        <span className="vote-label">votes</span>
+        <span className={`vote-count${post.is_answered ? " green" : ""}`}>
+          {/* jumlah answer tidak ada di tipe Post, tampilkan status answered */}
+          {post.is_answered ? "✓" : "0"}
+        </span>
+        <span className="vote-label">answers</span>
+        <span>{post.view_count}</span>
+        <span className="vote-label">views</span>
+      </div>
+
+      <div className="post-body">
+        <div className="post-title">
+          <Link to={`/posts/${post.id}`}>{post.title}</Link>
+        </div>
+        <div className="post-excerpt">
+          {post.body.length > 180 ? post.body.slice(0, 180) + "..." : post.body}
+        </div>
+        <div className="post-tags">
+          {post.tags.map((tag) => (
+            <span
+              key={tag.id}
+              className="tag"
+              style={{ backgroundColor: tag.color ?? undefined }}
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+        <div className="post-meta">
+          <div className="post-author">
+            <div className="post-author-avatar">
+              {post.user.avatar_url ? (
+                <img
+                  src={post.user.avatar_url}
+                  alt={post.user.username}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                post.user.username[0].toUpperCase()
+              )}
+            </div>
+            <Link to={`/users/${post.user.id}`}>{post.user.username}</Link>
+            <span className="post-date">{timeAgo(post.created_at)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostSkeleton() {
+  return (
+    <div className="post-item" style={{ opacity: 0.5 }}>
+      <div className="post-votes">
+        <div
+          style={{
+            width: 32,
+            height: 16,
+            background: "#e3e6e8",
+            borderRadius: 3,
+            marginBottom: 4,
+          }}
+        />
+        <div
+          style={{
+            width: 32,
+            height: 12,
+            background: "#e3e6e8",
+            borderRadius: 3,
+          }}
+        />
+      </div>
+      <div className="post-body" style={{ flex: 1 }}>
+        <div
+          style={{
+            height: 18,
+            background: "#e3e6e8",
+            borderRadius: 3,
+            marginBottom: 8,
+            width: "70%",
+          }}
+        />
+        <div
+          style={{
+            height: 13,
+            background: "#e3e6e8",
+            borderRadius: 3,
+            marginBottom: 4,
+            width: "90%",
+          }}
+        />
+        <div
+          style={{
+            height: 13,
+            background: "#e3e6e8",
+            borderRadius: 3,
+            width: "60%",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
-  const { user } = useAuth()
+  const { user } = useAuth();
+  const {
+    posts,
+    currentPage,
+    lastPage,
+    total,
+    isLoading,
+    error,
+    sortBy,
+    setSortBy,
+    goToPage,
+  } = usePosts();
 
   return (
     <div>
+      {/* Header */}
       <div className="home-header">
         <h1>All Questions</h1>
         {user ? (
-          <Link to="/questions/ask" className="btn btn-orange">Ask Question</Link>
+          <Link to="/posts/create" className="btn btn-orange">
+            Ask Question
+          </Link>
         ) : (
-          <Link to="/login" className="btn btn-primary">Log in to Ask</Link>
+          <Link to="/login" className="btn btn-primary">
+            Log in to Ask
+          </Link>
         )}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-        <span className="post-stats">12,345 questions</span>
+      {/* Stats + filter */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
+        <span className="post-stats">
+          {isLoading ? "Loading..." : `${total.toLocaleString()} questions`}
+        </span>
         <div className="filter-bar">
-          <button className="filter-btn active">Newest</button>
-          <button className="filter-btn">Active</button>
-          <button className="filter-btn">Bountied</button>
-          <button className="filter-btn">Unanswered</button>
-          <button className="filter-btn">Votes</button>
+          {(["newest", "votes", "unanswered"] as const).map((s) => (
+            <button
+              key={s}
+              className={`filter-btn${sortBy === s ? " active" : ""}`}
+              onClick={() => setSortBy(s)}
+            >
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
-      {dummyPosts.map((post) => (
-        <div key={post.id} className="post-item">
-          <div className="post-votes">
-            <span className="vote-count">{post.votes}</span>
-            <span className="vote-label">votes</span>
-            <span className="vote-count green">{post.answers}</span>
-            <span className="vote-label">answers</span>
-            <span>{post.views}</span>
-            <span className="vote-label">views</span>
-          </div>
-
-          <div className="post-body">
-            <div className="post-title">
-              <Link to={`/questions/${post.id}`}>{post.title}</Link>
-            </div>
-            <div className="post-excerpt">{post.excerpt}</div>
-            <div className="post-tags">
-              {post.tags.map((tag) => (
-                <Link key={tag} to={`/tags/${tag}`} className="tag">{tag}</Link>
-              ))}
-            </div>
-            <div className="post-meta">
-              <div className="post-author">
-                <div className="post-author-avatar">{post.authorAvatar}</div>
-                <Link to={`/users/${post.author}`}>{post.author}</Link>
-                <span className="post-date">{post.timeAgo}</span>
-              </div>
-            </div>
-          </div>
+      {/* Error */}
+      {error && (
+        <div
+          style={{
+            padding: "12px 16px",
+            background: "#fee",
+            border: "1px solid #f99",
+            borderRadius: 4,
+            color: "#c0392b",
+            fontSize: 13,
+            marginBottom: 16,
+          }}
+        >
+          {error}
         </div>
-      ))}
+      )}
+
+      {/* Posts list */}
+      {isLoading ? (
+        Array.from({ length: 5 }).map((_, i) => <PostSkeleton key={i} />)
+      ) : posts.length === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "48px 0",
+            color: "#6a737c",
+            fontSize: 14,
+          }}
+        >
+          Belum ada postingan. Jadilah yang pertama bertanya!
+        </div>
+      ) : (
+        posts.map((post) => <PostCard key={post.id} post={post} />)
+      )}
+
+      {/* Pagination */}
+      {!isLoading && lastPage > 1 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 6,
+            marginTop: 24,
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            className="filter-btn"
+            disabled={currentPage === 1}
+            onClick={() => goToPage(currentPage - 1)}
+          >
+            ← Prev
+          </button>
+          {Array.from({ length: lastPage }, (_, i) => i + 1)
+            .filter(
+              (p) =>
+                p === 1 || p === lastPage || Math.abs(p - currentPage) <= 2,
+            )
+            .map((p, idx, arr) => (
+              <>
+                {idx > 0 && arr[idx - 1] !== p - 1 && (
+                  <span
+                    key={`ellipsis-${p}`}
+                    style={{ padding: "4px 8px", color: "#6a737c" }}
+                  >
+                    …
+                  </span>
+                )}
+                <button
+                  key={p}
+                  className={`filter-btn${p === currentPage ? " active" : ""}`}
+                  onClick={() => goToPage(p)}
+                >
+                  {p}
+                </button>
+              </>
+            ))}
+          <button
+            className="filter-btn"
+            disabled={currentPage === lastPage}
+            onClick={() => goToPage(currentPage + 1)}
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
-  )
+  );
 }
