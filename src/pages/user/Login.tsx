@@ -1,24 +1,24 @@
-import { FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { FormEvent, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function Login() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError("");
     try {
-      await login({ username, password })
-      navigate('/')
+      await login({ username, password });
+      navigate("/");
     } catch {
-      setError('Invalid credentials')
+      setError("Invalid credentials");
     }
-  }
+  };
 
   return (
     <div className="auth-page">
@@ -28,18 +28,43 @@ export default function Login() {
         </div>
         <h2>Log in to Threadly</h2>
 
-        {error && <p style={{ color: 'var(--red)', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>{error}</p>}
+        {error && (
+          <p
+            style={{
+              color: "var(--red)",
+              fontSize: 13,
+              marginBottom: 12,
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
-            <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
-          <button type="submit" className="form-submit">Log in</button>
+          <button type="submit" className="form-submit">
+            Log in
+          </button>
         </form>
 
         <div className="form-footer">
@@ -47,5 +72,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-  )
+  );
 }

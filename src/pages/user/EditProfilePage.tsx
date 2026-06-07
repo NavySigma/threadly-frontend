@@ -1,5 +1,5 @@
-import { useState, FormEvent } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useState, useEffect, type FormEvent } from "react";
+import { useAuth } from "../../hooks/useAuth";
 import { useEditProfile } from "../../hooks/useEditProfile";
 import { useChangePassword } from "../../hooks/useChangePassword";
 
@@ -97,11 +97,10 @@ function ProfileTab() {
   );
 
   useEffect(() => {
-    if (!avatarUrl.trim()) {
-      setPreviewUrl(null);
-      return;
-    }
-    const t = setTimeout(() => setPreviewUrl(avatarUrl), 600);
+    const trimmed = avatarUrl.trim();
+    const t = setTimeout(() => {
+      setPreviewUrl(trimmed ? avatarUrl : null);
+    }, 600);
     return () => clearTimeout(t);
   }, [avatarUrl]);
 
@@ -117,7 +116,6 @@ function ProfileTab() {
     const updated = await submit(payload);
     if (updated) {
       setUser(updated);
-      // Reset form ke nilai yang baru
       setUsername(updated.username);
       setBio(updated.bio ?? "");
       setAvatarUrl(updated.avatar_url ?? "");
@@ -493,22 +491,9 @@ function PasswordTab() {
 }
 
 export default function EditProfilePage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user } = useAuth(); // hapus authLoading, tidak ada di context kamu
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  if (authLoading)
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-        }}
-      >
-        Loading...
-      </div>
-    );
   if (!user)
     return (
       <div
@@ -534,7 +519,6 @@ export default function EditProfilePage() {
         fontFamily: "sans-serif",
       }}
     >
-      {/* Sidebar */}
       <aside style={{ width: 220, flexShrink: 0 }}>
         <div
           style={{
@@ -580,7 +564,7 @@ export default function EditProfilePage() {
               justifyContent: "center",
             }}
           >
-            {user.roles.map((r) => (
+            {user.roles?.map((r) => (
               <span
                 key={r.id}
                 style={{
@@ -608,7 +592,6 @@ export default function EditProfilePage() {
         </div>
       </aside>
 
-      {/* Main */}
       <main style={{ flex: 1, minWidth: 0 }}>
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>Pengaturan Akun</h1>
@@ -617,7 +600,6 @@ export default function EditProfilePage() {
           </p>
         </div>
 
-        {/* Tabs */}
         <div
           style={{
             display: "flex",
@@ -649,7 +631,6 @@ export default function EditProfilePage() {
           ))}
         </div>
 
-        {/* Panel */}
         <div
           style={{
             background: "#fff",

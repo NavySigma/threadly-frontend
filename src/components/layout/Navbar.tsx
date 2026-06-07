@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
 
   return (
     <nav className="navbar">
@@ -20,20 +20,36 @@ export default function Navbar() {
         <div className="navbar-actions">
           {user ? (
             <div className="navbar-user">
-              <button className="navbar-btn" title="Notifications">&#128276;</button>
-              <div className="navbar-avatar">
-                {user.name?.charAt(0).toUpperCase() || user.username.charAt(0).toUpperCase()}
-              </div>
-              <button className="navbar-btn" onClick={logout} title="Logout">&#10140;</button>
+              <button className="navbar-btn" title="Notifications">
+                &#128276;
+              </button>
+              <Link
+                to="/profile/edit"
+                className="navbar-avatar"
+                title="Edit Profile"
+              >
+                {user.username.charAt(0).toUpperCase()}
+              </Link>
+              <button className="navbar-btn" onClick={logout} title="Logout">
+                &#10140;
+              </button>
             </div>
           ) : (
             <div className="navbar-user">
-              <Link to="/login" className="navbar-auth-link">Log in</Link>
-              <Link to="/register" className="btn btn-primary" style={{ fontSize: 12, padding: '6px 10px' }}>Sign up</Link>
+              <Link to="/login" className="navbar-auth-link">
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="btn btn-primary"
+                style={{ fontSize: 12, padding: "6px 10px" }}
+              >
+                Sign up
+              </Link>
             </div>
           )}
         </div>
       </div>
     </nav>
-  )
+  );
 }
