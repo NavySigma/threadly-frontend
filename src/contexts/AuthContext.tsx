@@ -16,11 +16,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = getToken();
-
     if (!token) return;
-
     let cancelled = false;
-
     (async () => {
       try {
         const u = await getMe();
@@ -31,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setLoading(false);
       }
     })();
-
     return () => {
       cancelled = true;
     };
