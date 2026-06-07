@@ -97,11 +97,10 @@ function ProfileTab() {
   );
 
   useEffect(() => {
-    if (!avatarUrl.trim()) {
-      setPreviewUrl(null);
-      return;
-    }
-    const t = setTimeout(() => setPreviewUrl(avatarUrl), 600);
+    const t = setTimeout(
+      () => setPreviewUrl(avatarUrl.trim() ? avatarUrl : null),
+      avatarUrl.trim() ? 600 : 0,
+    );
     return () => clearTimeout(t);
   }, [avatarUrl]);
 
