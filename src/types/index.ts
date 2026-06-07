@@ -1,1 +1,8 @@
-export type { RegisterPayload, LoginPayload, User, AuthResponse, ApiError } from './auth'
+export type {
+  RegisterPayload,
+  LoginPayload,
+  User,
+  LoginResponse,
+  RegisterResponse,
+  ApiError,
+} from "./auth";

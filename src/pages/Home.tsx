@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/useAuth";
 import { usePosts } from "../hooks/usePosts";
 import type { Post } from "../api/posts";
 
@@ -241,25 +241,31 @@ export default function Home() {
               (p) =>
                 p === 1 || p === lastPage || Math.abs(p - currentPage) <= 2,
             )
-            .map((p, idx, arr) => (
-              <>
-                {idx > 0 && arr[idx - 1] !== p - 1 && (
-                  <span
-                    key={`ellipsis-${p}`}
-                    style={{ padding: "4px 8px", color: "#6a737c" }}
-                  >
-                    …
-                  </span>
-                )}
-                <button
+            .map((p, idx, arr) => {
+              const showEllipsis = idx > 0 && arr[idx - 1] !== p - 1;
+              return (
+                <span
                   key={p}
-                  className={`filter-btn${p === currentPage ? " active" : ""}`}
-                  onClick={() => goToPage(p)}
+                  style={{
+                    display: "inline-flex",
+                    gap: 6,
+                    alignItems: "center",
+                  }}
                 >
-                  {p}
-                </button>
-              </>
-            ))}
+                  {showEllipsis && (
+                    <span style={{ padding: "4px 8px", color: "#6a737c" }}>
+                      …
+                    </span>
+                  )}
+                  <button
+                    className={`filter-btn${p === currentPage ? " active" : ""}`}
+                    onClick={() => goToPage(p)}
+                  >
+                    {p}
+                  </button>
+                </span>
+              );
+            })}
           <button
             className="filter-btn"
             disabled={currentPage === lastPage}

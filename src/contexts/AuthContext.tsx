@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import type { User } from "../types";
 import {
   login as apiLogin,
@@ -10,26 +10,27 @@ import type { RegisterPayload, LoginPayload } from "../types";
 import { AuthContext } from "./AuthContextValue";
 import { getToken } from "../api/client";
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!getToken());
 
   useEffect(() => {
     const token = getToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    getMe()
-      .then(setUser)
-      .catch(() => localStorage.removeItem("token"))
-      .finally(() => setLoading(false));
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const u = await getMe();
+        if (!cancelled) setUser(u);
+      } catch {
+        if (!cancelled) localStorage.removeItem("token");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (payload: LoginPayload) => {
@@ -51,15 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         register,
         logout,
-        setUser,
         isAuthenticated: !!user,
         loading,
+        isLoading: loading,
       }}
     >
-      {loading ? <div style={{ padding: 24, textAlign: "center" }}>Loading...</div> : children}
+      {loading ? (
+        <div style={{ padding: 24, textAlign: "center" }}>Loading...</div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }

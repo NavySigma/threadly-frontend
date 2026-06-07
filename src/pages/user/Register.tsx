@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/useAuth";
 
 export default function Register() {
   const { register } = useAuth();
@@ -20,8 +20,12 @@ export default function Register() {
       });
 
       alert("Register berhasil!");
-    } catch (err: any) {
-      setError(err.message || "Gagal register");
+    } catch (err) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Gagal register";
+      setError(msg);
     }
   };
 

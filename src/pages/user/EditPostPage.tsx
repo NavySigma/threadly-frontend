@@ -3,7 +3,7 @@ import type { Tag } from "../../api/posts";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEditPost } from "../../hooks/useEditPost";
-import { useAuth } from "../../contexts/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -33,7 +33,10 @@ function TagBadge({
       {onRemove && (
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
           aria-label={`Hapus tag ${tag.name}`}
         >
           ×
@@ -263,7 +266,9 @@ export default function EditPostPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
               Tags{" "}
-              <span className="text-gray-400 font-normal">(opsional, maks. 5)</span>
+              <span className="text-gray-400 font-normal">
+                (opsional, maks. 5)
+              </span>
             </label>
 
             {form.selectedTags.length > 0 && (
@@ -321,14 +326,16 @@ export default function EditPostPage() {
                   </div>
                 )}
 
-                {showTagDropdown && filteredTags.length === 0 && tagSearch.length > 0 && (
-                  <div
-                    ref={tagDropdownRef}
-                    className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-400"
-                  >
-                    Tag "{tagSearch}" tidak ditemukan.
-                  </div>
-                )}
+                {showTagDropdown &&
+                  filteredTags.length === 0 &&
+                  tagSearch.length > 0 && (
+                    <div
+                      ref={tagDropdownRef}
+                      className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-400"
+                    >
+                      Tag "{tagSearch}" tidak ditemukan.
+                    </div>
+                  )}
               </div>
             )}
           </div>
