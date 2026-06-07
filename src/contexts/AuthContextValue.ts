@@ -7,9 +7,10 @@ export interface AuthContextType {
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   isAuthenticated: boolean;
   loading: boolean;
+  isLoading: boolean;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);

@@ -10,6 +10,7 @@ import type { RegisterPayload, LoginPayload } from "../types";
 import { AuthContext } from "./AuthContextValue";
 import { getToken } from "../api/client";
 
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,12 +47,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         register,
         logout,
-        setUser,
         isAuthenticated: !!user,
         loading,
+        isLoading: loading,
       }}
     >
       {loading ? (
