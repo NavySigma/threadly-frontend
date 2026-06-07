@@ -1,7 +1,8 @@
+// src/pages/posts/EditPostPage.tsx
 import type { Tag } from "../../api/posts";
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCreatePost } from "../../hooks/useCreatePost";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEditPost } from "../../hooks/useEditPost";
 import { useAuth } from "../../contexts/useAuth";
 
 function FieldError({ message }: { message?: string }) {
@@ -32,10 +33,7 @@ function TagBadge({
       {onRemove && (
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
           aria-label={`Hapus tag ${tag.name}`}
         >
           ×
@@ -45,16 +43,19 @@ function TagBadge({
   );
 }
 
-export default function CreatePostPage() {
+export default function EditPostPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated, loading } = useAuth();
 
   const {
     form,
+    originalPost,
     categories,
     tags,
     tagSearch,
     isLoadingMeta,
+    isLoadingPost,
     isSubmitting,
     errors,
     globalError,
@@ -63,17 +64,25 @@ export default function CreatePostPage() {
     addTag,
     removeTag,
     submit,
-    reset,
-  } = useCreatePost();
+  } = useEditPost(id!);
 
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const tagDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Redirect kalau belum login (tunggu loading selesai)
+  // Redirect kalau belum login
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate("/login", { replace: true });
   }, [loading, isAuthenticated, navigate]);
+
+  // Guard: hanya pemilik post yang boleh edit
+  useEffect(() => {
+    if (!isLoadingPost && originalPost && user) {
+      if (originalPost.user.id !== user.id) {
+        navigate("/", { replace: true });
+      }
+    }
+  }, [isLoadingPost, originalPost, user, navigate]);
 
   // Tutup dropdown kalau klik di luar
   useEffect(() => {
@@ -92,40 +101,31 @@ export default function CreatePostPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const newId = await submit();
-    if (newId) navigate(`/posts/${newId}`);
+    const ok = await submit();
+    if (ok) navigate(`/posts/${id}`);
   }
 
-  const hasEnoughPoints = (user?.reputation_points ?? 0) >= 15;
-  const filteredTags = tags.filter(
-    (t) => !form.selectedTags.some((s) => s.id === t.id),
-  );
+  // Loading state
+  if (isLoadingPost) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </main>
+    );
+  }
 
-  // Poin tidak cukup
-  if (isAuthenticated && !hasEnoughPoints) {
+  // Post tidak ditemukan
+  if (!originalPost) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 text-center space-y-4">
-          <div className="text-5xl">🔒</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Poin Tidak Cukup
+        <div className="text-center space-y-3">
+          <div className="text-5xl">🔍</div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Postingan tidak ditemukan
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Kamu butuh minimal{" "}
-            <span className="font-semibold text-indigo-500">
-              15 reputation points
-            </span>{" "}
-            untuk membuat postingan.
-          </p>
-          <p className="text-gray-400 text-sm">
-            Poin kamu saat ini:{" "}
-            <span className="font-bold text-gray-700 dark:text-gray-200">
-              {user?.reputation_points ?? 0}
-            </span>
-          </p>
           <button
             onClick={() => navigate("/")}
-            className="mt-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+            className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium"
           >
             Kembali ke Beranda
           </button>
@@ -133,6 +133,10 @@ export default function CreatePostPage() {
       </main>
     );
   }
+
+  const filteredTags = tags.filter(
+    (t) => !form.selectedTags.some((s) => s.id === t.id),
+  );
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 py-10 px-4">
@@ -147,11 +151,10 @@ export default function CreatePostPage() {
             ← Kembali
           </button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Buat Postingan Baru
+            Edit Postingan
           </h1>
           <p className="mt-1 text-gray-500 dark:text-gray-400 text-sm">
-            Tanyakan sesuatu kepada komunitas. Tulis dengan jelas agar mudah
-            dijawab.
+            Perbarui postingan kamu agar lebih jelas dan informatif.
           </p>
         </div>
 
@@ -260,9 +263,7 @@ export default function CreatePostPage() {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
               Tags{" "}
-              <span className="text-gray-400 font-normal">
-                (opsional, maks. 5)
-              </span>
+              <span className="text-gray-400 font-normal">(opsional, maks. 5)</span>
             </label>
 
             {form.selectedTags.length > 0 && (
@@ -320,38 +321,25 @@ export default function CreatePostPage() {
                   </div>
                 )}
 
-                {showTagDropdown &&
-                  filteredTags.length === 0 &&
-                  tagSearch.length > 0 && (
-                    <div
-                      ref={tagDropdownRef}
-                      className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-400"
-                    >
-                      Tag "{tagSearch}" tidak ditemukan.
-                    </div>
-                  )}
+                {showTagDropdown && filteredTags.length === 0 && tagSearch.length > 0 && (
+                  <div
+                    ref={tagDropdownRef}
+                    className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-400"
+                  >
+                    Tag "{tagSearch}" tidak ditemukan.
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           <hr className="border-gray-200 dark:border-gray-800" />
 
-          {/* Info poin */}
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span className="font-semibold text-green-500">
-              ⬡ {user?.reputation_points ?? 0} poin
-            </span>
-            <span>— minimal 15 poin untuk posting</span>
-          </div>
-
           {/* Actions */}
           <div className="flex items-center gap-3 justify-end">
             <button
               type="button"
-              onClick={() => {
-                reset();
-                navigate(-1);
-              }}
+              onClick={() => navigate(-1)}
               className="px-5 py-2.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Batal
@@ -364,25 +352,14 @@ export default function CreatePostPage() {
               {isSubmitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Mengirim...
+                  Menyimpan...
                 </>
               ) : (
-                "Buat Postingan"
+                "Simpan Perubahan"
               )}
             </button>
           </div>
         </form>
-
-        {/* Tips */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300 space-y-1.5">
-          <p className="font-semibold">💡 Tips menulis postingan yang baik:</p>
-          <ul className="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-400">
-            <li>Tulis judul yang spesifik dan jelas</li>
-            <li>Sertakan konteks: apa yang sudah kamu coba?</li>
-            <li>Gunakan tag yang relevan agar mudah ditemukan</li>
-            <li>Pilih kategori yang sesuai</li>
-          </ul>
-        </div>
       </div>
     </main>
   );

@@ -1,12 +1,14 @@
-import { useState, useContext, type ReactNode } from "react";
+import { useState, useEffect, useContext, type ReactNode } from "react";
 import type { User } from "../types";
 import {
   login as apiLogin,
   register as apiRegister,
   logout as apiLogout,
+  getMe,
 } from "../api/auth";
 import type { RegisterPayload, LoginPayload } from "../types";
 import { AuthContext } from "./AuthContextValue";
+import { getToken } from "../api/client";
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
@@ -20,7 +22,19 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    getMe()
+      .then(setUser)
+      .catch(() => localStorage.removeItem("token"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const login = async (payload: LoginPayload) => {
     const u = await apiLogin(payload);
@@ -46,10 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         isAuthenticated: !!user,
-        isLoading,
+        loading,
+        isLoading: loading,
       }}
     >
-      {children}
+      {loading ? (
+        <div style={{ padding: 24, textAlign: "center" }}>Loading...</div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }
