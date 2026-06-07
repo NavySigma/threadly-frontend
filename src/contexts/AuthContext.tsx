@@ -10,12 +10,17 @@ import { AuthContext } from "./AuthContextValue";
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+
+  if (!ctx) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+
   return ctx;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading] = useState(false);
 
   const login = async (payload: LoginPayload) => {
     const u = await apiLogin(payload);
@@ -36,11 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         login,
         register,
         logout,
-        setUser,
         isAuthenticated: !!user,
+        isLoading,
       }}
     >
       {children}
