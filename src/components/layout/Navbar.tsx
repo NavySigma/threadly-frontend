@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '../../contexts/useAuth'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -22,7 +22,7 @@ export default function Navbar() {
             <div className="navbar-user">
               <button className="navbar-btn" title="Notifications">&#128276;</button>
               <div className="navbar-avatar">
-                {user.name?.charAt(0).toUpperCase() || user.username.charAt(0).toUpperCase()}
+                {user.username.charAt(0).toUpperCase()}
               </div>
               <button className="navbar-btn" onClick={logout} title="Logout">&#10140;</button>
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import type { User } from "../types";
 import {
   login as apiLogin,
@@ -10,12 +10,6 @@ import type { RegisterPayload, LoginPayload } from "../types";
 import { AuthContext } from "./AuthContextValue";
 import { getToken } from "../api/client";
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = getToken();
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
@@ -59,7 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
       }}
     >
-      {loading ? <div style={{ padding: 24, textAlign: "center" }}>Loading...</div> : children}
+      {loading ? (
+        <div style={{ padding: 24, textAlign: "center" }}>Loading...</div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }

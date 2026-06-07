@@ -93,7 +93,7 @@ export default function CreatePostPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const newId = await submit();
-    if (newId) navigate(`/posts/${newId}`);
+    if (newId) navigate(`/`);
   }
 
   const hasEnoughPoints = (user?.reputation_points ?? 0) >= 15;
