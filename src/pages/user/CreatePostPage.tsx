@@ -2,7 +2,7 @@ import type { Tag } from "../../api/posts";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCreatePost } from "../../hooks/useCreatePost";
-import { useAuth } from "../../contexts/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -93,7 +93,7 @@ export default function CreatePostPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const newId = await submit();
-    if (newId) navigate(`/posts/${newId}`);
+    if (newId) navigate(`/`);
   }
 
   const hasEnoughPoints = (user?.reputation_points ?? 0) >= 15;

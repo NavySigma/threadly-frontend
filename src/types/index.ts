@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ── Entities ──────────────────────────────────────────────────────────
 export interface User {
   id: string;
@@ -69,3 +70,13 @@ export interface PaginatedResponse<T> {
     next: string | null;
   };
 }
+=======
+export type {
+  RegisterPayload,
+  LoginPayload,
+  User,
+  LoginResponse,
+  RegisterResponse,
+  ApiError,
+} from "./auth";
+>>>>>>> 795501d8acf7d70a4f8f9e30c5d629a2e0b410fb
