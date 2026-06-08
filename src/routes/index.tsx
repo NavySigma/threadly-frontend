@@ -8,6 +8,7 @@ import Login from "../pages/user/Login";
 import EditPostPage from "../pages/user/EditPostPage";
 import EditProfilePage from "../pages/user/EditProfilePage";
 
+
 export const router = createBrowserRouter([
   {
     element: (
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
           { path: "posts/create", element: <CreatePostPage /> },
           { path: "posts/:id/edit", element: <EditPostPage /> },
           { path: "profile/edit", element: <EditProfilePage /> },
+          
         ],
       },
     ],
