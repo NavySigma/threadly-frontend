@@ -24,9 +24,9 @@ export default function Navbar() {
                 &#128276;
               </button>
               <Link
-                to="/profile/edit"
+                to="/profile"
                 className="navbar-avatar"
-                title="Edit Profile"
+                title="Profile"
               >
                 {user.username.charAt(0).toUpperCase()}
               </Link>

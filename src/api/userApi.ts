@@ -1,14 +1,13 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
+import { getToken } from "./client";
 
-function getToken(): string | null {
-  return localStorage.getItem('auth_token');
-}
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 function authHeaders(): HeadersInit {
   const token = getToken();
   return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: "Bearer ${token}" } : {}),
   };
 }
 
@@ -70,10 +69,10 @@ export async function fetchMe(): Promise<{ data: User }> {
 }
 
 export async function updateProfile(
-  payload: UpdateProfilePayload
+  payload: UpdateProfilePayload,
 ): Promise<{ message: string; data: User }> {
   const res = await fetch(`${BASE_URL}/me`, {
-    method: 'PUT',
+    method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
@@ -81,10 +80,10 @@ export async function updateProfile(
 }
 
 export async function updatePassword(
-  payload: UpdatePasswordPayload
+  payload: UpdatePasswordPayload,
 ): Promise<{ message: string }> {
   const res = await fetch(`${BASE_URL}/me/password`, {
-    method: 'PUT',
+    method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
