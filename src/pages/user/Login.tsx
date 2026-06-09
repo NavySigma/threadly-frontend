@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
+import LoginGoogle from "../../components/ui/auth/ButtonGoogleGithub"
 
 export default function Login() {
   const { login } = useAuth();
@@ -65,6 +66,8 @@ export default function Login() {
           <button type="submit" className="form-submit">
             Log in
           </button>
+
+          <LoginGoogle />
         </form>
 
         <div className="form-footer">

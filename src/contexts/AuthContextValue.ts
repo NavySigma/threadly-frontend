@@ -1,6 +1,5 @@
-import { createContext } from "react";
-import type { User } from "../types";
-import type { RegisterPayload, LoginPayload } from "../types";
+import { createContext, useContext } from "react";
+import type { User, RegisterPayload, LoginPayload } from "../types";
 
 export interface AuthContextType {
   user: User | null;
@@ -11,6 +10,13 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   isLoading: boolean;
+  loginWithToken: (token: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
+
+export const useAuth = () => {
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error("useAuth harus dipakai di dalam AuthProvider");
+    return ctx;
+};

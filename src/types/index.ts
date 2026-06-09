@@ -1,12 +1,17 @@
-<<<<<<< HEAD
-// ── Entities ──────────────────────────────────────────────────────────
-export interface User {
-  id: string;
-  username: string;
-  avatar_url: string | null;
-  reputation_points: number;
-}
+// ── Auth re-exports ────────────────────────────────────────────────────
+export type {
+  RegisterPayload,
+  LoginPayload,
+  LoginResponse,
+  RegisterResponse,
+  ApiError,
+  User,
+} from "./auth";
 
+// ── Local import for use within this file ─────────────────────────────
+import type { User } from "./auth";
+
+// ── Entities ──────────────────────────────────────────────────────────
 export interface Category {
   id: string;
   name: string;
@@ -70,13 +75,3 @@ export interface PaginatedResponse<T> {
     next: string | null;
   };
 }
-=======
-export type {
-  RegisterPayload,
-  LoginPayload,
-  User,
-  LoginResponse,
-  RegisterResponse,
-  ApiError,
-} from "./auth";
->>>>>>> 795501d8acf7d70a4f8f9e30c5d629a2e0b410fb
