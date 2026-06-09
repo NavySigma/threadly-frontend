@@ -1,15 +1,13 @@
-// src/pages/user/PointsHistoryPage.tsx
-// Halaman riwayat poin — gaya Stack Overflow
-// Dipanggil dari src/routes/index.tsx
-
-import React, { useState, useMemo, useEffect } from "react";
+// src/pages/posts/PointsHistoryPage.tsx
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 // ─────────────────────────────────────────────────────────────
-// TYPES
+// TYPES & INTERFACES
 // ─────────────────────────────────────────────────────────────
-type EventTab      = "all" | "answer" | "question" | "bonus";
-type PeriodFilter  = "all" | "7" | "30";
-type IconType      =
+export type PointTabFilter = "all" | "answer" | "question" | "bonus";
+export type PeriodFilter   = "all" | "7" | "30";
+export type PointIconType  =
   | "upvote-answer"
   | "accepted"
   | "upvote-question"
@@ -18,523 +16,448 @@ type IconType      =
   | "badge"
   | "bounty";
 
-interface PointEvent {
-  id:    number;
-  date:  string;
-  tab:   Exclude<EventTab, "all">;
-  icon:  IconType;
-  pts:   number;
+export interface PointEvent {
+  id: number;
+  date: string; // Format: YYYY-MM-DD
+  tab: Exclude<PointTabFilter, "all">;
+  icon: PointIconType;
+  pts: number;
   label: string;
-  meta:  string;
-  tags:  string[];
+  meta: string;
+  tags: string[];
   votes: number | null;
 }
 
 interface DayGroup {
-  date:  string;
+  date: string;
   items: PointEvent[];
-  net:   number;
+  net: number;
 }
 
 // ─────────────────────────────────────────────────────────────
-// DATA — ganti dengan fetch("/api/points/me")
+// MOCK DATA (Sedikit data, aman, & bersih)
 // ─────────────────────────────────────────────────────────────
-const EVENTS: PointEvent[] = [
-  { id: 1,  date: "2025-06-12", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Kenapa useState tidak langsung update nilai?",           meta: "upvote jawaban",    tags: ["react", "js"], votes: 14   },
-  { id: 2,  date: "2025-06-12", tab: "answer",   icon: "accepted",        pts: +15,  label: "Cara parse JSON nested di Python dengan error handling",  meta: "accepted answer",   tags: ["py"],          votes: 9    },
-  { id: 3,  date: "2025-06-11", tab: "question", icon: "upvote-question", pts: +5,   label: "Bagaimana cara kerja event loop di Node.js?",             meta: "upvote pertanyaan", tags: ["js"],          votes: 22   },
-  { id: 4,  date: "2025-06-10", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Optimasi query SQL dengan jutaan baris data",             meta: "upvote jawaban",    tags: ["sql"],         votes: 31   },
-  { id: 5,  date: "2025-06-10", tab: "answer",   icon: "downvote",        pts: -2,   label: "Perbedaan == dan === di JavaScript",                      meta: "downvote jawaban",  tags: ["js"],          votes: 3    },
-  { id: 6,  date: "2025-06-09", tab: "bonus",    icon: "badge",           pts: +10,  label: 'Badge "Enlightened" diraih',                             meta: "badge reward",      tags: [],              votes: null },
-  { id: 7,  date: "2025-06-08", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Fix error CORS di Express.js",                           meta: "upvote jawaban",    tags: ["js"],          votes: 18   },
-  { id: 8,  date: "2025-06-08", tab: "answer",   icon: "accepted",        pts: +15,  label: "Cara deploy Next.js ke VPS dengan Nginx",                meta: "accepted answer",   tags: ["js"],          votes: 7    },
-  { id: 9,  date: "2025-06-05", tab: "bonus",    icon: "bonus",           pts: +100, label: "Asosiasi bonus — akun terhubung",                        meta: "bonus asosiasi",    tags: [],              votes: null },
-  { id: 10, date: "2025-06-04", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Perbedaan goroutine vs thread di Go",                    meta: "upvote jawaban",    tags: ["go"],          votes: 26   },
-  { id: 11, date: "2025-06-03", tab: "question", icon: "upvote-question", pts: +5,   label: "Kapan sebaiknya pakai useCallback vs useMemo?",           meta: "upvote pertanyaan", tags: ["react"],       votes: 15   },
-  { id: 12, date: "2025-06-03", tab: "bonus",    icon: "bounty",          pts: +50,  label: "Bounty — JWT refresh token di FastAPI",                  meta: "bounty diterima",   tags: ["py"],          votes: 41   },
-  { id: 13, date: "2025-06-01", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Array vs Slice di Go — kapan pakai mana?",              meta: "upvote jawaban",    tags: ["go"],          votes: 12   },
-  { id: 14, date: "2025-05-30", tab: "answer",   icon: "downvote",        pts: -2,   label: "Kenapa async/await tidak bisa di forEach?",              meta: "downvote jawaban",  tags: ["js"],          votes: 2    },
-  { id: 15, date: "2025-05-28", tab: "answer",   icon: "accepted",        pts: +15,  label: "Setup Docker Compose untuk Laravel + MySQL",             meta: "accepted answer",   tags: ["php"],         votes: 19   },
-  { id: 16, date: "2025-05-25", tab: "bonus",    icon: "badge",           pts: +25,  label: 'Badge "Good Answer" diraih',                             meta: "badge reward",      tags: [],              votes: null },
-  { id: 17, date: "2025-05-22", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Cara kerja index di PostgreSQL",                         meta: "upvote jawaban",    tags: ["sql"],         votes: 33   },
-  { id: 18, date: "2025-05-20", tab: "question", icon: "upvote-question", pts: +5,   label: "Best practice error handling di Go",                     meta: "upvote pertanyaan", tags: ["go"],          votes: 28   },
-  { id: 19, date: "2025-05-18", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Perbedaan interface dan type di TypeScript",             meta: "upvote jawaban",    tags: ["ts", "js"],    votes: 44   },
-  { id: 20, date: "2025-05-15", tab: "answer",   icon: "accepted",        pts: +15,  label: "Cara handle file upload besar di Node.js",              meta: "accepted answer",   tags: ["js"],          votes: 8    },
-  { id: 21, date: "2025-05-12", tab: "bonus",    icon: "bounty",          pts: +100, label: "Bounty — Race condition di goroutine Go",               meta: "bounty diterima",   tags: ["go"],          votes: 52   },
-  { id: 22, date: "2025-05-10", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Implementasi binary search tree di Python",             meta: "upvote jawaban",    tags: ["py"],          votes: 17   },
-  { id: 23, date: "2025-05-08", tab: "question", icon: "upvote-question", pts: +5,   label: "Kenapa Prisma lambat saat relasi banyak?",              meta: "upvote pertanyaan", tags: ["js"],          votes: 11   },
-  { id: 24, date: "2025-05-05", tab: "answer",   icon: "downvote",        pts: -2,   label: "Perbedaan let, var, const di JavaScript",               meta: "downvote jawaban",  tags: ["js"],          votes: 1    },
-  { id: 25, date: "2025-05-01", tab: "answer",   icon: "accepted",        pts: +15,  label: "Setup Redis cache di Spring Boot",                      meta: "accepted answer",   tags: ["java"],        votes: 6    },
-  { id: 26, date: "2025-04-28", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Cara validasi form React tanpa library",                meta: "upvote jawaban",    tags: ["react", "js"], votes: 20   },
-  { id: 27, date: "2025-04-25", tab: "question", icon: "upvote-question", pts: +5,   label: "Apa itu dependency injection dan kapan dipakai?",       meta: "upvote pertanyaan", tags: ["go"],          votes: 36   },
-  { id: 28, date: "2025-04-20", tab: "bonus",    icon: "badge",           pts: +100, label: 'Badge "Famous Question" diraih',                        meta: "badge reward",      tags: [],              votes: null },
-  { id: 29, date: "2025-04-18", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Cara membuat custom hook di React",                     meta: "upvote jawaban",    tags: ["react", "js"], votes: 29   },
-  { id: 30, date: "2025-04-15", tab: "answer",   icon: "accepted",        pts: +15,  label: "Perbedaan SQL JOIN: INNER, LEFT, RIGHT, FULL",          meta: "accepted answer",   tags: ["sql"],         votes: 55   },
-  { id: 31, date: "2025-04-10", tab: "bonus",    icon: "bounty",          pts: +50,  label: "Bounty — WebSocket di Go dengan gorilla/websocket",     meta: "bounty diterima",   tags: ["go"],          votes: 38   },
-  { id: 32, date: "2025-04-05", tab: "answer",   icon: "upvote-answer",   pts: +10,  label: "Cara setup ESLint + Prettier di proyek Next.js",        meta: "upvote jawaban",    tags: ["js"],          votes: 22   },
+const MOCK_POINTS_DATA: PointEvent[] = [
+  { id: 1, date: "2026-06-09", tab: "answer",   icon: "upvote-answer",   pts: 10, label: "Kenapa useState tidak langsung mengupdate nilai state saat di-console?", meta: "upvote jawaban",    tags: ["react", "typescript"], votes: 14 },
+  { id: 2, date: "2026-06-09", tab: "answer",   icon: "accepted",        pts: 15, label: "Cara melakukan parsing JSON nested besar di Python dengan aman",       meta: "jawaban diterima",   tags: ["python"],              votes: 9  },
+  { id: 3, date: "2026-06-05", tab: "question", icon: "upvote-question", pts: 5,  label: "Bagaimana arsitektur event loop menangani async I/O di Node.js?",      meta: "upvote pertanyaan", tags: ["nodejs", "javascript"],votes: 22 },
 ];
 
 // ─────────────────────────────────────────────────────────────
-// CONSTANTS
+// CONFIGURATIONS & STYLES
 // ─────────────────────────────────────────────────────────────
-const PER_PAGE   = 8;
-const WEEK_COUNT = 12;
+const ITEMS_PER_PAGE = 4;
+const TOTAL_WEEKS = 12;
 
-const TABS: { label: string; value: EventTab }[] = [
-  { label: "Semua",      value: "all"      },
-  { label: "Jawaban",    value: "answer"   },
-  { label: "Pertanyaan", value: "question" },
-  { label: "Bonus",      value: "bonus"    },
+const TAB_OPTIONS: { label: string; value: PointTabFilter }[] = [
+  { label: "Semua Aktivitas", value: "all" },
+  { label: "Jawaban",         value: "answer" },
+  { label: "Pertanyaan",      value: "question" },
+  { label: "Bonus & Reward",  value: "bonus" },
 ];
 
-const PERIODS: { label: string; value: PeriodFilter }[] = [
-  { label: "Semua waktu", value: "all" },
-  { label: "30 hari",     value: "30"  },
-  { label: "7 hari",      value: "7"   },
+const PERIOD_OPTIONS: { label: string; value: PeriodFilter }[] = [
+  { label: "Semua Waktu", value: "all" },
+  { label: "30 Hari Terakhir", value: "30" },
+  { label: "7 Hari Terakhir", value: "7" },
 ];
 
-const ICON_CONFIG: Record<IconType, { bg: string; color: string; svg: React.ReactNode }> = {
-  "upvote-answer": {
-    bg: "#dcfce7", color: "#15803d",
-    svg: <path d="M12 19V5M5 12l7-7 7 7" />,
-  },
-  "accepted": {
-    bg: "#dcfce7", color: "#14532d",
-    svg: <><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2 4-4" /></>,
-  },
-  "upvote-question": {
-    bg: "#dbeafe", color: "#1d4ed8",
-    svg: <><circle cx="12" cy="12" r="9" /><path d="M12 8v4" /><circle cx="12" cy="16" r=".8" fill="currentColor" stroke="none" /></>,
-  },
-  "downvote": {
-    bg: "#fee2e2", color: "#b91c1c",
-    svg: <path d="M12 5v14M5 12l7 7 7-7" />,
-  },
-  "bonus": {
-    bg: "#ede9fe", color: "#6d28d9",
-    svg: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />,
-  },
-  "badge": {
-    bg: "#fef3c7", color: "#b45309",
-    svg: <><circle cx="12" cy="8" r="6" /><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" /></>,
-  },
-  "bounty": {
-    bg: "#fce7f3", color: "#9d174d",
-    svg: <><circle cx="12" cy="12" r="9" /><path d="M12 7v1m0 8v1M9.5 9.5a2.5 2.5 0 015 0c0 1.5-2.5 2.5-2.5 4" /></>,
-  },
-};
-
-const TAG_COLOR: Record<string, string> = {
-  js:    "#92400e|#fef3c7",
-  ts:    "#1e40af|#dbeafe",
-  py:    "#166534|#dcfce7",
-  go:    "#0f5544|#ccfbf1",
-  php:   "#5b21b6|#ede9fe",
-  sql:   "#9f1239|#ffe4e6",
-  java:  "#991b1b|#fee2e2",
-  react: "#0369a1|#e0f2fe",
+const ICON_THEMES: Record<PointIconType, { color: string; symbol: string; bg: string }> = {
+  "upvote-answer":   { color: "#10b981", symbol: "▲", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
+  "accepted":        { color: "#059669", symbol: "✔", bg: "bg-green-50 dark:bg-green-950/40" },
+  "upvote-question": { color: "#3b82f6", symbol: "▲", bg: "bg-blue-50 dark:bg-blue-950/30" },
+  "downvote":        { color: "#ef4444", symbol: "▼", bg: "bg-red-50 dark:bg-red-950/30" },
+  "bonus":           { color: "#f97316", symbol: "★", bg: "bg-orange-50 dark:bg-orange-950/30" },
+  "badge":           { color: "#f59e0b", symbol: "●", bg: "bg-amber-50 dark:bg-amber-950/30" },
+  "bounty":          { color: "#8b5cf6", symbol: "✦", bg: "bg-purple-50 dark:bg-purple-950/30" },
 };
 
 // ─────────────────────────────────────────────────────────────
-// HELPERS
+// UTILITIES (HELPERS)
 // ─────────────────────────────────────────────────────────────
-const daysAgo = (d: string) =>
-  Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000);
+const calculateDaysAgo = (dateString: string): number => {
+  const parsedDate = new Date(dateString).getTime();
+  if (isNaN(parsedDate)) return 0;
+  const diffTime = Date.now() - parsedDate;
+  return Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+};
 
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+const formatLongDate = (dateString: string): string => {
+  const d = new Date(dateString);
+  return isNaN(d.getTime()) ? dateString : d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+};
 
-const fmtShort = (d: string) =>
-  new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+const formatShortDate = (date: Date): string =>
+  date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
-function toGroups(events: PointEvent[]): DayGroup[] {
-  const map: Record<string, PointEvent[]> = {};
-  for (const e of events) (map[e.date] ??= []).push(e);
-  return Object.entries(map)
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, items]) => ({ date, items, net: items.reduce((s, i) => s + i.pts, 0) }));
+function groupEventsByDate(events: PointEvent[]): DayGroup[] {
+  const groupsMap: Record<string, PointEvent[]> = {};
+  for (const item of events) {
+    if (!groupsMap[item.date]) groupsMap[item.date] = [];
+    groupsMap[item.date].push(item);
+  }
+  return Object.entries(groupsMap)
+    .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+    .map(([date, items]) => ({
+      date,
+      items,
+      net: items.reduce((sum, item) => sum + item.pts, 0),
+    }));
 }
 
 // ─────────────────────────────────────────────────────────────
-// SMALL COMPONENTS
+// SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────
-
-// SVG Icon wrapper
-const EventIcon: React.FC<{ type: IconType }> = ({ type }) => {
-  const cfg = ICON_CONFIG[type];
+function SparklineChart({ points }: { points: number[] }) {
+  const maxPoint = Math.max(...points, 1);
   return (
-    <div style={{ background: cfg.bg, color: cfg.color, width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        {cfg.svg}
-      </svg>
-    </div>
-  );
-};
-
-// Tag pill
-const TagPill: React.FC<{ name: string }> = ({ name }) => {
-  const colors = TAG_COLOR[name]?.split("|") ?? ["#5b21b6", "#ede9fe"];
-  return (
-    <span style={{ fontSize: 11, padding: "1px 7px", borderRadius: 4, background: colors[1], color: colors[0], fontFamily: "monospace", lineHeight: 1.6 }}>
-      {name}
-    </span>
-  );
-};
-
-// Sparkline
-const Sparkline: React.FC<{ data: number[] }> = ({ data }) => {
-  const max    = Math.max(...data, 1);
-  const showAt = new Set([0, Math.floor(data.length / 2), data.length - 1]);
-  return (
-    <div style={{ background: "#faf9ff", border: "1px solid #ede9fe", borderRadius: 12, padding: "14px 16px 10px", marginBottom: 20 }}>
-      <p style={{ fontSize: 12, color: "#9ca3af", margin: "0 0 10px" }}>Poin per minggu (12 minggu terakhir)</p>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 60 }}>
-        {data.map((v, i) => {
-          const wk  = data.length - 1 - i;
-          const h   = v === 0 ? 4 : Math.max(Math.round((v / max) * 100), 7);
-          const lbl = wk === 0 ? "skrg" : fmtShort(new Date(Date.now() - wk * 7 * 86_400_000).toISOString().slice(0, 10));
+    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm transition-all">
+      <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">
+        Tren Akumulasi Poin (12 Minggu Terakhir)
+      </h3>
+      <div className="flex items-end gap-3 h-20 pt-4 px-2">
+        {points.map((value, idx) => {
+          const percentageHeight = Math.max(Math.round((value / maxPoint) * 100), 6);
+          const calculatedDate = new Date(Date.now() - (TOTAL_WEEKS - 1 - idx) * 7 * 24 * 60 * 60 * 1000);
           return (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }} title={`+${v} poin`}>
-              <div style={{ width: "100%", height: `${h}%`, borderRadius: "2px 2px 0 0", background: v === 0 ? "#e0d9f7" : "#7c3aed" }} />
-              <span style={{ fontSize: 9.5, color: "#9ca3af" }}>{showAt.has(i) ? lbl : ""}</span>
+            <div key={idx} className="flex-1 flex flex-col items-center group relative" title={`+${value} Poin`}>
+              <div className="absolute bottom-full mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-[10px] font-semibold rounded px-2 py-0.5 pointer-events-none whitespace-nowrap z-10 shadow-md">
+                +{value} pts
+              </div>
+              <div 
+                className={`w-full rounded-t-md transition-all duration-300 ${
+                  value > 0 ? "bg-indigo-500 dark:bg-indigo-600 shadow-sm shadow-indigo-500/20" : "bg-gray-100 dark:bg-gray-800"
+                }`}
+                style={{ height: `${percentageHeight}%` }} 
+              />
+              <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-2 whitespace-nowrap">
+                {idx % 3 === 0 ? formatShortDate(calculatedDate) : ""}
+              </span>
             </div>
           );
         })}
       </div>
     </div>
   );
-};
+}
 
 // ─────────────────────────────────────────────────────────────
-// MAIN PAGE
+// MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────
-const PointsHistoryPage: React.FC = () => {
-  const [tab,    setTab]    = useState<EventTab>("all");
-  const [period, setPeriod] = useState<PeriodFilter>("all");
-  const [query,  setQuery]  = useState("");
-  const [page,   setPageRaw] = useState(1);
+export default function PointsHistoryPage() {
+  const navigate = useNavigate();
+  
+  const [activeTab, setActiveTab] = useState<PointTabFilter>("all");
+  const [activePeriod, setActivePeriod] = useState<PeriodFilter>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // reset page on filter change
-  const setTab_    = (v: EventTab)      => { setTab(v);    setPageRaw(1); };
-  const setPeriod_ = (v: PeriodFilter)  => { setPeriod(v); setPageRaw(1); };
-  const setQuery_  = (v: string)        => { setQuery(v);  setPageRaw(1); };
+  const changeTab = (tab: PointTabFilter) => { setActiveTab(tab); setCurrentPage(1); };
+  const changePeriod = (period: PeriodFilter) => { setActivePeriod(period); setCurrentPage(1); };
+  const changeSearch = (query: string) => { setSearchQuery(query); setCurrentPage(1); };
 
-  // filtered events
-  const filtered = useMemo(() =>
-    EVENTS.filter((e) => {
-      const tOk = tab    === "all" || e.tab === tab;
-      const dOk = period === "all" || daysAgo(e.date) <= +period;
-      const qOk = !query  || e.label.toLowerCase().includes(query.toLowerCase());
-      return tOk && dOk && qOk;
-    }),
-    [tab, period, query]
-  );
+  const filteredEvents = useMemo(() => {
+    return MOCK_POINTS_DATA.filter((event) => {
+      const matchTab = activeTab === "all" || event.tab === activeTab;
+      const matchPeriod = activePeriod === "all" || calculateDaysAgo(event.date) <= parseInt(activePeriod, 10);
+      const matchQuery = !searchQuery || event.label.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchTab && matchPeriod && matchQuery;
+    });
+  }, [activeTab, activePeriod, searchQuery]);
 
-  const allGroups  = useMemo(() => toGroups(filtered), [filtered]);
-  const totalPages = Math.max(1, Math.ceil(allGroups.length / PER_PAGE));
-  const safePage   = Math.min(page, totalPages);
-  const groups     = allGroups.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
+  const groupedEvents = useMemo(() => groupEventsByDate(filteredEvents), [filteredEvents]);
+  const totalPages = Math.max(1, Math.ceil(groupedEvents.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedGroups = groupedEvents.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
-  // stats
-  const stats = useMemo(() =>
-    EVENTS.reduce(
-      (a, e) => {
-        if (e.pts > 0)                      a.total          += e.pts;
-        if (e.icon === "upvote-answer")     a.upvoteAnswer   += e.pts;
-        if (e.icon === "accepted")          a.accepted       += e.pts;
-        if (e.icon === "upvote-question")   a.upvoteQuestion += e.pts;
-        if (e.icon === "downvote")          a.downvote       += e.pts;
-        if (daysAgo(e.date) <= 7 && e.pts > 0)  a.thisWeek  += e.pts;
-        if (daysAgo(e.date) <= 30 && e.pts > 0) a.thisMonth  += e.pts;
-        return a;
+  const summaryStats = useMemo(() => {
+    return MOCK_POINTS_DATA.reduce(
+      (acc, event) => {
+        if (event.pts > 0) acc.grandTotal += event.pts;
+        if (event.icon === "upvote-answer" || event.icon === "accepted") acc.answersTotal += event.pts;
+        if (event.icon === "upvote-question") acc.questionsTotal += event.pts;
+        if (event.icon === "bonus" || event.icon === "badge" || event.icon === "bounty") acc.rewardsTotal += event.pts;
+        if (event.pts < 0) acc.deductionsTotal += event.pts;
+        return acc;
       },
-      { total: 0, upvoteAnswer: 0, accepted: 0, upvoteQuestion: 0, downvote: 0, thisWeek: 0, thisMonth: 0 }
-    ), []
-  );
+      { grandTotal: 0, answersTotal: 0, questionsTotal: 0, rewardsTotal: 0, deductionsTotal: 0 }
+    );
+  }, []);
 
-  // sparkline
-  const sparkline = useMemo(() =>
-    Array.from({ length: WEEK_COUNT }, (_, i) => {
-      const wk = WEEK_COUNT - 1 - i;
-      return EVENTS
-        .filter((e) => e.pts > 0 && daysAgo(e.date) >= wk * 7 && daysAgo(e.date) < (wk + 1) * 7)
-        .reduce((s, e) => s + e.pts, 0);
-    }), []
-  );
+  const continuousSparklineData = useMemo(() => {
+    return Array.from({ length: TOTAL_WEEKS }, (_, i) => {
+      const targetWeekIndex = TOTAL_WEEKS - 1 - i;
+      return MOCK_POINTS_DATA
+        .filter((e) => e.pts > 0 && calculateDaysAgo(e.date) >= targetWeekIndex * 7 && calculateDaysAgo(e.date) < (targetWeekIndex + 1) * 7)
+        .reduce((sum, e) => sum + e.pts, 0);
+    });
+  }, []);
 
-  // pagination pages
-  const pgStart = Math.max(1, safePage - 1);
-  const pgEnd   = Math.min(totalPages, safePage + 1);
-  const pgNums  = Array.from({ length: pgEnd - pgStart + 1 }, (_, i) => pgStart + i);
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "/" && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8f7ff", fontFamily: "-apple-system, 'Segoe UI', system-ui, sans-serif" }}>
-
-      {/* ══════════════════════════════════════════════════
-          SIDEBAR KIRI — nav + profil user
-          ══════════════════════════════════════════════════ */}
-      <aside style={{ width: 220, background: "#fff", borderRight: "1px solid #e9e8f5", display: "flex", flexDirection: "column", flexShrink: 0, minHeight: "100vh" }}>
-
-        {/* Logo */}
-        <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid #e9e8f5", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 28, height: 28, background: "#f97316", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6h16M4 10h16M4 14h10" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-            </svg>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: 15, color: "#111827", letterSpacing: "-0.01em" }}>Threadly</span>
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950 py-10 px-4 transition-colors">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Tombol Back */}
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="text-sm font-medium text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5"
+          >
+            ← Kembali ke Profil
+          </button>
         </div>
 
-        {/* Nav */}
-        <nav style={{ padding: "10px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-          {[
-            { label: "Home",       emoji: "🏠", to: "/"           },
-            { label: "Questions",  emoji: "📋", to: "/questions"  },
-            { label: "Tags",       emoji: "🏷️", to: "/tags"       },
-            { label: "Users",      emoji: "👥", to: "/users"      },
-            { label: "Categories", emoji: "📁", to: "/categories" },
-          ].map((item) => (
-            <a
-              key={item.to}
-              href={item.to}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 10px", borderRadius: 8, fontSize: 13.5, color: "#4b5563", textDecoration: "none", transition: "background .12s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#f3f0ff")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              <span style={{ fontSize: 15 }}>{item.emoji}</span>
-              {item.label}
-            </a>
-          ))}
-        </nav>
-
-        <div style={{ margin: "4px 16px", borderTop: "1px solid #e9e8f5" }} />
-
-        {/* User card */}
-        <div style={{ padding: "16px 12px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-            <span style={{ color: "#5b21b6", fontWeight: 700, fontSize: 22 }}>A</span>
-          </div>
-          <p style={{ fontWeight: 600, fontSize: 14, color: "#111827", margin: "0 0 2px" }}>@ayunda</p>
-          <p style={{ fontSize: 12, color: "#9ca3af", margin: "0 0 12px" }}>evi@gmail.com</p>
-
-          {/* Poin badge — ini yang membuka halaman history */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#fef9c3", border: "1px solid #fde047", borderRadius: 20, padding: "5px 14px", marginBottom: 8 }}>
-            <span style={{ fontSize: 15 }}>⭐</span>
-            <span style={{ fontWeight: 700, color: "#92400e", fontSize: 14 }}>{stats.total.toLocaleString("id-ID")}</span>
-            <span style={{ fontSize: 12, color: "#a16207" }}>poin</span>
-          </div>
-
-          <span style={{ fontSize: 12, background: "#ede9fe", color: "#6d28d9", padding: "2px 12px", borderRadius: 20 }}>user</span>
-        </div>
-      </aside>
-
-      {/* ══════════════════════════════════════════════════
-          MAIN CONTENT
-          ══════════════════════════════════════════════════ */}
-      <main style={{ flex: 1, minWidth: 0, padding: "28px 32px 60px" }}>
-
-        {/* ── Page title ── */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
+        {/* Header Profil Poin */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 border-b border-gray-200 dark:border-gray-800 pb-6">
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Riwayat Poin</h1>
-            <p style={{ fontSize: 13, color: "#9ca3af", margin: 0 }}>Semua aktivitas reputasi akun kamu</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5 tracking-tight">
+              Riwayat Reputasi Poin 
+              <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-950/50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Live
+              </span>
+            </h1>
+            <p className="mt-1 text-gray-500 dark:text-gray-400 text-sm">
+              Pantau akumulasi poin kontribusi dan validasi jawaban Anda di platform.
+            </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#fef9c3", border: "1px solid #fde047", borderRadius: 20, padding: "6px 16px" }}>
-            <span style={{ fontSize: 16 }}>⭐</span>
-            <span style={{ fontWeight: 700, fontSize: 20, color: "#92400e" }}>{stats.total.toLocaleString("id-ID")}</span>
-            <span style={{ fontSize: 12, color: "#a16207" }}>reputasi</span>
+          <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-gray-900 dark:to-gray-900/40 border border-indigo-100 dark:border-gray-800 px-6 py-4 rounded-2xl shadow-sm text-center sm:text-right min-w-[160px]">
+            <span className="block text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mb-0.5">Total Reputasi</span>
+            <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+              {summaryStats.grandTotal.toLocaleString("id-ID")}
+            </span>
           </div>
         </div>
 
-        {/* ── Stat cards ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        {/* Grid Ringkasan Performa (Gaya Card Berwarna Komplemen) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: "Upvote jawaban",    value: stats.upvoteAnswer,   color: "#15803d" },
-            { label: "Accepted answer",   value: stats.accepted,        color: "#14532d" },
-            { label: "Upvote pertanyaan", value: stats.upvoteQuestion,  color: "#1d4ed8" },
-            { label: "Downvote",          value: stats.downvote,        color: "#b91c1c" },
-          ].map((c) => (
-            <div key={c.label} style={{ background: "#fff", border: "1px solid #e9e8f5", borderRadius: 12, padding: "14px 16px" }}>
-              <p style={{ fontSize: 12, color: "#9ca3af", margin: "0 0 6px" }}>{c.label}</p>
-              <p style={{ fontSize: 22, fontWeight: 700, color: c.color, margin: 0 }}>
-                {c.value >= 0 ? "+" : ""}{c.value.toLocaleString("id-ID")}
-              </p>
+            { label: "Kontribusi Jawaban", value: summaryStats.answersTotal, border: "border-l-emerald-500", color: "text-emerald-600 dark:text-emerald-400" },
+            { label: "Kontribusi Pertanyaan", value: summaryStats.questionsTotal, border: "border-l-blue-500", color: "text-blue-600 dark:text-blue-400" },
+            { label: "Bonus & Reward", value: summaryStats.rewardsTotal, border: "border-l-amber-500", color: "text-amber-600 dark:text-amber-400" },
+            { label: "Pengurangan", value: summaryStats.deductionsTotal, border: "border-l-red-500", color: "text-red-500" },
+          ].map((stat, idx) => (
+            <div key={idx} className={`bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 border-l-4 ${stat.border} rounded-r-xl rounded-l-md p-4 shadow-sm transition-all hover:translate-y-[-2px]`}>
+              <span className="block text-[11px] font-semibold text-gray-400 dark:text-gray-500 truncate mb-1">{stat.label}</span>
+              <span className={`text-xl font-bold tracking-tight ${stat.color}`}>
+                {stat.value >= 0 ? `+${stat.value}` : stat.value}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* ── Sparkline ── */}
-        <Sparkline data={sparkline} />
-
-        {/* ── Tabs ── */}
-        <div style={{ display: "flex", borderBottom: "1.5px solid #e9e8f5", marginBottom: 14 }}>
-          {TABS.map((t) => (
-            <button
-              key={t.value}
-              onClick={() => setTab_(t.value)}
-              style={{
-                padding: "9px 18px",
-                fontSize: 13.5,
-                fontFamily: "inherit",
-                fontWeight: tab === t.value ? 600 : 400,
-                color: tab === t.value ? "#7c3aed" : "#9ca3af",
-                background: "none",
-                border: "none",
-                borderBottom: tab === t.value ? "2.5px solid #7c3aed" : "2.5px solid transparent",
-                marginBottom: -1.5,
-                cursor: "pointer",
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
+        {/* Komponen Sparkline */}
+        <div className="mb-6">
+          <SparklineChart points={continuousSparklineData} />
         </div>
 
-        {/* ── Filter row ── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-          <div style={{ display: "flex", gap: 6 }}>
-            {PERIODS.map((p) => (
-              <button
-                key={p.value}
-                onClick={() => setPeriod_(p.value)}
-                style={{
-                  padding: "4px 14px",
-                  fontSize: 12.5,
-                  fontFamily: "inherit",
-                  borderRadius: 20,
-                  border: period === p.value ? "1.5px solid #a78bfa" : "1.5px solid #e5e7eb",
-                  background: period === p.value ? "#f5f3ff" : "transparent",
-                  color: period === p.value ? "#6d28d9" : "#6b7280",
-                  fontWeight: period === p.value ? 600 : 400,
-                  cursor: "pointer",
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+        {/* Card Filter Kontrol */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 mb-6 shadow-sm space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-1 bg-gray-50 dark:bg-gray-950 p-1 rounded-xl w-full lg:w-auto">
+              {TAB_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => changeTab(opt.value)}
+                  className={`flex-1 lg:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-all ${
+                    activeTab === opt.value
+                      ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-gray-100 dark:border-gray-700/50"
+                      : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 ml-auto lg:ml-0">
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wider">Rentang:</span>
+              <div className="flex gap-1 bg-gray-50 dark:bg-gray-950 p-1 rounded-lg">
+                {PERIOD_OPTIONS.map((per) => (
+                  <button
+                    key={per.value}
+                    type="button"
+                    onClick={() => changePeriod(per.value)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                      activePeriod === per.value
+                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-xs"
+                        : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    }`}
+                  >
+                    {per.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Search */}
-          <div style={{ position: "relative" }}>
-            <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#9ca3af" }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" />
-            </svg>
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 pointer-events-none text-xs">
+              🔍
+            </span>
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Cari pertanyaan atau jawaban…"
-              value={query}
-              onChange={(e) => setQuery_(e.target.value)}
-              style={{ paddingLeft: 32, paddingRight: 14, paddingTop: 7, paddingBottom: 7, fontSize: 13, fontFamily: "inherit", border: "1.5px solid #e5e7eb", borderRadius: 10, outline: "none", width: 240, color: "#111827", background: "#fff" }}
-              onFocus={(e)  => (e.target.style.borderColor = "#a78bfa")}
-              onBlur={(e)   => (e.target.style.borderColor = "#e5e7eb")}
+              placeholder='Cari riwayat poin berdasarkan nama topik... (Tekan "/" untuk mencari)'
+              value={searchQuery}
+              onChange={(e) => changeSearch(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-sm bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white dark:focus:bg-gray-900 transition-all"
             />
           </div>
         </div>
 
-        {/* ── History list ── */}
-        <div>
-          {groups.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#9ca3af" }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="1.5" strokeLinecap="round" style={{ display: "block", margin: "0 auto 10px" }}>
-                <path d="M9.17 6H6a4 4 0 00-4 4v8a4 4 0 004 4h12a4 4 0 004-4v-6M13 2l3 3-3 3M16 5H9" />
-              </svg>
-              <p style={{ fontSize: 14 }}>Tidak ada aktivitas ditemukan</p>
+        {/* LIST FEED (Card Style) */}
+        <div className="space-y-4">
+          {paginatedGroups.length === 0 ? (
+            <div className="text-center py-16 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+              <span className="text-4xl block mb-2">🗓</span>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">Tidak ada data reputasi</h3>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 max-w-xs mx-auto">
+                Silakan ubah pengaturan filter atau hapus kata kunci pencarian Anda.
+              </p>
             </div>
           ) : (
-            groups.map((g) => (
-              <div key={g.date} style={{ marginBottom: 8 }}>
-                {/* Day header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0 5px" }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    {fmtDate(g.date)}
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: g.net >= 0 ? "#15803d" : "#b91c1c" }}>
-                    {g.net >= 0 ? "+" : ""}{g.net} poin
+            paginatedGroups.map((group) => (
+              <div key={group.date} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-xs transition-all hover:shadow-sm">
+                
+                {/* Card Header Group */}
+                <div className="bg-gray-50/70 dark:bg-gray-900/50 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                  <h2 className="text-xs font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                    {formatLongDate(group.date)}
+                  </h2>
+                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                    group.net >= 0 
+                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" 
+                      : "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                  }`}>
+                    {group.net >= 0 ? `+${group.net}` : group.net} Net Poin
                   </span>
                 </div>
 
-                {/* Event rows */}
-                {g.items.map((e) => {
-                  const ptsColor = e.pts > 0 ? "#15803d" : "#b91c1c";
-                  const ptsStr   = (e.pts > 0 ? "+" : "") + e.pts;
-                  return (
-                    <div
-                      key={e.id}
-                      style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 12px", background: "#fff", border: "1px solid #f0eeff", borderRadius: 12, marginBottom: 4, cursor: "default", transition: "border-color .12s" }}
-                      onMouseEnter={(el) => (el.currentTarget.style.borderColor = "#c4b5fd")}
-                      onMouseLeave={(el) => (el.currentTarget.style.borderColor = "#f0eeff")}
-                    >
-                      {/* Points */}
-                      <span style={{ minWidth: 44, textAlign: "right", fontSize: 14, fontWeight: 700, flexShrink: 0, color: ptsColor, fontVariantNumeric: "tabular-nums" }}>
-                        {ptsStr}
-                      </span>
+                {/* Card Sub-Items List */}
+                <div className="divide-y divide-gray-50 dark:divide-gray-800/60">
+                  {group.items.map((event) => {
+                    const currentTheme = ICON_THEMES[event.icon] ?? { color: "#9ca3af", symbol: "•", bg: "bg-gray-50" };
+                    return (
+                      <div key={event.id} className="p-4 sm:p-5 flex items-start gap-4 hover:bg-gray-50/30 dark:hover:bg-gray-900/20 transition-colors">
+                        
+                        {/* Indikator Poin Kiri (Kotak Badge Khas StackOverflow) */}
+                        <div className={`w-12 h-9 rounded-lg flex items-center justify-center font-black text-xs shrink-0 select-none ${
+                          event.pts >= 0 
+                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400" 
+                            : "bg-red-50 text-red-500 dark:bg-red-950/20"
+                        }`}>
+                          {event.pts >= 0 ? `+${event.pts}` : event.pts}
+                        </div>
 
-                      {/* Icon */}
-                      <EventIcon type={e.icon} />
+                        {/* Ikon Tipe Aksi */}
+                        <div 
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 select-none mt-1.5 ${currentTheme.bg}`}
+                          style={{ color: currentTheme.color }}
+                        >
+                          {currentTheme.symbol}
+                        </div>
 
-                      {/* Body */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13.5, color: "#111827", margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {e.label}
-                        </p>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 12, color: "#9ca3af" }}>{e.meta}</span>
-                          {e.tags.map((t) => <TagPill key={t} name={t} />)}
-                          {e.votes !== null && (
-                            <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 3, fontSize: 12, color: "#9ca3af", flexShrink: 0 }}>
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <path d="M12 19V5M5 12l7-7 7 7" />
-                              </svg>
-                              {e.votes}
+                        {/* Konten Topik */}
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-relaxed">
+                            <span className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors break-words">
+                              {event.label}
                             </span>
+                            <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium ml-2 inline-block whitespace-nowrap bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded">
+                              {event.meta}
+                            </span>
+                          </div>
+
+                          {/* Render Tag */}
+                          {event.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-2.5">
+                              {event.tags.map((tag) => (
+                                <span 
+                                  key={tag} 
+                                  className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
                           )}
                         </div>
+
+                        {/* Skor Pertanyaan/Jawaban Asli */}
+                        {event.votes !== null && (
+                          <div className="text-center shrink-0 hidden sm:block bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800 px-2.5 py-1 rounded-lg">
+                            <span className="block text-[9px] uppercase font-bold text-gray-400 tracking-widest">Skor</span>
+                            <span className="text-xs font-extrabold text-gray-600 dark:text-gray-300">{event.votes}</span>
+                          </div>
+                        )}
+
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+
               </div>
             ))
           )}
         </div>
 
-        {/* ── Pagination ── */}
+        {/* Paginasi (Card Footer Style) */}
         {totalPages > 1 && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, marginTop: 20 }}>
-            <div style={{ display: "flex", gap: 6 }}>
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200 dark:border-gray-800 pt-4 px-1">
+            <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
+              Menampilkan lembar <strong className="text-gray-700 dark:text-gray-200">{safePage}</strong> dari {totalPages} halaman
+            </span>
+            <div className="flex gap-1.5">
               <button
+                type="button"
                 disabled={safePage <= 1}
-                onClick={() => setPageRaw(safePage - 1)}
-                style={{ padding: "5px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "transparent", color: "#6b7280", fontSize: 14, cursor: safePage <= 1 ? "default" : "pointer", opacity: safePage <= 1 ? 0.35 : 1 }}
+                onClick={() => setCurrentPage(safePage - 1)}
+                className="px-3 py-1.5 text-xs font-bold border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-2xs"
               >
-                ‹
+                Sebelumnya
               </button>
-              {pgNums.map((p) => (
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pNum) => (
                 <button
-                  key={p}
-                  onClick={() => setPageRaw(p)}
-                  style={{ padding: "5px 12px", borderRadius: 8, border: p === safePage ? "1.5px solid #7c3aed" : "1px solid #e5e7eb", background: p === safePage ? "#7c3aed" : "transparent", color: p === safePage ? "#fff" : "#6b7280", fontSize: 14, fontWeight: p === safePage ? 700 : 400, cursor: "pointer" }}
+                  key={pNum}
+                  type="button"
+                  onClick={() => setCurrentPage(pNum)}
+                  className={`w-8 h-8 flex items-center justify-center text-xs font-bold rounded-xl transition-all border ${
+                    pNum === safePage
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-500/20"
+                      : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  }`}
                 >
-                  {p}
+                  {pNum}
                 </button>
               ))}
               <button
+                type="button"
                 disabled={safePage >= totalPages}
-                onClick={() => setPageRaw(safePage + 1)}
-                style={{ padding: "5px 12px", borderRadius: 8, border: "1px solid #e5e7eb", background: "transparent", color: "#6b7280", fontSize: 14, cursor: safePage >= totalPages ? "default" : "pointer", opacity: safePage >= totalPages ? 0.35 : 1 }}
+                onClick={() => setCurrentPage(safePage + 1)}
+                className="px-3 py-1.5 text-xs font-bold border border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-2xs"
               >
-                ›
+                Berikutnya
               </button>
             </div>
-            <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>
-              Halaman {safePage} dari {totalPages} · {allGroups.length} grup
-            </p>
           </div>
         )}
 
-      </main>
-    </div>
+      </div>
+    </main>
   );
-};
-
-export default PointsHistoryPage;
+}
