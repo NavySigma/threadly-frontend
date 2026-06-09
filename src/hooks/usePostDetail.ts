@@ -1,37 +1,37 @@
-// // src/hooks/usePostDetail.ts
+// src/hooks/usePostDetail.ts
 
-// import { useEffect, useState } from "react";
-// import { postsApi, type Post } from "../api/posts";
+import { useEffect, useState } from "react";
+import { postsApi, type Post } from "../api/posts";
 
-// export function usePostDetail(id: string) {
-//   const [post, setPost] = useState<Post | null>(null);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
+export function usePostDetail(id: string) {
+  const [post, setPost] = useState<Post | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-//   useEffect(() => {
-//     const fetchPost = async () => {
-//       try {
-//         setIsLoading(true);
-//         setError(null);
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-//         const res = await postsApi.getById(id);
+        const res = await postsApi.getById(id);
 
-//         setPost(res.data);
-//       } catch {
-//         setError("Gagal memuat postingan");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
+        setPost(res.data);
+      } catch {
+        setError("Gagal memuat postingan");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-//     if (id) {
-//       fetchPost();
-//     }
-//   }, [id]);
+    if (id) {
+      fetchPost();
+    }
+  }, [id]);
 
-//   return {
-//     post,
-//     isLoading,
-//     error,
-//   };
-// }
+  return {
+    post,
+    isLoading,
+    error,
+  };
+}
