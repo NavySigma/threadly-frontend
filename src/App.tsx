@@ -11,6 +11,7 @@ import EditProfilePage from "./pages/user/EditProfilePage";
 import ProfilePage from "./pages/user/ProfilePage";
 import PointsHistoryPage from "./pages/user/PointsHistoryPage";
 import PostDetailPage from "./pages/user/PostDetailPage";
+import AuthCallback from "./pages/AuthCallback";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
           </Route>
         </Routes>
       </AuthProvider>

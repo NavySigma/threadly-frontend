@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Re-export auth-related types
 export type {
   RegisterPayload,
@@ -8,6 +9,21 @@ export type {
   ApiError,
 } from "./auth";
 
+=======
+// ── Auth re-exports ────────────────────────────────────────────────────
+export type {
+  RegisterPayload,
+  LoginPayload,
+  LoginResponse,
+  RegisterResponse,
+  ApiError,
+  User,
+} from "./auth";
+
+// ── Local import for use within this file ─────────────────────────────
+import type { User } from "./auth";
+
+>>>>>>> 9e8cf1b7671ccf147982ac2ae6ce2693ec5f7aa6
 // ── Entities ──────────────────────────────────────────────────────────
 export interface Category {
   id: string;
