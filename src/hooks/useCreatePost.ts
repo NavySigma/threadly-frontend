@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { postsApi, categoriesApi, tagsApi } from "../api/posts";
 import type { Category, Tag, CreatePostPayload } from "../api/posts";
 
@@ -17,67 +18,57 @@ const INITIAL_FORM: CreatePostForm = {
 };
 
 export function useCreatePost() {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<CreatePostForm>(INITIAL_FORM);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   const [tagSearch, setTagSearch] = useState("");
-  const [isLoadingMeta, setIsLoadingMeta] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const tagSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    categoriesApi
-      .getAll()
-      .then((res) => {
-        if (!cancelled) {
-          const flat: Category[] = [];
-          for (const cat of res.data) {
-            flat.push(cat);
-            if (cat.children?.length) flat.push(...cat.children);
-          }
-          setCategories(flat);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingMeta(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (tagSearchTimer.current) clearTimeout(tagSearchTimer.current);
-    tagSearchTimer.current = setTimeout(async () => {
-      try {
-        const res = await tagsApi.getAll({ search: tagSearch || undefined });
-        setTags(res.data);
-      } catch (error) {
-        console.error("Failed to load tags:", error);
+  // ── Categories ──────────────────────────────────────────────────────────────
+  const { isLoading: isLoadingMeta } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await categoriesApi.getAll();
+      const flat: Category[] = [];
+      for (const cat of res.data) {
+        flat.push(cat);
+        if (cat.children?.length) flat.push(...cat.children);
       }
-    }, 300);
-    return () => {
-      if (tagSearchTimer.current) clearTimeout(tagSearchTimer.current);
-    };
-  }, [tagSearch]);
-
-  const setField = useCallback(
-    <K extends keyof CreatePostForm>(key: K, value: CreatePostForm[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-      setErrors((prev) => {
-        if (!prev[key]) return prev;
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
+      return flat;
     },
-    [],
-  );
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const categories: Category[] =
+    queryClient.getQueryData<Category[]>(["categories"]) ?? [];
+
+  // ── Tags ────────────────────────────────────────────────────────────────────
+  useQuery({
+    queryKey: ["tags", tagSearch],
+    queryFn: () => tagsApi.getAll({ search: tagSearch || undefined }).then((r) => r.data),
+    staleTime: 30 * 1000,
+  });
+
+  const tags: Tag[] =
+    queryClient.getQueryData<Tag[]>(["tags", tagSearch]) ?? [];
+
+  // ── Mutation ────────────────────────────────────────────────────────────────
+  const mutation = useMutation({
+    mutationFn: (payload: CreatePostPayload) =>
+      postsApi.create(payload).then((r) => r.data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
+  });
+
+  // ── Form helpers ────────────────────────────────────────────────────────────
+  const setField = useCallback(<K extends keyof CreatePostForm>(key: K, value: CreatePostForm[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
 
   const addTag = useCallback((tag: Tag) => {
     setForm((prev) => {
@@ -116,28 +107,24 @@ export function useCreatePost() {
   const submit = useCallback(async (): Promise<string | null> => {
     setGlobalError(null);
     if (!validate()) return null;
-    setIsSubmitting(true);
+
+    const payload: CreatePostPayload = {
+      category_id: form.category_id,
+      title: form.title.trim(),
+      body: form.body.trim(),
+      tags: form.selectedTags.map((t) => t.id),
+    };
+
     try {
-      const payload: CreatePostPayload = {
-        category_id: form.category_id,
-        title: form.title.trim(),
-        body: form.body.trim(),
-        tags: form.selectedTags.map((t) => t.id),
-      };
-      const res = await postsApi.create(payload);
-      setIsSuccess(true);
+      const post = await mutation.mutateAsync(payload);
       setForm(INITIAL_FORM);
-      return res.data.id;
+      return post.id;
     } catch (error: unknown) {
       const err = error as Record<string, unknown>;
       if (err?.errors && typeof err.errors === "object") {
         const mapped: Record<string, string> = {};
-        for (const [field, messages] of Object.entries(
-          err.errors as Record<string, unknown>,
-        )) {
-          mapped[field] = Array.isArray(messages)
-            ? String(messages[0])
-            : String(messages);
+        for (const [field, messages] of Object.entries(err.errors as Record<string, unknown>)) {
+          mapped[field] = Array.isArray(messages) ? String(messages[0]) : String(messages);
         }
         setErrors(mapped);
       } else if (typeof err?.message === "string") {
@@ -146,17 +133,15 @@ export function useCreatePost() {
         setGlobalError("Terjadi kesalahan tak terduga. Coba lagi.");
       }
       return null;
-    } finally {
-      setIsSubmitting(false);
     }
-  }, [form, validate]);
+  }, [form, validate, mutation]);
 
   const reset = useCallback(() => {
     setForm(INITIAL_FORM);
     setErrors({});
     setGlobalError(null);
-    setIsSuccess(false);
-  }, []);
+    mutation.reset();
+  }, [mutation]);
 
   return {
     form,
@@ -164,8 +149,8 @@ export function useCreatePost() {
     tags,
     tagSearch,
     isLoadingMeta,
-    isSubmitting,
-    isSuccess,
+    isSubmitting: mutation.isPending,
+    isSuccess: mutation.isSuccess,
     errors,
     globalError,
     setField,
