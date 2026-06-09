@@ -31,6 +31,7 @@ function PostCard({ post }: { post: Post }) {
         <div className="post-title">
           <Link to={`/posts/${post.id}`}>{post.title}</Link>
         </div>
+        
         <div className="post-excerpt">
           {post.body.length > 180 ? post.body.slice(0, 180) + "..." : post.body}
         </div>

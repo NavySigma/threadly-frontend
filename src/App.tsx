@@ -3,30 +3,27 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
 import Home from "./pages/Home";
-import AuthCallback from "./pages/AuthCallback";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
 import CreatePostPage from "./pages/user/CreatePostPage";
 import EditPostPage from "./pages/user/EditPostPage";
 import EditProfilePage from "./pages/user/EditProfilePage";
+import PostDetailPage from "./pages/user/PostDetailPage";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/posts/create" element={<CreatePostPage />} />
-            <Route path="/posts/:id/edit" element={<EditPostPage />} />
+            <Route path="/posts/:id" element={<PostDetailPage/>} />
+            <Route path="/posts/:id" element={<EditPostPage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
           </Route>
-
         </Routes>
       </AuthProvider>
     </BrowserRouter>
