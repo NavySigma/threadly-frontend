@@ -8,8 +8,9 @@ import Login from "./pages/user/Login";
 import CreatePostPage from "./pages/user/CreatePostPage";
 import EditPostPage from "./pages/user/EditPostPage";
 import EditProfilePage from "./pages/user/EditProfilePage";
-import PostDetailPage from "./pages/user/PostDetailPage";
 import ProfilePage from "./pages/user/ProfilePage";
+import PointsHistoryPage from "./pages/user/PointsHistoryPage";
+import PostDetailPage from "./pages/user/PostDetailPage";
 
 function App() {
   return (
@@ -21,10 +22,11 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/posts/create" element={<CreatePostPage />} />
-            <Route path="/posts/:id" element={<PostDetailPage/>} />
+            <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id/edit" element={<EditPostPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/history" element={<PointsHistoryPage />} />
           </Route>
         </Routes>
       </AuthProvider>
