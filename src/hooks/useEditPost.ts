@@ -1,7 +1,7 @@
-// src/hooks/useEditPost.ts
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { postsApi, categoriesApi, tagsApi } from "../api/posts";
-import type { Category, Tag, Post, UpdatePostPayload } from "../api/posts";
+import type { Category, Tag, UpdatePostPayload } from "../api/posts";
 
 export interface EditPostForm {
   category_id: string;
@@ -11,95 +11,84 @@ export interface EditPostForm {
 }
 
 export function useEditPost(postId: string) {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<EditPostForm>({
     category_id: "",
     title: "",
     body: "",
     selectedTags: [],
   });
-  const [originalPost, setOriginalPost] = useState<Post | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
   const [tagSearch, setTagSearch] = useState("");
-  const [isLoadingMeta, setIsLoadingMeta] = useState(true);
-  const [isLoadingPost, setIsLoadingPost] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const tagSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-  // Fetch post yang akan diedit
-  useEffect(() => {
-    let cancelled = false;
-    setIsLoadingPost(true);
+  // ── Fetch post ──────────────────────────────────────────────────────────────
+  const { data: originalPost, isLoading: isLoadingPost } = useQuery({
+    queryKey: ["posts", postId],
+    queryFn: () => postsApi.getById(postId).then((r) => r.data),
+    enabled: !!postId,
+  });
 
-    postsApi
-      .getById(postId)
-      .then((res) => {
-        if (cancelled) return;
-        const post = res.data;
-        setOriginalPost(post);
-        setForm({
-          category_id: post.category.id,
-          title: post.title,
-          body: post.body,
-          selectedTags: post.tags ?? [],
-        });
-      })
-      .catch(() => {
-        if (!cancelled) setGlobalError("Gagal memuat postingan.");
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingPost(false);
-      });
+  // Inisialisasi form dari data post (hanya sekali)
+  if (originalPost && !initialized) {
+    setForm({
+      category_id: originalPost.category.id,
+      title: originalPost.title,
+      body: originalPost.body,
+      selectedTags: originalPost.tags ?? [],
+    });
+    setInitialized(true);
+  }
 
-    return () => { cancelled = true; };
-  }, [postId]);
-
-  // Fetch categories
-  useEffect(() => {
-    let cancelled = false;
-    categoriesApi.getAll().then((res) => {
-      if (cancelled) return;
+  // ── Fetch categories ────────────────────────────────────────────────────────
+  const { isLoading: isLoadingMeta } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await categoriesApi.getAll();
       const flat: Category[] = [];
       for (const cat of res.data) {
         flat.push(cat);
         if (cat.children?.length) flat.push(...cat.children);
       }
-      setCategories(flat);
-    }).finally(() => {
-      if (!cancelled) setIsLoadingMeta(false);
-    });
-    return () => { cancelled = true; };
-  }, []);
-
-  // Fetch tags dengan debounce
-  useEffect(() => {
-    if (tagSearchTimer.current) clearTimeout(tagSearchTimer.current);
-    tagSearchTimer.current = setTimeout(async () => {
-      try {
-        const res = await tagsApi.getAll({ search: tagSearch || undefined });
-        setTags(res.data);
-      } catch {
-        console.error("Failed to load tags");
-      }
-    }, 300);
-    return () => { if (tagSearchTimer.current) clearTimeout(tagSearchTimer.current); };
-  }, [tagSearch]);
-
-  const setField = useCallback(
-    <K extends keyof EditPostForm>(key: K, value: EditPostForm[K]) => {
-      setForm((prev) => ({ ...prev, [key]: value }));
-      setErrors((prev) => {
-        if (!prev[key]) return prev;
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
+      return flat;
     },
-    [],
-  );
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const categories: Category[] =
+    queryClient.getQueryData<Category[]>(["categories"]) ?? [];
+
+  // ── Fetch tags ──────────────────────────────────────────────────────────────
+  useQuery({
+    queryKey: ["tags", tagSearch],
+    queryFn: () => tagsApi.getAll({ search: tagSearch || undefined }).then((r) => r.data),
+    staleTime: 30 * 1000,
+  });
+
+  const tags: Tag[] =
+    queryClient.getQueryData<Tag[]>(["tags", tagSearch]) ?? [];
+
+  // ── Mutation ────────────────────────────────────────────────────────────────
+  const mutation = useMutation({
+    mutationFn: (payload: UpdatePostPayload) =>
+      postsApi.update(postId, payload).then((r) => r.data),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["posts", postId], updated);
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+
+  // ── Form helpers ────────────────────────────────────────────────────────────
+  const setField = useCallback(<K extends keyof EditPostForm>(key: K, value: EditPostForm[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
 
   const addTag = useCallback((tag: Tag) => {
     setForm((prev) => {
@@ -138,7 +127,6 @@ export function useEditPost(postId: string) {
   const submit = useCallback(async (): Promise<boolean> => {
     setGlobalError(null);
     if (!validate()) return false;
-    setIsSubmitting(true);
     try {
       const payload: UpdatePostPayload = {
         category_id: form.category_id,
@@ -146,8 +134,7 @@ export function useEditPost(postId: string) {
         body: form.body.trim(),
         tags: form.selectedTags.map((t) => t.id),
       };
-      await postsApi.update(postId, payload);
-      setIsSuccess(true);
+      await mutation.mutateAsync(payload);
       return true;
     } catch (error: unknown) {
       const err = error as Record<string, unknown>;
@@ -163,10 +150,8 @@ export function useEditPost(postId: string) {
         setGlobalError("Terjadi kesalahan tak terduga. Coba lagi.");
       }
       return false;
-    } finally {
-      setIsSubmitting(false);
     }
-  }, [form, postId, validate]);
+  }, [form, validate, mutation]);
 
   return {
     form,
@@ -176,8 +161,8 @@ export function useEditPost(postId: string) {
     tagSearch,
     isLoadingMeta,
     isLoadingPost,
-    isSubmitting,
-    isSuccess,
+    isSubmitting: mutation.isPending,
+    isSuccess: mutation.isSuccess,
     errors,
     globalError,
     setField,
