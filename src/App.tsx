@@ -9,6 +9,7 @@ import CreatePostPage from "./pages/user/CreatePostPage";
 import EditPostPage from "./pages/user/EditPostPage";
 import EditProfilePage from "./pages/user/EditProfilePage";
 import PostDetailPage from "./pages/user/PostDetailPage";
+import PointsHistoryPage from "./pages/user/PointsHistoryPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/posts/:id" element={<PostDetailPage/>} />
             <Route path="/posts/:id" element={<EditPostPage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
+             <Route path="/history" element={<PointsHistoryPage />} />
           </Route>
         </Routes>
       </AuthProvider>

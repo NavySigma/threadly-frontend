@@ -82,6 +82,7 @@
   font-size: 13px;
   background: var(--white);
   outline: none;
+  transition: border-color 0.2s;
 }
 
 .navbar-search input:focus {
@@ -207,6 +208,12 @@
   font-size: 16px;
   width: 18px;
   text-align: center;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--black-100);
+  margin: 8px 0;
 }
 
 /* ── Post List ── */
@@ -462,6 +469,7 @@
   border-radius: 4px;
   font-size: 13px;
   outline: none;
+  transition: border-color 0.2s;
 }
 
 .form-group input:focus {
@@ -492,6 +500,16 @@
   color: var(--black-500);
 }
 
+<<<<<<< HEAD
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--black-500);
+}
+
+.empty-state-icon {
+=======
 /* ── Create Post Page ── */
 .create-post-page {
   padding: 24px;
@@ -826,10 +844,17 @@
 }
 
 .insufficient-points-icon {
+>>>>>>> 2440b480930d717efdd1aa3384d9b34b10192849
   font-size: 48px;
   margin-bottom: 16px;
 }
 
+<<<<<<< HEAD
+.empty-state h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--black-700);
+=======
 .insufficient-points-title {
   font-size: 20px;
   font-weight: 600;
@@ -853,11 +878,16 @@
 .insufficient-points-current strong {
   color: var(--black-700);
   font-weight: 600;
+>>>>>>> 2440b480930d717efdd1aa3384d9b34b10192849
 }
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .sidebar {
+    display: none;
+  }
+
+  .navbar-search input {
     display: none;
   }
 
