@@ -1,51 +1,33 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { postsApi } from "../api/posts";
-import type { Post } from "../api/posts";
 
 export function usePosts() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"newest" | "votes" | "unanswered">("newest");
 
-  const fetchPosts = useCallback(async (page = 1) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await postsApi.getAll({ page });
-      setPosts(res.data);
-      setCurrentPage(res.current_page);
-      setLastPage(res.last_page);
-      setTotal(res.total);
-    } catch {
-      setError("Gagal memuat postingan.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPosts(1);
-  }, [fetchPosts]);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["posts", currentPage],
+    queryFn: () => postsApi.getAll({ page: currentPage }),
+    staleTime: 30 * 1000,
+  });
 
   const goToPage = useCallback((page: number) => {
-    fetchPosts(page);
+    setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [fetchPosts]);
+  }, []);
 
   return {
-    posts,
-    currentPage,
-    lastPage,
-    total,
+    posts: data?.data ?? [],
+    currentPage: data?.current_page ?? currentPage,
+    lastPage: data?.last_page ?? 1,
+    total: data?.total ?? 0,
     isLoading,
-    error,
+    error: error ? "Gagal memuat postingan." : null,
     sortBy,
     setSortBy,
     goToPage,
-    refetch: () => fetchPosts(currentPage),
+    refetch: () => queryClient.invalidateQueries({ queryKey: ["posts", currentPage] }),
   };
 }
