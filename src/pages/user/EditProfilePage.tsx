@@ -1,9 +1,53 @@
 import { useState, useEffect, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useEditProfile } from "../../hooks/useEditProfile";
 import { useChangePassword } from "../../hooks/useChangePassword";
 
 type Tab = "profile" | "password";
+
+function getInitial(name: string) {
+  return name ? name.charAt(0).toUpperCase() : "U";
+}
+
+const AVATAR_BASE: React.CSSProperties = {
+  borderRadius: 6,
+  background: "#c084fc",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 500,
+  color: "#fff",
+  overflow: "hidden",
+  flexShrink: 0,
+};
+
+function Avatar({
+  url,
+  username,
+  size = 72,
+}: {
+  url: string | null | undefined;
+  username: string;
+  size?: number;
+}) {
+  return (
+    <div style={{ ...AVATAR_BASE, width: size, height: size, fontSize: Math.round(size * 0.35) }}>
+      {url ? (
+        <img
+          src={url}
+          alt={username}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
+        />
+      ) : (
+        getInitial(username)
+      )}
+    </div>
+  );
+}
 
 function Alert({
   type,
@@ -14,76 +58,38 @@ function Alert({
   message: string;
   onClose: () => void;
 }) {
+  const isSuccess = type === "success";
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 14px",
-        borderRadius: 8,
-        fontSize: 14,
-        background: type === "success" ? "#f0fdf4" : "#fef2f2",
-        border: `1px solid ${type === "success" ? "#86efac" : "#fca5a5"}`,
-        color: type === "success" ? "#15803d" : "#dc2626",
-      }}
-    >
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10,
+      padding: "10px 14px", borderRadius: 8, fontSize: 13,
+      background: isSuccess ? "#f0fdf4" : "#fef2f2",
+      border: `0.5px solid ${isSuccess ? "#86efac" : "#fca5a5"}`,
+      color: isSuccess ? "#15803d" : "#dc2626",
+    }}>
       <span style={{ flex: 1 }}>{message}</span>
-      <button
-        onClick={onClose}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontSize: 18,
-          color: "inherit",
-          opacity: 0.6,
-        }}
-      >
-        ×
-      </button>
+      <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "inherit", opacity: 0.6, lineHeight: 1 }}>×</button>
     </div>
   );
 }
 
-function AvatarPreview({
-  url,
-  username,
-}: {
-  url: string | null;
-  username: string;
-}) {
-  const initial = username.charAt(0).toUpperCase();
-  return (
-    <div
-      style={{
-        width: 72,
-        height: 72,
-        borderRadius: "50%",
-        overflow: "hidden",
-        border: "2px solid #818cf8",
-        flexShrink: 0,
-        background: "#e0e7ff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 24,
-        fontWeight: 600,
-        color: "#4f46e5",
-      }}
-    >
-      {url ? (
-        <img
-          src={url}
-          alt={username}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : (
-        initial
-      )}
-    </div>
-  );
-}
+const fieldLabel: React.CSSProperties = {
+  fontSize: 11, fontWeight: 500, color: "#6b7280",
+  textTransform: "uppercase", letterSpacing: "0.06em",
+};
+
+const inputStyle: React.CSSProperties = {
+  padding: "9px 12px", border: "0.5px solid #d1d5db", borderRadius: 8,
+  fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box",
+  color: "inherit", background: "transparent", fontFamily: "inherit",
+};
+
+const saveBtnStyle: React.CSSProperties = {
+  alignSelf: "flex-start", background: "#4f46e5", color: "#fff",
+  border: "none", borderRadius: 8, padding: "10px 24px",
+  fontSize: 14, fontWeight: 500, cursor: "pointer",
+  display: "flex", alignItems: "center", gap: 8,
+};
 
 function ProfileTab() {
   const { user, setUser } = useAuth();
@@ -92,15 +98,11 @@ function ProfileTab() {
   const [username, setUsername] = useState(() => user?.username ?? "");
   const [bio, setBio] = useState(() => user?.bio ?? "");
   const [avatarUrl, setAvatarUrl] = useState(() => user?.avatar_url ?? "");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    () => user?.avatar_url ?? null,
-  );
+  const [previewUrl, setPreviewUrl] = useState<string | null>(() => user?.avatar_url ?? null);
 
   useEffect(() => {
     const trimmed = avatarUrl.trim();
-    const t = setTimeout(() => {
-      setPreviewUrl(trimmed ? avatarUrl : null);
-    }, 600);
+    const t = setTimeout(() => setPreviewUrl(trimmed || null), 600);
     return () => clearTimeout(t);
   }, [avatarUrl]);
 
@@ -110,8 +112,7 @@ function ProfileTab() {
     const payload: Record<string, string | null | undefined> = {};
     if (username !== user?.username) payload.username = username;
     if (bio !== (user?.bio ?? "")) payload.bio = bio || null;
-    if (avatarUrl !== (user?.avatar_url ?? ""))
-      payload.avatar_url = avatarUrl || null;
+    if (avatarUrl !== (user?.avatar_url ?? "")) payload.avatar_url = avatarUrl || null;
     if (Object.keys(payload).length === 0) return;
     const updated = await submit(payload);
     if (updated) {
@@ -126,58 +127,24 @@ function ProfileTab() {
   const charLeft = 500 - bio.length;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      style={{ display: "flex", flexDirection: "column", gap: 16 }}
-    >
+    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-        <AvatarPreview url={previewUrl} username={username || "U"} />
-        <div
-          style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}
-        >
-          <label
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#6b7280",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            URL Avatar
-          </label>
+        <Avatar url={previewUrl} username={username || "U"} size={64} />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+          <label style={fieldLabel}>Foto profil</label>
           <input
             type="url"
             placeholder="https://example.com/photo.jpg"
             value={avatarUrl}
             onChange={(e) => setAvatarUrl(e.target.value)}
-            style={{
-              padding: "9px 12px",
-              border: "1px solid #e5e7eb",
-              borderRadius: 8,
-              fontSize: 14,
-              outline: "none",
-            }}
+            style={inputStyle}
           />
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>
-            Paste URL gambar profil kamu
-          </span>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>Paste URL gambar profil kamu</span>
         </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#6b7280",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Username
-        </label>
+        <label style={fieldLabel}>Username</label>
         <input
           type="text"
           value={username}
@@ -185,50 +152,21 @@ function ProfileTab() {
           minLength={3}
           maxLength={100}
           required
-          style={{
-            padding: "9px 12px",
-            border: "1px solid #e5e7eb",
-            borderRadius: 8,
-            fontSize: 14,
-            outline: "none",
-          }}
+          style={inputStyle}
         />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#6b7280",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Bio
-        </label>
+        <label style={fieldLabel}>Bio</label>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           maxLength={500}
           rows={4}
           placeholder="Ceritain sedikit tentang diri kamu..."
-          style={{
-            padding: "9px 12px",
-            border: "1px solid #e5e7eb",
-            borderRadius: 8,
-            fontSize: 14,
-            outline: "none",
-            resize: "vertical",
-          }}
+          style={{ ...inputStyle, resize: "vertical" }}
         />
-        <span
-          style={{
-            fontSize: 12,
-            color: charLeft < 50 ? "#f59e0b" : "#9ca3af",
-            textAlign: "right",
-          }}
-        >
+        <span style={{ fontSize: 12, color: charLeft < 50 ? "#f59e0b" : "#9ca3af", textAlign: "right" }}>
           {charLeft} karakter tersisa
         </span>
       </div>
@@ -239,25 +177,54 @@ function ProfileTab() {
       <button
         type="submit"
         disabled={isLoading}
-        style={{
-          alignSelf: "flex-start",
-          background: "#4f46e5",
-          color: "#fff",
-          border: "none",
-          borderRadius: 8,
-          padding: "10px 24px",
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: isLoading ? "not-allowed" : "pointer",
-          opacity: isLoading ? 0.7 : 1,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
+        style={{ ...saveBtnStyle, opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
       >
-        {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
+        {isLoading ? "Menyimpan..." : "Simpan perubahan"}
       </button>
     </form>
+  );
+}
+
+function strengthScore(pw: string) {
+  if (!pw) return 0;
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  return s;
+}
+const STRENGTH_LABELS = ["", "Lemah", "Cukup", "Kuat", "Sangat kuat"];
+const STRENGTH_COLORS = ["", "#ef4444", "#f59e0b", "#10b981", "#10b981"];
+
+function PasswordField({
+  label, value, onChange, show, onToggle, autoComplete, borderColor,
+}: {
+  label: string; value: string; onChange: (v: string) => void;
+  show: boolean; onToggle: () => void; autoComplete: string; borderColor?: string;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <label style={fieldLabel}>{label}</label>
+      <div style={{ position: "relative" }}>
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required
+          autoComplete={autoComplete}
+          style={{ ...inputStyle, paddingRight: 40, borderColor: borderColor ?? "#d1d5db" }}
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={show ? "Sembunyikan password" : "Tampilkan password"}
+          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#9ca3af", lineHeight: 1 }}
+        >
+          {show ? "🙈" : "👁"}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -271,20 +238,7 @@ function PasswordTab() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
 
-  const strength = (() => {
-    if (!next) return 0;
-    let s = 0;
-    if (next.length >= 8) s++;
-    if (/[A-Z]/.test(next)) s++;
-    if (/[0-9]/.test(next)) s++;
-    if (/[^A-Za-z0-9]/.test(next)) s++;
-    return s;
-  })();
-
-  const strengthLabel = ["", "Lemah", "Cukup", "Kuat", "Sangat Kuat"][strength];
-  const strengthColor = ["", "#ef4444", "#f59e0b", "#10b981", "#10b981"][
-    strength
-  ];
+  const score = strengthScore(next);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -298,347 +252,153 @@ function PasswordTab() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      style={{ display: "flex", flexDirection: "column", gap: 16 }}
-    >
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#6b7280",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Password Sekarang
-        </label>
-        <div style={{ position: "relative" }}>
-          <input
-            type={showCurrent ? "text" : "password"}
-            value={current}
-            onChange={(e) => setCurrent(e.target.value)}
-            required
-            autoComplete="current-password"
-            style={{
-              width: "100%",
-              padding: "9px 40px 9px 12px",
-              border: "1px solid #e5e7eb",
-              borderRadius: 8,
-              fontSize: 14,
-              outline: "none",
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setShowCurrent((v) => !v)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 16,
-              color: "#9ca3af",
-            }}
-          >
-            {showCurrent ? "🙈" : "👁"}
-          </button>
-        </div>
-      </div>
+    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <PasswordField
+        label="Password sekarang"
+        value={current}
+        onChange={setCurrent}
+        show={showCurrent}
+        onToggle={() => setShowCurrent((v) => !v)}
+        autoComplete="current-password"
+      />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#6b7280",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Password Baru
-        </label>
-        <div style={{ position: "relative" }}>
-          <input
-            type={showNew ? "text" : "password"}
-            value={next}
-            onChange={(e) => setNext(e.target.value)}
-            minLength={8}
-            required
-            autoComplete="new-password"
-            style={{
-              width: "100%",
-              padding: "9px 40px 9px 12px",
-              border: "1px solid #e5e7eb",
-              borderRadius: 8,
-              fontSize: 14,
-              outline: "none",
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => setShowNew((v) => !v)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 16,
-              color: "#9ca3af",
-            }}
-          >
-            {showNew ? "🙈" : "👁"}
-          </button>
-        </div>
+        <PasswordField
+          label="Password baru"
+          value={next}
+          onChange={setNext}
+          show={showNew}
+          onToggle={() => setShowNew((v) => !v)}
+          autoComplete="new-password"
+        />
         {next && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div
-              style={{
-                flex: 1,
-                height: 4,
-                background: "#e5e7eb",
-                borderRadius: 4,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${strength * 25}%`,
-                  background: strengthColor,
-                  borderRadius: 4,
-                  transition: "all .3s",
-                }}
-              />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+            <div style={{ flex: 1, height: 4, background: "#e5e7eb", borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${score * 25}%`, background: STRENGTH_COLORS[score], borderRadius: 4, transition: "all .3s" }} />
             </div>
-            <span style={{ fontSize: 12, color: strengthColor, minWidth: 72 }}>
-              {strengthLabel}
-            </span>
+            <span style={{ fontSize: 12, color: STRENGTH_COLORS[score], minWidth: 72 }}>{STRENGTH_LABELS[score]}</span>
           </div>
         )}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <label
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#6b7280",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Konfirmasi Password Baru
-        </label>
+        <label style={fieldLabel}>Konfirmasi password baru</label>
         <input
           type="password"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required
           autoComplete="new-password"
-          style={{
-            padding: "9px 12px",
-            border: `1px solid ${confirm && confirm !== next ? "#f87171" : "#e5e7eb"}`,
-            borderRadius: 8,
-            fontSize: 14,
-            outline: "none",
-          }}
+          style={{ ...inputStyle, borderColor: confirm && confirm !== next ? "#f87171" : "#d1d5db" }}
         />
         {confirm && confirm !== next && (
-          <span style={{ fontSize: 12, color: "#ef4444" }}>
-            Password tidak cocok
-          </span>
+          <span style={{ fontSize: 12, color: "#ef4444" }}>Password tidak cocok</span>
         )}
       </div>
 
       {error && <Alert type="error" message={error} onClose={reset} />}
-      {success && (
-        <Alert
-          type="success"
-          message={`${success} Mengalihkan ke login...`}
-          onClose={reset}
-        />
-      )}
+      {success && <Alert type="success" message={`${success} Mengalihkan ke login...`} onClose={reset} />}
 
       <button
         type="submit"
         disabled={isLoading}
-        style={{
-          alignSelf: "flex-start",
-          background: "#4f46e5",
-          color: "#fff",
-          border: "none",
-          borderRadius: 8,
-          padding: "10px 24px",
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: isLoading ? "not-allowed" : "pointer",
-          opacity: isLoading ? 0.7 : 1,
-        }}
+        style={{ ...saveBtnStyle, opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "not-allowed" : "pointer" }}
       >
-        {isLoading ? "Memproses..." : "Ganti Password"}
+        {isLoading ? "Memproses..." : "Ganti password"}
       </button>
     </form>
   );
 }
 
 export default function EditProfilePage() {
-  const { user } = useAuth(); // hapus authLoading, tidak ada di context kamu
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  if (!user)
+  if (!user) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#6b7280", fontSize: 14 }}>
         Kamu belum login.
       </div>
     );
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 32,
-        padding: 40,
-        maxWidth: 1000,
-        margin: "0 auto",
-        fontFamily: "sans-serif",
-      }}
-    >
-      <aside style={{ width: 220, flexShrink: 0 }}>
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 12,
-            padding: "24px 16px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 10,
-            textAlign: "center",
-            position: "sticky",
-            top: 40,
-          }}
-        >
-          <AvatarPreview url={user.avatar_url} username={user.username} />
-          <p style={{ fontWeight: 600, fontSize: 15 }}>@{user.username}</p>
-          <p style={{ fontSize: 12, color: "#6b7280", wordBreak: "break-all" }}>
-            {user.email}
-          </p>
-          <span
-            style={{
-              fontSize: 12,
-              background: "#ede9fe",
-              color: "#6d28d9",
-              borderRadius: 20,
-              padding: "3px 12px",
-            }}
-          >
+    <div style={{ display: "flex", gap: 28, padding: "36px 40px", maxWidth: 900, margin: "0 auto", fontFamily: "inherit", boxSizing: "border-box" }}>
+
+      {/* Sidebar */}
+      <aside style={{ width: 200, flexShrink: 0 }}>
+        <div style={{
+          background: "#fff", border: "0.5px solid #e5e7eb", borderRadius: 12,
+          padding: "24px 16px", display: "flex", flexDirection: "column",
+          alignItems: "center", gap: 10, textAlign: "center",
+          position: "sticky", top: 36,
+        }}>
+          <Avatar url={user.avatar_url} username={user.username} size={72} />
+          <p style={{ fontWeight: 500, fontSize: 14, margin: 0 }}>@{user.username}</p>
+          <p style={{ fontSize: 12, color: "#6b7280", wordBreak: "break-all", margin: 0 }}>{user.email}</p>
+          <span style={{ fontSize: 12, background: "#ede9fe", color: "#6d28d9", borderRadius: 20, padding: "3px 12px" }}>
             ⭐ {user.reputation_points.toLocaleString()} poin
           </span>
           {user.bio && (
-            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>
-              {user.bio}
-            </p>
+            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5, margin: 0 }}>{user.bio}</p>
           )}
-          <div
-            style={{
-              display: "flex",
-              gap: 6,
-              flexWrap: "wrap",
-              justifyContent: "center",
-            }}
-          >
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
             {user.roles?.map((r) => (
-              <span
-                key={r.id}
-                style={{
-                  fontSize: 11,
-                  padding: "2px 10px",
-                  borderRadius: 20,
-                  background:
-                    r.name === "admin"
-                      ? "#fee2e2"
-                      : r.name === "moderator"
-                        ? "#fef3c7"
-                        : "#ede9fe",
-                  color:
-                    r.name === "admin"
-                      ? "#dc2626"
-                      : r.name === "moderator"
-                        ? "#d97706"
-                        : "#6d28d9",
-                }}
-              >
+              <span key={r.id} style={{
+                fontSize: 11, padding: "2px 10px", borderRadius: 20,
+                background: r.name === "admin" ? "#fee2e2" : r.name === "moderator" ? "#fef3c7" : "#ede9fe",
+                color: r.name === "admin" ? "#dc2626" : r.name === "moderator" ? "#d97706" : "#6d28d9",
+              }}>
                 {r.name}
               </span>
             ))}
           </div>
+
+          {/* Tombol kembali ke profile */}
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              marginTop: 4, width: "100%", padding: "7px 0",
+              border: "0.5px solid #e5e7eb", borderRadius: 8,
+              background: "transparent", fontSize: 13, color: "#6b7280",
+              cursor: "pointer",
+            }}
+          >
+            ← Kembali
+          </button>
         </div>
       </aside>
 
+      {/* Main */}
       <main style={{ flex: 1, minWidth: 0 }}>
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700 }}>Pengaturan Akun</h1>
-          <p style={{ color: "#6b7280", marginTop: 4 }}>
-            Kelola informasi profil dan keamanan akun kamu
-          </p>
+          <h1 style={{ fontSize: 22, fontWeight: 500, margin: "0 0 4px" }}>Pengaturan akun</h1>
+          <p style={{ color: "#6b7280", fontSize: 14, margin: 0 }}>Kelola informasi profil dan keamanan akun kamu</p>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            background: "#f3f4f6",
-            borderRadius: 10,
-            padding: 4,
-            width: "fit-content",
-            marginBottom: 20,
-          }}
-        >
+        {/* Tab switcher */}
+        <div style={{ display: "flex", background: "#f3f4f6", borderRadius: 10, padding: 4, width: "fit-content", marginBottom: 20, gap: 2 }}>
           {(["profile", "password"] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
                 background: activeTab === tab ? "#fff" : "transparent",
-                border: activeTab === tab ? "1px solid #e5e7eb" : "none",
-                borderRadius: 8,
-                padding: "8px 20px",
-                fontSize: 14,
-                fontWeight: activeTab === tab ? 600 : 400,
+                border: activeTab === tab ? "0.5px solid #e5e7eb" : "none",
+                borderRadius: 8, padding: "7px 18px", fontSize: 13,
+                fontWeight: activeTab === tab ? 500 : 400,
                 color: activeTab === tab ? "#111827" : "#6b7280",
-                cursor: "pointer",
-                transition: "all .2s",
+                cursor: "pointer", transition: "all .15s",
               }}
             >
-              {tab === "profile" ? "👤 Edit Profil" : "🔒 Ganti Password"}
+              {tab === "profile" ? "👤 Edit profil" : "🔒 Ganti password"}
             </button>
           ))}
         </div>
 
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 12,
-            padding: 28,
-          }}
-        >
+        {/* Form card */}
+        <div style={{ background: "#fff", border: "0.5px solid #e5e7eb", borderRadius: 12, padding: 28 }}>
           {activeTab === "profile" ? <ProfileTab /> : <PasswordTab />}
         </div>
       </main>

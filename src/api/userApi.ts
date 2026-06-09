@@ -14,8 +14,23 @@ function authHeaders(): HeadersInit {
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(err.message ?? `HTTP ${res.status}`);
+    let message = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      // Laravel biasanya: { message: "..." } atau { errors: { field: ["msg"] } }
+      if (body?.message) {
+        message = body.message;
+      } else if (body?.errors) {
+        // Ambil pesan error pertama dari validation errors Laravel
+        const firstField = Object.values(body.errors)[0];
+        if (Array.isArray(firstField) && firstField.length > 0) {
+          message = firstField[0] as string;
+        }
+      }
+    } catch {
+      // body bukan JSON, pakai pesan HTTP status
+    }
+    throw new Error(message);
   }
   return res.json() as Promise<T>;
 }
