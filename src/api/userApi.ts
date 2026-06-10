@@ -46,6 +46,7 @@ export interface User {
   avatar_url: string | null;
   bio: string | null;
   reputation_points: number;
+  is_oauth: boolean;
   created_at: string;
   updated_at: string;
   roles: Role[];
@@ -58,7 +59,7 @@ export interface UpdateProfilePayload {
 }
 
 export interface UpdatePasswordPayload {
-  current_password: string;
+  current_password?: string;
   new_password: string;
   new_password_confirmation: string;
 }

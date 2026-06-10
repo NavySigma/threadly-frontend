@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useEditProfile } from "../../hooks/useEditProfile";
 import { useChangePassword } from "../../hooks/useChangePassword";
+import type { UpdatePasswordPayload, User } from "../../api/userApi";
 
 type Tab = "profile" | "password";
 
@@ -229,8 +230,12 @@ function PasswordField({
 }
 
 function PasswordTab() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { isLoading, error, success, submit, reset } = useChangePassword();
+
+  // Cast ke User dari userApi agar TypeScript mengenali is_oauth
+  const typedUser = user as User | null;
+  const isOAuth = typedUser?.is_oauth ?? false;
 
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -243,25 +248,48 @@ function PasswordTab() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     reset();
-    const ok = await submit({
-      current_password: current,
+    const payload: UpdatePasswordPayload = {
       new_password: next,
       new_password_confirmation: confirm,
-    });
+      ...(!isOAuth && { current_password: current }),
+    };
+    // ← fix: tambah isOAuth sebagai argumen kedua
+    const ok = await submit(payload, isOAuth);
     if (ok) setTimeout(() => logout(), 2000);
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <PasswordField
-        label="Password sekarang"
-        value={current}
-        onChange={setCurrent}
-        show={showCurrent}
-        onToggle={() => setShowCurrent((v) => !v)}
-        autoComplete="current-password"
-      />
 
+      {/* Banner info — hanya muncul untuk user OAuth */}
+      {isOAuth && (
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: 10,
+          padding: "12px 14px", borderRadius: 8, fontSize: 13,
+          background: "#eff6ff", border: "0.5px solid #93c5fd",
+          color: "#1d4ed8", lineHeight: 1.5,
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>ℹ️</span>
+          <span>
+            Akun kamu terhubung melalui <strong>Google / GitHub</strong>.
+            Kamu bisa langsung set password baru tanpa perlu memasukkan password lama.
+          </span>
+        </div>
+      )}
+
+      {/* Field password sekarang — hanya muncul kalau BUKAN OAuth */}
+      {!isOAuth && (
+        <PasswordField
+          label="Password sekarang"
+          value={current}
+          onChange={setCurrent}
+          show={showCurrent}
+          onToggle={() => setShowCurrent((v) => !v)}
+          autoComplete="current-password"
+        />
+      )}
+
+      {/* Password baru */}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <PasswordField
           label="Password baru"
@@ -274,13 +302,19 @@ function PasswordTab() {
         {next && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
             <div style={{ flex: 1, height: 4, background: "#e5e7eb", borderRadius: 4, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${score * 25}%`, background: STRENGTH_COLORS[score], borderRadius: 4, transition: "all .3s" }} />
+              <div style={{
+                height: "100%", width: `${score * 25}%`,
+                background: STRENGTH_COLORS[score], borderRadius: 4, transition: "all .3s",
+              }} />
             </div>
-            <span style={{ fontSize: 12, color: STRENGTH_COLORS[score], minWidth: 72 }}>{STRENGTH_LABELS[score]}</span>
+            <span style={{ fontSize: 12, color: STRENGTH_COLORS[score], minWidth: 72 }}>
+              {STRENGTH_LABELS[score]}
+            </span>
           </div>
         )}
       </div>
 
+      {/* Konfirmasi password baru */}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <label style={fieldLabel}>Konfirmasi password baru</label>
         <input
@@ -355,7 +389,6 @@ export default function EditProfilePage() {
             ))}
           </div>
 
-          {/* Tombol kembali ke profile */}
           <button
             onClick={() => navigate(-1)}
             style={{
