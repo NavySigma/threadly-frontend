@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 
 export default function Register() {
@@ -8,7 +9,6 @@ export default function Register() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-
     const form = new FormData(e.currentTarget);
 
     try {
@@ -18,34 +18,75 @@ export default function Register() {
         password: form.get("password") as string,
         password_confirmation: form.get("password_confirmation") as string,
       });
-
       alert("Register berhasil!");
-    } catch (err) {
-      const msg =
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message: unknown }).message)
-          : "Gagal register";
-      setError(msg);
+    } catch (err: any) {
+      setError(err?.message || "Gagal register");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Daftar</h1>
+    <div className="so-auth-page">
+      <div className="so-register-wrapper">
+        {/* Sisi Kiri: Pesan Sambutan */}
+        <div className="so-register-left">
+          <h1>Join the Threadly community</h1>
+          <ul>
+            <li>
+              <span>&#128269;</span> Get unstuck — ask a question!
+            </li>
+            <li>
+              <span>&#128278;</span> Save your favorite posts, tags, and filters
+            </li>
+            <li>
+              <span>&#127942;</span> Answer questions and earn reputation
+            </li>
+          </ul>
+        </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {/* Sisi Kanan: Form Register */}
+        <div className="so-register-right">
+          <div className="so-auth-card">
+            {error && <p className="so-error-msg">{error}</p>}
 
-      <input name="username" placeholder="Username" required />
-      <input name="email" type="email" placeholder="Email" required />
-      <input name="password" type="password" placeholder="Password" required />
-      <input
-        name="password_confirmation"
-        type="password"
-        placeholder="Konfirmasi Password"
-        required
-      />
+            <form onSubmit={handleSubmit}>
+              <div className="so-form-group">
+                <label>Username</label>
+                <input name="username" type="text" required />
+              </div>
+              <div className="so-form-group">
+                <label>Email</label>
+                <input name="email" type="email" required />
+              </div>
+              <div className="so-form-group">
+                <label>Password</label>
+                <input name="password" type="password" required />
+                <small>
+                  Must contain 8+ characters, including at least 1 letter and 1
+                  number.
+                </small>
+              </div>
+              <div className="so-form-group">
+                <label>Confirm Password</label>
+                <input name="password_confirmation" type="password" required />
+              </div>
 
-      <button type="submit">Daftar</button>
-    </form>
+              <button type="submit" className="so-submit-btn">
+                Sign up
+              </button>
+            </form>
+
+            <div className="so-oauth-container" style={{ marginTop: "24px" }}>
+              <button className="so-oauth-btn so-oauth-google" type="button">
+                Sign up with Google
+              </button>
+            </div>
+          </div>
+
+          <div className="so-auth-footer">
+            Already have an account? <Link to="/login">Log in</Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
