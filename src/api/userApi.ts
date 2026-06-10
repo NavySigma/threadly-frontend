@@ -7,7 +7,7 @@ function authHeaders(): HeadersInit {
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
-    ...(token ? { Authorization: "Bearer ${token}" } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
