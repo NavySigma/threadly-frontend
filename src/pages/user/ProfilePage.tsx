@@ -108,7 +108,6 @@ function ProfileContent({ profileUser, isOwnProfile }: { profileUser: PublicUser
         <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>Stats</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <StatCard num={displayUser?.reputation_points ?? 0} label="reputation" />
-          {/* fix: posts_count hanya ada di PublicUser, cast dulu */}
           <StatCard num={(displayUser as PublicUser)?.posts_count ?? 0} label="posts" />
           <StatCard num={(displayUser as PublicUser)?.followers_count ?? 0} label="followers" />
           <StatCard num={(displayUser as PublicUser)?.following_count ?? 0} label="following" />
@@ -158,7 +157,7 @@ function ProfileContent({ profileUser, isOwnProfile }: { profileUser: PublicUser
   );
 }
 
-// fix: hapus setActiveSubTab dari props karena tidak dipakai di dalam component ini
+// ← fix: gunakan async function di dalam useEffect, semua setState di dalam async
 function FollowingContent({
   userId,
   activeSubTab,
@@ -168,25 +167,33 @@ function FollowingContent({
 }) {
   const [followers, setFollowers] = useState<FollowUser[]>([]);
   const [following, setFollowing] = useState<FollowUser[]>([]);
-  const [loadingFollowers, setLoadingFollowers] = useState(false);
-  const [loadingFollowing, setLoadingFollowing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (activeSubTab === "following") {
-      setLoadingFollowers(true);
-      setLoadingFollowing(true);
+    if (activeSubTab !== "following") return;
 
-      fetchFollowers(userId)
-        .then((res) => setFollowers(res.data))
-        .catch(console.error)
-        .finally(() => setLoadingFollowers(false));
-
-      fetchFollowing(userId)
-        .then((res) => setFollowing(res.data))
-        .catch(console.error)
-        .finally(() => setLoadingFollowing(false));
+    async function load() {
+      setLoading(true);
+      try {
+        const [followersRes, followingRes] = await Promise.all([
+          fetchFollowers(userId),
+          fetchFollowing(userId),
+        ]);
+        setFollowers(followersRes.data);
+        setFollowing(followingRes.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
+
+    load();
   }, [userId, activeSubTab]);
+
+  if (loading) {
+    return <div style={{ color: "#9ca3af", fontSize: 14, padding: "32px 20px", textAlign: "center" }}>Memuat...</div>;
+  }
 
   return (
     <div style={{ display: "flex", gap: 24 }}>
@@ -195,9 +202,7 @@ function FollowingContent({
         <p style={{ fontSize: 15, fontWeight: 500, margin: "0 0 12px" }}>
           Followers <span style={{ color: "#6b7280", fontWeight: 400 }}>({followers.length})</span>
         </p>
-        {loadingFollowers ? (
-          <div style={{ color: "#9ca3af", fontSize: 14 }}>Memuat...</div>
-        ) : followers.length === 0 ? (
+        {followers.length === 0 ? (
           <EmptyState message="Belum ada followers." />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -211,9 +216,7 @@ function FollowingContent({
         <p style={{ fontSize: 15, fontWeight: 500, margin: "0 0 12px" }}>
           Following <span style={{ color: "#6b7280", fontWeight: 400 }}>({following.length})</span>
         </p>
-        {loadingFollowing ? (
-          <div style={{ color: "#9ca3af", fontSize: 14 }}>Memuat...</div>
-        ) : following.length === 0 ? (
+        {following.length === 0 ? (
           <EmptyState message="Belum mengikuti siapapun." />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -306,7 +309,6 @@ function ActivityContent({
           </div>
         )}
         {activeSubTab === "following" && (
-          // fix: hapus prop setActiveSubTab karena sudah dihapus dari FollowingContent
           <FollowingContent
             userId={userId}
             activeSubTab={activeSubTab}
@@ -338,14 +340,23 @@ export default function ProfilePage() {
   const [mainTab, setMainTab] = useState<MainTab>("profile");
   const [activityTab, setActivityTab] = useState<ActivityTab>("summary");
 
+  // ← fix: sama, pakai async function di dalam useEffect
   useEffect(() => {
-    if (!isOwnProfile && id) {
+    if (isOwnProfile || !id) return;
+
+    async function loadProfile() {
       setLoadingProfile(true);
-      fetchPublicProfile(id)
-        .then((res) => setProfileUser(res.data))
-        .catch(console.error)
-        .finally(() => setLoadingProfile(false));
+      try {
+        const res = await fetchPublicProfile(id!);
+        setProfileUser(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingProfile(false);
+      }
     }
+
+    loadProfile();
   }, [id, isOwnProfile]);
 
   if (!user) {
