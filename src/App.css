@@ -1121,3 +1121,69 @@
   margin-bottom: 12px;
   text-align: center;
 }
+
+/* ── Register Page Layout ── */
+.so-register-wrapper {
+  display: flex;
+  gap: 48px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+  padding: 20px;
+}
+
+.so-register-left {
+  flex: 1;
+  max-width: 400px;
+}
+
+.so-register-left h1 {
+  font-size: 27px;
+  font-weight: 400;
+  margin-bottom: 32px;
+  color: #232629;
+}
+
+.so-register-left ul {
+  list-style: none;
+  padding: 0;
+}
+
+.so-register-left li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-size: 15px;
+  color: #3b4045;
+}
+
+.so-register-right {
+  width: 100%;
+  max-width: 350px;
+}
+
+/* Penyesuaian agar Form terlihat pas */
+.so-register-right .so-auth-card {
+  margin-bottom: 16px;
+}
+
+.so-form-group small {
+  display: block;
+  font-size: 11px;
+  color: #6a737c;
+  margin-top: 4px;
+}
+
+/* Responsive: stack ke bawah jika layar kecil */
+@media (max-width: 768px) {
+  .so-register-wrapper {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .so-register-left {
+    display: none; /* Sembunyikan daftar fitur di mobile agar ringkas */
+  }
+}

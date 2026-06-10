@@ -7,7 +7,7 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   // Mengikuti gambar Stack Overflow, inputnya bernama "Email"
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -23,7 +23,7 @@ export default function Login() {
     setError("");
     try {
       // Sesuaikan key username/email dengan kebutuhan backend Anda
-      await login({ username, password });
+      await login({ email, password });
       navigate("/");
     } catch {
       setError("Invalid credentials");
@@ -45,13 +45,14 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="so-form-group">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="email">Email</label>
               <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
 
