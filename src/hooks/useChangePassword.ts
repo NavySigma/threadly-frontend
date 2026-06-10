@@ -5,7 +5,7 @@ interface UseChangePasswordReturn {
   isLoading: boolean;
   error: string | null;
   success: string | null;
-  submit: (payload: UpdatePasswordPayload) => Promise<boolean>;
+  submit: (payload: UpdatePasswordPayload, isOAuth?: boolean) => Promise<boolean>;
   reset: () => void;
 }
 
@@ -20,10 +20,17 @@ export function useChangePassword(): UseChangePasswordReturn {
   }, []);
 
   const submit = useCallback(
-    async (payload: UpdatePasswordPayload): Promise<boolean> => {
+    async (payload: UpdatePasswordPayload, isOAuth = false): Promise<boolean> => {
       setIsLoading(true);
       setError(null);
       setSuccess(null);
+
+      // Validasi current_password wajib ada kalau bukan OAuth
+      if (!isOAuth && !payload.current_password?.trim()) {
+        setError("Password sekarang wajib diisi.");
+        setIsLoading(false);
+        return false;
+      }
 
       if (payload.new_password !== payload.new_password_confirmation) {
         setError("Konfirmasi password baru tidak cocok.");
