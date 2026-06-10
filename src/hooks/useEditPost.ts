@@ -1,30 +1,47 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { postsApi, categoriesApi, tagsApi } from "../api/posts";
-import type { Category, Tag, CreatePostPayload } from "../api/posts";
+import type { Category, Tag, UpdatePostPayload } from "../api/posts";
 
-export interface CreatePostForm {
+export interface EditPostForm {
   category_id: string;
   title: string;
   body: string;
   selectedTags: Tag[];
 }
 
-const INITIAL_FORM: CreatePostForm = {
-  category_id: "",
-  title: "",
-  body: "",
-  selectedTags: [],
-};
-
-export function useCreatePost() {
+export function useEditPost(postId: string) {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<CreatePostForm>(INITIAL_FORM);
+  const [form, setForm] = useState<EditPostForm>({
+    category_id: "",
+    title: "",
+    body: "",
+    selectedTags: [],
+  });
   const [tagSearch, setTagSearch] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
-  // ── Categories ──────────────────────────────────────────────────────────────
+  // ── Fetch post ──────────────────────────────────────────────────────────────
+  const { data: originalPost, isLoading: isLoadingPost } = useQuery({
+    queryKey: ["posts", postId],
+    queryFn: () => postsApi.getById(postId).then((r) => r.data),
+    enabled: !!postId,
+  });
+
+  // Inisialisasi form dari data post (hanya sekali)
+  if (originalPost && !initialized) {
+    setForm({
+      category_id: originalPost.category.id,
+      title: originalPost.title,
+      body: originalPost.body,
+      selectedTags: originalPost.tags ?? [],
+    });
+    setInitialized(true);
+  }
+
+  // ── Fetch categories ────────────────────────────────────────────────────────
   const { isLoading: isLoadingMeta } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -42,7 +59,7 @@ export function useCreatePost() {
   const categories: Category[] =
     queryClient.getQueryData<Category[]>(["categories"]) ?? [];
 
-  // ── Tags ────────────────────────────────────────────────────────────────────
+  // ── Fetch tags ──────────────────────────────────────────────────────────────
   useQuery({
     queryKey: ["tags", tagSearch],
     queryFn: () => tagsApi.getAll({ search: tagSearch || undefined }).then((r) => r.data),
@@ -54,13 +71,16 @@ export function useCreatePost() {
 
   // ── Mutation ────────────────────────────────────────────────────────────────
   const mutation = useMutation({
-    mutationFn: (payload: CreatePostPayload) =>
-      postsApi.create(payload).then((r) => r.data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
+    mutationFn: (payload: UpdatePostPayload) =>
+      postsApi.update(postId, payload).then((r) => r.data),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["posts", postId], updated);
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
   });
 
   // ── Form helpers ────────────────────────────────────────────────────────────
-  const setField = useCallback(<K extends keyof CreatePostForm>(key: K, value: CreatePostForm[K]) => {
+  const setField = useCallback(<K extends keyof EditPostForm>(key: K, value: EditPostForm[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
       if (!prev[key]) return prev;
@@ -104,21 +124,18 @@ export function useCreatePost() {
     return Object.keys(errs).length === 0;
   }, [form]);
 
-  const submit = useCallback(async (): Promise<string | null> => {
+  const submit = useCallback(async (): Promise<boolean> => {
     setGlobalError(null);
-    if (!validate()) return null;
-
-    const payload: CreatePostPayload = {
-      category_id: form.category_id,
-      title: form.title.trim(),
-      body: form.body.trim(),
-      tags: form.selectedTags.map((t) => t.id),
-    };
-
+    if (!validate()) return false;
     try {
-      const post = await mutation.mutateAsync(payload);
-      setForm(INITIAL_FORM);
-      return post.id;
+      const payload: UpdatePostPayload = {
+        category_id: form.category_id,
+        title: form.title.trim(),
+        body: form.body.trim(),
+        tags: form.selectedTags.map((t) => t.id),
+      };
+      await mutation.mutateAsync(payload);
+      return true;
     } catch (error: unknown) {
       const err = error as Record<string, unknown>;
       if (err?.errors && typeof err.errors === "object") {
@@ -132,23 +149,18 @@ export function useCreatePost() {
       } else {
         setGlobalError("Terjadi kesalahan tak terduga. Coba lagi.");
       }
-      return null;
+      return false;
     }
   }, [form, validate, mutation]);
 
-  const reset = useCallback(() => {
-    setForm(INITIAL_FORM);
-    setErrors({});
-    setGlobalError(null);
-    mutation.reset();
-  }, [mutation]);
-
   return {
     form,
+    originalPost,
     categories,
     tags,
     tagSearch,
     isLoadingMeta,
+    isLoadingPost,
     isSubmitting: mutation.isPending,
     isSuccess: mutation.isSuccess,
     errors,
@@ -158,6 +170,5 @@ export function useCreatePost() {
     addTag,
     removeTag,
     submit,
-    reset,
   };
 }
