@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import threadlyLogo from "../../assets/logo-threadly.png";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -8,7 +9,12 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-logo">
-          <span className="navbar-logo-icon">&#9993;</span>
+          <img
+            src={threadlyLogo}
+            alt="Threadly"
+            className="navbar-logo-icon"
+            style={{ width: 28, height: 28, objectFit: "contain" }}
+          />
           Threadly
         </Link>
 
@@ -23,11 +29,7 @@ export default function Navbar() {
               <button className="navbar-btn" title="Notifications">
                 &#128276;
               </button>
-              <Link
-                to="/profile/edit"
-                className="navbar-avatar"
-                title="Edit Profile"
-              >
+              <Link to="/profile" className="navbar-avatar" title="Profile">
                 {user.username.charAt(0).toUpperCase()}
               </Link>
               <button className="navbar-btn" onClick={logout} title="Logout">

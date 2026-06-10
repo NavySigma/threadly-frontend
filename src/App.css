@@ -29,8 +29,8 @@
   top: 0;
   z-index: 100;
   height: var(--navbar-height);
-  background: var(--black-050);
-  border-top: 3px solid var(--orange);
+  background: var(--white);
+  border-bottom: 1px solid var(--black-100);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
@@ -50,7 +50,6 @@
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 6px;
   font-size: 18px;
   font-weight: 600;
   color: var(--black);
@@ -253,6 +252,7 @@
 
 .btn-primary:hover {
   background: var(--blue-hover);
+  color: white;
 }
 
 .btn-orange {
@@ -434,9 +434,16 @@
   max-width: 360px;
 }
 
+.auth-logo-img {
+  width: 50px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}
+
 .auth-logo {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .auth-logo-icon {
@@ -487,6 +494,7 @@
   font-size: 13px;
   font-weight: 500;
   margin-top: 4px;
+  cursor: pointer;
 }
 
 .form-submit:hover {
@@ -500,7 +508,6 @@
   color: var(--black-500);
 }
 
-<<<<<<< HEAD
 /* ── Empty state ── */
 .empty-state {
   text-align: center;
@@ -509,11 +516,26 @@
 }
 
 .empty-state-icon {
-=======
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--black-700);
+}
+
+.empty-state p {
+  font-size: 13px;
+  color: var(--black-500);
+  margin: 0;
+}
+
 /* ── Create Post Page ── */
 .create-post-page {
   padding: 24px;
-  background: var(--white);
+  background-color: #f1f2f3;
 }
 
 .create-post-header {
@@ -844,17 +866,10 @@
 }
 
 .insufficient-points-icon {
->>>>>>> 2440b480930d717efdd1aa3384d9b34b10192849
   font-size: 48px;
   margin-bottom: 16px;
 }
 
-<<<<<<< HEAD
-.empty-state h3 {
-  font-size: 18px;
-  margin-bottom: 8px;
-  color: var(--black-700);
-=======
 .insufficient-points-title {
   font-size: 20px;
   font-weight: 600;
@@ -878,7 +893,6 @@
 .insufficient-points-current strong {
   color: var(--black-700);
   font-weight: 600;
->>>>>>> 2440b480930d717efdd1aa3384d9b34b10192849
 }
 
 /* ── Responsive ── */
@@ -912,5 +926,264 @@
   .btn-cancel,
   .btn-submit {
     width: 100%;
+  }
+}
+
+.so-auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - var(--navbar-height));
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  padding: 24px;
+  padding-top: 48px;
+  background-color: #f1f2f3;
+}
+
+.so-auth-container {
+  width: 100%;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Logo Section */
+.so-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.so-logo-img {
+  width: 32px;
+  height: auto;
+}
+
+.so-logo-text {
+  font-size: 30px;
+  font-weight: 600;
+  color: #232629;
+  font-family: var(--sans);
+}
+
+/* OAuth Buttons */
+.so-oauth-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.so-oauth-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.2s;
+}
+
+.so-oauth-google {
+  background-color: #ffffff;
+  color: #3b4045;
+  border-color: #d6d9dc;
+}
+.so-oauth-google:hover {
+  background-color: #f8f9f9;
+}
+
+.so-oauth-github {
+  background-color: #2f3337;
+  color: #ffffff;
+}
+.so-oauth-github:hover {
+  background-color: #232629;
+}
+
+.so-oauth-facebook {
+  background-color: #385499;
+  color: #ffffff;
+}
+.so-oauth-facebook:hover {
+  background-color: #314a86;
+}
+
+/* Main Card */
+.so-auth-card {
+  width: 100%;
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 7px;
+  box-shadow:
+    0 10px 24px hsla(0, 0%, 0%, 0.05),
+    0 20px 48px hsla(0, 0%, 0%, 0.05),
+    0 1px 4px hsla(0, 0%, 0%, 0.1);
+  margin-bottom: 24px;
+  box-sizing: border-box;
+}
+
+.so-form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.so-form-group label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0c0d0e;
+  margin-bottom: 4px;
+}
+
+.so-password-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline; /* Sejajar dengan label */
+}
+
+.so-forgot-link {
+  font-size: 12px;
+  color: #0074cc;
+  text-decoration: none;
+}
+.so-forgot-link:hover {
+  color: #0a95ff;
+}
+
+.so-input-wrapper {
+  position: relative;
+}
+
+.so-form-group input {
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid #babfc4;
+  border-radius: 3px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.so-form-group input:focus {
+  border-color: #6bbbf7;
+  box-shadow: 0 0 0 4px rgba(0, 116, 204, 0.15);
+}
+
+.so-submit-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #0a95ff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: inset 0 1px 0 0 hsla(0, 0%, 100%, 0.4);
+  transition: background-color 0.2s;
+}
+
+.so-submit-btn:hover {
+  background-color: #0074cc;
+}
+
+/* Footer */
+.so-auth-footer {
+  font-size: 13px;
+  color: #232629;
+  text-align: center;
+}
+
+.so-auth-footer a {
+  color: #0074cc;
+  text-decoration: none;
+}
+
+.so-auth-footer a:hover {
+  color: #0a95ff;
+}
+
+.so-error-msg {
+  color: #c02b0a;
+  font-size: 13px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ── Register Page Layout ── */
+.so-register-wrapper {
+  display: flex;
+  gap: 48px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+  padding: 20px;
+}
+
+.so-register-left {
+  flex: 1;
+  max-width: 400px;
+}
+
+.so-register-left h1 {
+  font-size: 27px;
+  font-weight: 400;
+  margin-bottom: 32px;
+  color: #232629;
+}
+
+.so-register-left ul {
+  list-style: none;
+  padding: 0;
+}
+
+.so-register-left li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-size: 15px;
+  color: #3b4045;
+}
+
+.so-register-right {
+  width: 100%;
+  max-width: 350px;
+}
+
+/* Penyesuaian agar Form terlihat pas */
+.so-register-right .so-auth-card {
+  margin-bottom: 16px;
+}
+
+.so-form-group small {
+  display: block;
+  font-size: 11px;
+  color: #6a737c;
+  margin-top: 4px;
+}
+
+/* Responsive: stack ke bawah jika layar kecil */
+@media (max-width: 768px) {
+  .so-register-wrapper {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .so-register-left {
+    display: none; /* Sembunyikan daftar fitur di mobile agar ringkas */
   }
 }

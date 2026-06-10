@@ -4,15 +4,20 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 // ── Base fetch ─────────────────────────────────────────────────────────
 export class ApiError extends Error {
-  constructor(public status: number, message: string, public data?: unknown) {
+  status: number;
+  data?: unknown;
+
+  constructor(status: number, message: string, data?: unknown) {
     super(message);
     this.name = "ApiError";
+    this.status = status;
+    this.data = data;
   }
 }
 
 export async function apiFetch<T>(
   path: string,
-  options: { method?: string; body?: unknown; token?: string } = {}
+  options: { method?: string; body?: unknown; token?: string } = {},
 ): Promise<T> {
   const { method = "GET", body, token } = options;
   const headers: Record<string, string> = {
@@ -30,7 +35,9 @@ export async function apiFetch<T>(
   return json as T;
 }
 
-function qs(params: Record<string, string | number | undefined | null>): string {
+function qs(
+  params: Record<string, string | number | undefined | null>,
+): string {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
@@ -40,7 +47,10 @@ function qs(params: Record<string, string | number | undefined | null>): string 
 }
 
 // ── Post API ───────────────────────────────────────────────────────────
-export interface FetchPostsParams {
+export interface FetchPostsParams extends Record<
+  string,
+  string | number | undefined | null
+> {
   search?: string;
   category_id?: string;
   page?: number;
@@ -48,7 +58,7 @@ export interface FetchPostsParams {
 
 export async function fetchPosts(
   params: FetchPostsParams = {},
-  token?: string
+  token?: string,
 ): Promise<PaginatedResponse<Post>> {
   return apiFetch(`/posts${qs(params)}`, { token });
 }
@@ -67,15 +77,18 @@ export async function fetchCategories(): Promise<Category[]> {
 // ── Client-side filter helpers ─────────────────────────────────────────
 export function sortPosts(posts: Post[], sort: string): Post[] {
   return [...posts].sort((a, b) => {
-    if (sort === "oldest")       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sort === "oldest")
+      return (
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
     if (sort === "highest_vote") return b.vote_score - a.vote_score;
-    if (sort === "most_viewed")  return b.view_count - a.view_count;
+    if (sort === "most_viewed") return b.view_count - a.view_count;
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // latest
   });
 }
 
 export function filterByAnswer(posts: Post[], answer: string): Post[] {
-  if (answer === "answered")   return posts.filter((p) => p.is_answered);
+  if (answer === "answered") return posts.filter((p) => p.is_answered);
   if (answer === "unanswered") return posts.filter((p) => !p.is_answered);
   return posts;
 }
