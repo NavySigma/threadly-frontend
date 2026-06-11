@@ -1,12 +1,11 @@
 import { useState, useEffect, type ReactNode } from "react";
-import type { User } from "../types";
+import type { User, RegisterPayload, LoginPayload } from "../types";
 import {
   login as apiLogin,
   register as apiRegister,
   logout as apiLogout,
   getMe,
 } from "../api/auth";
-import type { RegisterPayload, LoginPayload } from "../types";
 import { AuthContext } from "./AuthContextValue";
 import { getToken } from "../api/client";
 
@@ -17,7 +16,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = getToken();
     if (!token) return;
+
     let cancelled = false;
+
     (async () => {
       try {
         const u = await getMe();
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -48,6 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const loginWithToken = async (token: string) => {
+    localStorage.setItem("token", token);
+    try {
+      const u = await getMe();
+      setUser(u);
+    } catch {
+      localStorage.removeItem("token");
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -56,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        loginWithToken,
         isAuthenticated: !!user,
         loading,
         isLoading: loading,

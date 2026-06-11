@@ -45,7 +45,8 @@ export function useCreatePost() {
   // ── Tags ────────────────────────────────────────────────────────────────────
   useQuery({
     queryKey: ["tags", tagSearch],
-    queryFn: () => tagsApi.getAll({ search: tagSearch || undefined }).then((r) => r.data),
+    queryFn: () =>
+      tagsApi.getAll({ search: tagSearch || undefined }).then((r) => r.data),
     staleTime: 30 * 1000,
   });
 
@@ -60,15 +61,18 @@ export function useCreatePost() {
   });
 
   // ── Form helpers ────────────────────────────────────────────────────────────
-  const setField = useCallback(<K extends keyof CreatePostForm>(key: K, value: CreatePostForm[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-  }, []);
+  const setField = useCallback(
+    <K extends keyof CreatePostForm>(key: K, value: CreatePostForm[K]) => {
+      setForm((prev) => ({ ...prev, [key]: value }));
+      setErrors((prev) => {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    },
+    [],
+  );
 
   const addTag = useCallback((tag: Tag) => {
     setForm((prev) => {
@@ -123,8 +127,12 @@ export function useCreatePost() {
       const err = error as Record<string, unknown>;
       if (err?.errors && typeof err.errors === "object") {
         const mapped: Record<string, string> = {};
-        for (const [field, messages] of Object.entries(err.errors as Record<string, unknown>)) {
-          mapped[field] = Array.isArray(messages) ? String(messages[0]) : String(messages);
+        for (const [field, messages] of Object.entries(
+          err.errors as Record<string, unknown>,
+        )) {
+          mapped[field] = Array.isArray(messages)
+            ? String(messages[0])
+            : String(messages);
         }
         setErrors(mapped);
       } else if (typeof err?.message === "string") {

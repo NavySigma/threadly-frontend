@@ -1,21 +1,35 @@
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
+import { getToken } from "./client";
 
-function getToken(): string | null {
-  return localStorage.getItem('auth_token');
-}
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 function authHeaders(): HeadersInit {
   const token = getToken();
   return {
-    'Content-Type': 'application/json',
+    Accept: "application/json",
+    "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(err.message ?? `HTTP ${res.status}`);
+    let message = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      // Laravel biasanya: { message: "..." } atau { errors: { field: ["msg"] } }
+      if (body?.message) {
+        message = body.message;
+      } else if (body?.errors) {
+        // Ambil pesan error pertama dari validation errors Laravel
+        const firstField = Object.values(body.errors)[0];
+        if (Array.isArray(firstField) && firstField.length > 0) {
+          message = firstField[0] as string;
+        }
+      }
+    } catch {
+      // body bukan JSON, pakai pesan HTTP status
+    }
+    throw new Error(message);
   }
   return res.json() as Promise<T>;
 }
@@ -32,6 +46,7 @@ export interface User {
   avatar_url: string | null;
   bio: string | null;
   reputation_points: number;
+  is_oauth: boolean;
   created_at: string;
   updated_at: string;
   roles: Role[];
@@ -44,7 +59,7 @@ export interface UpdateProfilePayload {
 }
 
 export interface UpdatePasswordPayload {
-  current_password: string;
+  current_password?: string;
   new_password: string;
   new_password_confirmation: string;
 }
@@ -55,10 +70,10 @@ export async function fetchMe(): Promise<{ data: User }> {
 }
 
 export async function updateProfile(
-  payload: UpdateProfilePayload
+  payload: UpdateProfilePayload,
 ): Promise<{ message: string; data: User }> {
   const res = await fetch(`${BASE_URL}/me`, {
-    method: 'PUT',
+    method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
@@ -66,10 +81,10 @@ export async function updateProfile(
 }
 
 export async function updatePassword(
-  payload: UpdatePasswordPayload
+  payload: UpdatePasswordPayload,
 ): Promise<{ message: string }> {
   const res = await fetch(`${BASE_URL}/me/password`, {
-    method: 'PUT',
+    method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
