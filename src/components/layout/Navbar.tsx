@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import threadlyLogo from "../../assets/logo-threadly.png";
+import SearchBar from "../ui/SeacrhBar";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -18,9 +19,8 @@ export default function Navbar() {
           Threadly
         </Link>
 
-        <div className="navbar-search">
-          <span className="navbar-search-icon">&#128269;</span>
-          <input type="text" placeholder="Search..." />
+         <div className="navbar-search" style={{ flex: 1, maxWidth: 520, margin: "0 16px" }}>
+          <SearchBar />
         </div>
 
         <div className="navbar-actions">

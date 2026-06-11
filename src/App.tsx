@@ -6,13 +6,19 @@ import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./pages/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
-import CreatePostPage from "./pages/user/CreatePostPage";
+import CreatePostPage from "./pages/post/CreatePostPage";
 import EditPostPage from "./pages/user/EditPostPage";
 import EditProfilePage from "./pages/user/EditProfilePage";
 import ProfilePage from "./pages/user/ProfilePage";
 import PointsHistoryPage from "./pages/user/PointsHistoryPage";
 import PostDetailPage from "./pages/user/PostDetailPage";
 import AuthCallback from "./pages/AuthCallback";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import TagsPage from "./pages/user/TagsPage";
+import SearchPage from "./pages/user/SearchPages";
+// import SearchPage from "./pages/user/SearchPages";
+
 
 function App() {
   return (
@@ -24,6 +30,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* Main app — navbar + sidebar */}
@@ -35,6 +43,8 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
+            <Route path="/tags" element={<TagsPage />} />
+            <Route path="/search" element={<SearchPage />} />
           </Route>
         </Routes>
       </AuthProvider>

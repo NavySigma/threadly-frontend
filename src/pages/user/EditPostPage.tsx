@@ -1,5 +1,5 @@
 // src/pages/posts/EditPostPage.tsx
-import type { Tag } from "../../api/posts";
+import type { Tag } from "../../types/posts";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEditPost } from "../../hooks/useEditPost";
