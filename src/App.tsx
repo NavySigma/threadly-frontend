@@ -6,8 +6,7 @@ import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./pages/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
-import CreatePostPage from "./pages/post/CreatePostPage";
-import EditPostPage from "./pages/user/EditPostPage";
+import EditPostPage from "./pages/user/EditPostPage"
 import EditProfilePage from "./pages/user/EditProfilePage";
 import ProfilePage from "./pages/user/ProfilePage";
 import PointsHistoryPage from "./pages/user/PointsHistoryPage";
@@ -17,6 +16,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import TagsPage from "./pages/user/TagsPage";
 import SearchPage from "./pages/user/SearchPages";
+import CreatePostPage from "./pages/user/post/CreatePostPage";
 // import SearchPage from "./pages/user/SearchPages";
 
 
