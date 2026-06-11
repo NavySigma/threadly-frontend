@@ -6,7 +6,7 @@ import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./pages/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
-import CreatePostPage from "./pages/user/CreatePostPage";
+import CreatePostPage from "./pages/post/CreatePostPage";
 import EditPostPage from "./pages/user/EditPostPage";
 import EditProfilePage from "./pages/user/EditProfilePage";
 import ProfilePage from "./pages/user/ProfilePage";

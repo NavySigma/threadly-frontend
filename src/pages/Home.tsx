@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { usePosts } from "../hooks/usePosts";
 import { parseSearchQuery } from "../api/search";
-import type { Post } from "../api/posts";
+import type { Post } from "../types/posts";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);

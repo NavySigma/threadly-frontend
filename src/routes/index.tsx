@@ -3,7 +3,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import AppLayout from "../components/layout/AppLayout";
 import Home from "../pages/Home";
 import Register from "../pages/user/Register";
-import CreatePostPage from "../pages/user/CreatePostPage";
+import CreatePostPage from "../pages/post/CreatePostPage";
 import Login from "../pages/user/Login";
 import EditPostPage from "../pages/user/EditPostPage";
 import EditProfilePage from "../pages/user/EditProfilePage";
