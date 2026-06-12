@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
+import { PostFilterProvider } from '../../contexts/PostFilterContext'
 
 export default function AppLayout() {
   return (
@@ -10,7 +11,9 @@ export default function AppLayout() {
         <div className="app-content">
           <Sidebar />
           <main className="main-content">
-            <Outlet />
+            <PostFilterProvider>
+              <Outlet />
+            </PostFilterProvider>
           </main>
         </div>
       </div>

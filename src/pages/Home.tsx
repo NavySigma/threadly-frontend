@@ -1,7 +1,9 @@
-import { Link } from "react-router-dom";
+// src/pages/Home.tsx
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import { usePosts } from "../hooks/usePosts";
-import type { Post } from "../api/posts";
+import { parseSearchQuery } from "../api/search";
+import type { Post } from "../types/posts";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -13,13 +15,14 @@ function timeAgo(dateStr: string): string {
 }
 
 function PostCard({ post }: { post: Post }) {
+  const navigate = useNavigate(); // ← fix: dipindah ke dalam PostCard
+
   return (
     <div className="post-item">
       <div className="post-votes">
         <span className="vote-count">{post.vote_score}</span>
         <span className="vote-label">votes</span>
         <span className={`vote-count${post.is_answered ? " green" : ""}`}>
-          {/* jumlah answer tidak ada di tipe Post, tampilkan status answered */}
           {post.is_answered ? "✓" : "0"}
         </span>
         <span className="vote-label">answers</span>
@@ -31,21 +34,30 @@ function PostCard({ post }: { post: Post }) {
         <div className="post-title">
           <Link to={`/posts/${post.id}`}>{post.title}</Link>
         </div>
-        
+
         <div className="post-excerpt">
           {post.body.length > 180 ? post.body.slice(0, 180) + "..." : post.body}
         </div>
+
         <div className="post-tags">
           {post.tags.map((tag) => (
-            <span
+            <button
               key={tag.id}
+              onClick={() =>
+                navigate(`/posts?tag=${encodeURIComponent(tag.name)}`)
+              }
               className="tag"
-              style={{ backgroundColor: tag.color ?? undefined }}
+              style={{
+                backgroundColor: tag.color ?? undefined,
+                cursor: "pointer",
+                border: "none",
+              }}
             >
               {tag.name}
-            </span>
+            </button>
           ))}
         </div>
+
         <div className="post-meta">
           <div className="post-author">
             <div className="post-author-avatar">
@@ -129,6 +141,17 @@ function PostSkeleton() {
 
 export default function Home() {
   const { user } = useAuth();
+  const [params] = useSearchParams();
+  const rawSearch = params.get("search") || "";
+  const explicitType = (params.get("type") || "all") as
+    | "all"
+    | "posts"
+    | "tags"
+    | "users";
+  const { type: parsedType, query: cleanQuery } = parseSearchQuery(rawSearch);
+  const searchType = explicitType !== "all" ? explicitType : parsedType;
+  const effectiveSearch = searchType !== "all" ? cleanQuery : rawSearch;
+
   const {
     posts,
     currentPage,
@@ -139,13 +162,24 @@ export default function Home() {
     sortBy,
     setSortBy,
     goToPage,
-  } = usePosts();
+  } = usePosts(effectiveSearch);
 
   return (
     <div>
       {/* Header */}
       <div className="home-header">
-        <h1>All Questions</h1>
+        <h1>
+          {effectiveSearch
+            ? searchType !== "all"
+              ? `Hasil pencarian ${searchType} untuk "${effectiveSearch}"`
+              : `Hasil pencarian untuk "${effectiveSearch}"`
+            : "All Questions"}
+        </h1>
+        {effectiveSearch && (
+          <Link to="/" style={{ marginLeft: 12, fontSize: 13 }}>
+            Clear search
+          </Link>
+        )}
         {user ? (
           <Link to="/posts/create" className="btn btn-orange">
             Ask Question
@@ -157,7 +191,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Stats + filter */}
+      {/* Stats + Filter */}
       <div
         style={{
           display: "flex",
@@ -201,7 +235,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Posts list */}
+      {/* Posts List */}
       {isLoading ? (
         Array.from({ length: 5 }).map((_, i) => <PostSkeleton key={i} />)
       ) : posts.length === 0 ? (
@@ -237,6 +271,7 @@ export default function Home() {
           >
             ← Prev
           </button>
+
           {Array.from({ length: lastPage }, (_, i) => i + 1)
             .filter(
               (p) =>
@@ -267,6 +302,7 @@ export default function Home() {
                 </span>
               );
             })}
+
           <button
             className="filter-btn"
             disabled={currentPage === lastPage}

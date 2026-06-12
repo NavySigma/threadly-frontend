@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { postsApi, categoriesApi, tagsApi } from "../api/posts";
-import type { Category, Tag, UpdatePostPayload } from "../api/posts";
+import type { Category, Tag, UpdatePostPayload } from "../types/posts";
 
 export interface EditPostForm {
   category_id: string;

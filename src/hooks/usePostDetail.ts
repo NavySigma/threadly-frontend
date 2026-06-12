@@ -1,7 +1,8 @@
 // src/hooks/usePostDetail.ts
 
 import { useEffect, useState } from "react";
-import { postsApi, type Post } from "../api/posts";
+import { postsApi } from "../api/posts";
+import type { Post } from "../types/posts";
 
 export function usePostDetail(id: string) {
   const [post, setPost] = useState<Post | null>(null);

@@ -2,14 +2,16 @@ import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { postsApi } from "../api/posts";
 
-export function usePosts() {
+export function usePosts(search?: string) {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<"newest" | "votes" | "unanswered">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "votes" | "unanswered">(
+    "newest",
+  );
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["posts", currentPage],
-    queryFn: () => postsApi.getAll({ page: currentPage }),
+    queryKey: ["posts", currentPage, search ?? ""],
+    queryFn: () => postsApi.getAll({ page: currentPage, search }),
     staleTime: 30 * 1000,
   });
 
@@ -28,6 +30,9 @@ export function usePosts() {
     sortBy,
     setSortBy,
     goToPage,
-    refetch: () => queryClient.invalidateQueries({ queryKey: ["posts", currentPage] }),
+    refetch: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["posts", currentPage, search ?? ""],
+      }),
   };
 }
