@@ -69,7 +69,7 @@ export default function SearchBar() {
       const params = new URLSearchParams();
       params.set("search", searchValue);
       if (activeType !== "all") params.set("type", activeType);
-      navigate(`/?${params.toString()}`);
+      navigate(`/search?${params.toString()}`);
     },
     [query, cleanQuery, activeType, navigate, handleClose],
   );
@@ -550,7 +550,7 @@ export default function SearchBar() {
                 const params = new URLSearchParams();
                 params.set("search", searchValue);
                 if (activeType !== "all") params.set("type", activeType);
-                navigate(`/?${params.toString()}`);
+                navigate(`/search?${params.toString()}`);
               }}
               style={{
                 padding: "10px 14px",

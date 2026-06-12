@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 
-export type {
+import type {
   Tag,
   Category,
   PostUser,
@@ -10,6 +10,17 @@ export type {
   PaginatedPosts,
   PostsParams,
 } from "../types/posts";
+
+export type {
+  Tag,
+  Category,
+  PostUser,
+  Post,
+  CreatePostPayload,
+  UpdatePostPayload,
+  PaginatedPosts,
+  PostsParams,
+};
 
 export const postsApi = {
   getAll: (params?: PostsParams) => {

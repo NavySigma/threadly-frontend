@@ -1,9 +1,11 @@
 // src/pages/posts/EditPostPage.tsx
-import type { Tag } from "../../types/posts";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEditPost } from "../../hooks/useEditPost";
-import { useAuth } from "../../hooks/useAuth";
+import { useFormik } from "formik";
+import { useEditPost } from "../../../hooks/useEditPost";
+import { useAuth } from "../../../hooks/useAuth";
+import type { Tag, UpdatePostPayload, InitialValueEditPost } from "../../../types/posts";
+import { EditPostSchema } from "./editpostpage.validation";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -26,7 +28,7 @@ function TagBadge({
   return (
     <span
       onClick={onClick}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-white"
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-white cursor-pointer transition-colors"
       style={{ backgroundColor: tag.color ?? "#6366f1" }}
     >
       {tag.name}
@@ -37,6 +39,7 @@ function TagBadge({
             e.stopPropagation();
             onRemove();
           }}
+          className="hover:text-red-200 focus:outline-none text-sm font-bold ml-1"
           aria-label={`Hapus tag ${tag.name}`}
         >
           ×
@@ -50,23 +53,18 @@ export default function EditPostPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated, loading } = useAuth();
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
   const {
-    form,
     originalPost,
+    isLoadingPost,
     categories,
     tags,
     tagSearch,
-    isLoadingMeta,
-    isLoadingPost,
-    isSubmitting,
-    errors,
-    globalError,
-    setField,
     setTagSearch,
-    addTag,
-    removeTag,
-    submit,
+    isLoadingMeta,
+    updatePost,
+    isSubmitting,
   } = useEditPost(id!);
 
   const [showTagDropdown, setShowTagDropdown] = useState(false);
@@ -102,11 +100,60 @@ export default function EditPostPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const ok = await submit();
-    if (ok) navigate(`/posts/${id}`);
-  }
+  const formik = useFormik<InitialValueEditPost>({
+    enableReinitialize: true,
+    initialValues: {
+      category_id: originalPost?.category?.id ?? "",
+      title: originalPost?.title ?? "",
+      body: originalPost?.body ?? "",
+      selectedTags: originalPost?.tags ?? [],
+    },
+    validationSchema: EditPostSchema,
+    onSubmit: async (values) => {
+      setGlobalError(null);
+      const payload: UpdatePostPayload = {
+        category_id: values.category_id,
+        title: values.title.trim(),
+        body: values.body.trim(),
+        tags: values.selectedTags.map((t) => t.id),
+      };
+
+      try {
+        await updatePost(payload);
+        navigate(`/posts/${id}`);
+      } catch (error: unknown) {
+        const err = error as Record<string, unknown>;
+        if (err?.errors && typeof err.errors === "object") {
+          const mapped: Record<string, string> = {};
+          for (const [field, messages] of Object.entries(
+            err.errors as Record<string, unknown>
+          )) {
+            mapped[field] = Array.isArray(messages)
+              ? String(messages[0])
+              : String(messages);
+          }
+          formik.setErrors(mapped);
+        } else if (typeof err?.message === "string") {
+          setGlobalError(err.message);
+        } else {
+          setGlobalError("Terjadi kesalahan tak terduga. Coba lagi.");
+        }
+      }
+    },
+  });
+
+  const addTag = (tag: Tag) => {
+    if (formik.values.selectedTags.length >= 5) return;
+    if (formik.values.selectedTags.some((t) => t.id === tag.id)) return;
+    formik.setFieldValue("selectedTags", [...formik.values.selectedTags, tag]);
+  };
+
+  const removeTag = (tagId: string) => {
+    formik.setFieldValue(
+      "selectedTags",
+      formik.values.selectedTags.filter((t) => t.id !== tagId)
+    );
+  };
 
   // Loading state
   if (isLoadingPost) {
@@ -138,7 +185,7 @@ export default function EditPostPage() {
   }
 
   const filteredTags = tags.filter(
-    (t) => !form.selectedTags.some((s) => s.id === t.id),
+    (t) => !formik.values.selectedTags.some((s) => s.id === t.id),
   );
 
   return (
@@ -169,7 +216,7 @@ export default function EditPostPage() {
         )}
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={formik.handleSubmit}
           noValidate
           className="space-y-6 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 md:p-8"
         >
@@ -186,10 +233,12 @@ export default function EditPostPage() {
             ) : (
               <select
                 id="category"
-                value={form.category_id}
-                onChange={(e) => setField("category_id", e.target.value)}
+                name="category_id"
+                value={formik.values.category_id}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className={`w-full px-3 py-2.5 rounded-lg border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow ${
-                  errors.category_id
+                  formik.touched.category_id && formik.errors.category_id
                     ? "border-red-400"
                     : "border-gray-300 dark:border-gray-700"
                 }`}
@@ -202,7 +251,13 @@ export default function EditPostPage() {
                 ))}
               </select>
             )}
-            <FieldError message={errors.category_id} />
+            <FieldError
+              message={
+                formik.touched.category_id && formik.errors.category_id
+                  ? formik.errors.category_id
+                  : undefined
+              }
+            />
           </div>
 
           {/* Judul */}
@@ -215,21 +270,29 @@ export default function EditPostPage() {
             </label>
             <input
               id="title"
+              name="title"
               type="text"
               placeholder="Contoh: Bagaimana cara menggunakan useEffect di React?"
-              value={form.title}
-              onChange={(e) => setField("title", e.target.value)}
+              value={formik.values.title}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               maxLength={300}
               className={`w-full px-3 py-2.5 rounded-lg border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow ${
-                errors.title
+                formik.touched.title && formik.errors.title
                   ? "border-red-400"
                   : "border-gray-300 dark:border-gray-700"
               }`}
             />
             <div className="mt-1 flex justify-between">
-              <FieldError message={errors.title} />
+              <FieldError
+                message={
+                  formik.touched.title && formik.errors.title
+                    ? formik.errors.title
+                    : undefined
+                }
+              />
               <span className="text-xs text-gray-400 ml-auto">
-                {form.title.length}/300
+                {formik.values.title.length}/300
               </span>
             </div>
           </div>
@@ -244,20 +307,28 @@ export default function EditPostPage() {
             </label>
             <textarea
               id="body"
+              name="body"
               rows={10}
               placeholder="Jelaskan pertanyaan atau masalah kamu secara detail..."
-              value={form.body}
-              onChange={(e) => setField("body", e.target.value)}
+              value={formik.values.body}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               className={`w-full px-3 py-2.5 rounded-lg border text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow resize-y ${
-                errors.body
+                formik.touched.body && formik.errors.body
                   ? "border-red-400"
                   : "border-gray-300 dark:border-gray-700"
               }`}
             />
             <div className="mt-1 flex justify-between">
-              <FieldError message={errors.body} />
+              <FieldError
+                message={
+                  formik.touched.body && formik.errors.body
+                    ? formik.errors.body
+                    : undefined
+                }
+              />
               <span className="text-xs text-gray-400 ml-auto">
-                {form.body.length} karakter
+                {formik.values.body.length} karakter
               </span>
             </div>
           </div>
@@ -271,9 +342,9 @@ export default function EditPostPage() {
               </span>
             </label>
 
-            {form.selectedTags.length > 0 && (
+            {formik.values.selectedTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
-                {form.selectedTags.map((tag) => (
+                {formik.values.selectedTags.map((tag) => (
                   <TagBadge
                     key={tag.id}
                     tag={tag}
@@ -283,7 +354,7 @@ export default function EditPostPage() {
               </div>
             )}
 
-            {form.selectedTags.length < 5 && (
+            {formik.values.selectedTags.length < 5 && (
               <div className="relative">
                 <input
                   ref={tagInputRef}
@@ -371,3 +442,4 @@ export default function EditPostPage() {
     </main>
   );
 }
+
