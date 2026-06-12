@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
-import { updatePassword, type UpdatePasswordPayload } from "../api/userApi";
+import { updatePassword, type UpdatePasswordPayload } from "../api/UserApi";
 
 interface UseChangePasswordReturn {
   isLoading: boolean;
   error: string | null;
   success: string | null;
-  submit: (payload: UpdatePasswordPayload, isOAuth?: boolean) => Promise<boolean>;
+  submit: (
+    payload: UpdatePasswordPayload,
+    isOAuth?: boolean,
+  ) => Promise<boolean>;
   reset: () => void;
 }
 
@@ -20,7 +23,10 @@ export function useChangePassword(): UseChangePasswordReturn {
   }, []);
 
   const submit = useCallback(
-    async (payload: UpdatePasswordPayload, isOAuth = false): Promise<boolean> => {
+    async (
+      payload: UpdatePasswordPayload,
+      isOAuth = false,
+    ): Promise<boolean> => {
       setIsLoading(true);
       setError(null);
       setSuccess(null);
