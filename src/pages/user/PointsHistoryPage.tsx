@@ -1,5 +1,9 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+// Import useNavigate untuk pengalihan instan
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+
+
 
 type PointHistory = {
   id: number;
@@ -9,131 +13,124 @@ type PointHistory = {
   created_at: string;
 };
 
-export default function PostsHistoryPoints() {
-  const token = localStorage.getItem("token");
+type Summary = {
+  current_points: number;
+  total_earned: number;
+  total_deducted: number;
+};
 
-  const [filter, setFilter] = useState<
-    "all" | "earned" | "deducted"
-  >("all");
+type ApiResponse = {
+  summary?: Summary;
+  data?: PointHistory[] | { data: PointHistory[] };
+};
 
-  const histories: PointHistory[] = [
-    {
-      id: 1,
-      action_type: "content_upvoted",
-      description: "Konten kamu mendapat upvote",
-      points: 2,
-      created_at: "2026-06-08",
-    },
-    {
-      id: 2,
-      action_type: "answer_accepted",
-      description: "Jawaban kamu diterima",
-      points: 10,
-      created_at: "2026-06-07",
-    },
-    {
-      id: 3,
-      action_type: "content_downvoted",
-      description: "Konten kamu mendapat downvote",
-      points: -2,
-      created_at: "2026-06-06",
-    },
-    {
-      id: 4,
-      action_type: "downvote_given",
-      description: "Kamu melakukan downvote",
-      points: -1,
-      created_at: "2026-06-05",
-    },
-  ];
+export default function PointsHistoryPage() {
+  // Simpan token di dalam state agar React langsung mendeteksi status login sejak awal render
+  const [token] = useState<string | null>(() => localStorage.getItem("token"));
+  const navigate = useNavigate();
+  const [filter, setFilter] = useState<"all" | "earned" | "deducted">("all"); 
 
+  // Efek pengalihan mutlak: Jika token kosong, langsung usir ke halaman login
+  useEffect(() => {
+    if (!token) {
+      navigate("/login", { replace: true });
+    }
+  }, [token, navigate]);
+
+  // React Query untuk fetch data (hanya jalan jika token ada)
+  const { data: result, isLoading } = useQuery<ApiResponse>({
+    queryKey: ["pointsHistory", token],
+    queryFn: async () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/me/points`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch points history");
+      }
+
+      return response.json();
+    },
+    enabled: !!token,
+  });
+
+  // Ekstraksi data summary dengan fallback nilai 0
+  const summary: Summary = {
+    current_points: result?.summary?.current_points ?? 0,
+    total_earned: result?.summary?.total_earned ?? 0,
+    total_deducted: result?.summary?.total_deducted ?? 0,
+  };
+
+  // Ekstraksi data histories dari API
+  const histories = useMemo(() => {
+    if (!result) return [];
+    if (Array.isArray(result.data)) {
+      return result.data;
+    } else if (Array.isArray(result.data?.data)) {
+      return result.data.data;
+    }
+    return [];
+  }, [result]);
+
+  // Filter data (mentoleransi jika ada point berwujud string/angka 0 dari post)
   const filteredHistory = useMemo(() => {
     switch (filter) {
       case "earned":
-        return histories.filter(
-          (item) => item.points > 0
-        );
+        return histories.filter((item) => Number(item.points) > 0);
 
       case "deducted":
-        return histories.filter(
-          (item) => item.points < 0
-        );
+        return histories.filter((item) => Number(item.points) < 0);
 
       default:
+        // Tab "All" akan menampilkan semua riwayat, termasuk postingan yang bernilai 0 poin
         return histories;
     }
-  }, [filter]);
+  }, [histories, filter]);
 
+  // JIKA TIDAK ADA TOKEN: Langsung hentikan render UI dengan mengembalikan null.
+  // Ini mencegah browser menampilkan layout halaman setengah jadi sebelum navigasi berjalan.
   if (!token) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-orange-50 px-4">
-        <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
-          <div className="mb-4 text-center text-6xl">
-            🔒
-          </div>
-
-          <h1 className="text-center text-2xl font-bold text-gray-800">
-            Login Required
-          </h1>
-
-          <p className="mt-3 text-center text-gray-500">
-            Kamu harus login terlebih dahulu
-            untuk melihat riwayat poin.
-          </p>
-
-          <Link
-            to="/login"
-            className="mt-6 block rounded-xl bg-orange-500 py-3 text-center font-semibold text-white transition hover:bg-orange-600"
-          >
-            Login Sekarang
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-8">
       {/* Header */}
       <div className="mb-8 rounded-3xl bg-gradient-to-r from-orange-500 to-orange-400 p-8 text-white shadow-lg">
-        <h1 className="text-3xl font-bold">
-          Reputation History
-        </h1>
+        <h1 className="text-3xl font-bold">Reputation History</h1>
 
         <p className="mt-2 text-orange-100">
-          Riwayat perubahan reputasi akun kamu
+          Riwayat perubahan reputasi akun kamu.
         </p>
       </div>
 
       {/* Summary */}
       <div className="mb-8 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white shadow">
-          <p className="text-sm opacity-80">
-            Current Reputation
-          </p>
+          <p className="text-sm opacity-80">Current Reputation</p>
 
-          <h2 className="mt-2 text-4xl font-bold">
-            120
-          </h2>
+          <h2 className="mt-2 text-4xl font-bold">{summary.current_points}</h2>
         </div>
 
         <div className="rounded-2xl bg-green-50 p-6 shadow">
-          <p className="text-sm text-gray-500">
-            Total Earned
-          </p>
+          <p className="text-sm text-gray-500">Total Earned</p>
 
           <h2 className="mt-2 text-4xl font-bold text-green-600">
-            +150
+            +{summary.total_earned}
           </h2>
         </div>
 
         <div className="rounded-2xl bg-red-50 p-6 shadow">
-          <p className="text-sm text-gray-500">
-            Total Deducted
-          </p>
+          <p className="text-sm text-gray-500">Total Deducted</p>
 
           <h2 className="mt-2 text-4xl font-bold text-red-500">
-            -30
+            {summary.total_deducted}
           </h2>
         </div>
       </div>
@@ -145,7 +142,7 @@ export default function PostsHistoryPoints() {
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             filter === "all"
               ? "bg-orange-500 text-white"
-              : "border bg-white"
+              : "border bg-white hover:bg-orange-50"
           }`}
         >
           All
@@ -156,7 +153,7 @@ export default function PostsHistoryPoints() {
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             filter === "earned"
               ? "bg-orange-500 text-white"
-              : "border bg-white"
+              : "border bg-white hover:bg-orange-50"
           }`}
         >
           Earned
@@ -167,7 +164,7 @@ export default function PostsHistoryPoints() {
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             filter === "deducted"
               ? "bg-orange-500 text-white"
-              : "border bg-white"
+              : "border bg-white hover:bg-orange-50"
           }`}
         >
           Deducted
@@ -177,53 +174,52 @@ export default function PostsHistoryPoints() {
       {/* Table */}
       <div className="overflow-hidden rounded-2xl border bg-white shadow">
         <div className="grid grid-cols-12 border-b bg-orange-50 px-6 py-4 text-sm font-semibold text-gray-700">
-          <div className="col-span-2">Date</div>
-          <div className="col-span-8">Activity</div>
-          <div className="col-span-2 text-right">
-            Points
-          </div>
+          <div className="col-span-2">Tanggal</div>
+          <div className="col-span-8">Aktivitas</div>
+          <div className="col-span-2 text-right">Poin</div>
         </div>
 
-        {filteredHistory.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-3 p-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-500" />
+            <span className="text-gray-500">Memuat riwayat poin...</span>
+          </div>
+        ) : filteredHistory.length === 0 ? (
           <div className="p-12 text-center">
             <div className="mb-3 text-5xl">📭</div>
 
-            <p className="font-medium text-gray-700">
-              Belum ada riwayat poin
-            </p>
+            <p className="font-medium text-gray-700">Belum ada riwayat poin</p>
 
             <p className="mt-1 text-sm text-gray-500">
-              Aktivitas reputasi akan muncul di sini
+              Aktivitas reputasi akan muncul di sini.
             </p>
           </div>
         ) : (
           filteredHistory.map((item) => (
             <div
               key={item.id}
-              className="grid grid-cols-12 items-center border-b px-6 py-4 hover:bg-orange-50"
+              className="grid grid-cols-12 items-center border-b px-6 py-4 transition hover:bg-orange-50"
             >
               <div className="col-span-2 text-sm text-gray-500">
-                {item.created_at}
+                {new Date(item.created_at).toLocaleDateString("id-ID")}
               </div>
 
               <div className="col-span-8">
-                <p className="font-medium text-gray-800">
-                  {item.description}
-                </p>
+                <p className="font-medium text-gray-800">{item.description}</p>
 
-                <p className="text-sm text-gray-500">
-                  {item.action_type}
-                </p>
+                <p className="text-sm text-gray-500">{item.action_type}</p>
               </div>
 
               <div
                 className={`col-span-2 text-right text-lg font-bold ${
-                  item.points > 0
+                  Number(item.points) > 0
                     ? "text-green-600"
-                    : "text-red-500"
+                    : Number(item.points) < 0
+                    ? "text-red-500"
+                    : "text-gray-500"
                 }`}
               >
-                {item.points > 0
+                {Number(item.points) > 0
                   ? `+${item.points}`
                   : item.points}
               </div>
