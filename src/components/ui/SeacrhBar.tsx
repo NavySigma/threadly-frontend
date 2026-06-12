@@ -124,7 +124,7 @@ export default function SearchBar() {
         }}
       >
         <span style={{ color: "#6a737c", fontSize: 14, flexShrink: 0 }}>
-          🔍
+          🔍︎
         </span>
 
         <input
