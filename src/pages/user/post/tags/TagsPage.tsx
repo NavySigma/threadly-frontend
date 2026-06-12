@@ -1,8 +1,8 @@
 // src/pages/Tags/TagsPage.tsx
 import { useNavigate } from "react-router-dom";
-import { useTags }     from "../../hooks/useTags";
-import type { Tag }    from "../../api/tags";
-import type { TagsParams } from "../../api/tags";
+import { useTags }     from "../../../../hooks/useTags";
+import type { Tag }    from "../../../../api/tags";
+import type { TagsParams } from "../../../../api/tags";
 
 /* ─── Tag Card ──────────────────────────────────────────────── */
 function TagCard({ tag }: { tag: Tag }) {
