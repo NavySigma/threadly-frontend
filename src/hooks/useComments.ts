@@ -38,20 +38,23 @@ export function useComments(postId: string) {
         setIsSubmitting(false);
       }
     },
-    [postId]
+    [postId],
   );
 
   const addReply = useCallback(
     async (parentId: string, body: string): Promise<boolean> => {
       try {
         setIsSubmitting(true);
-        const res = await commentsApi.create(postId, { body, parent_id: parentId });
+        const res = await commentsApi.create(postId, {
+          body,
+          parent_id: parentId,
+        });
         setComments((prev) =>
           prev.map((c) =>
             c.id === parentId
               ? { ...c, replies: [...(c.replies ?? []), res.data] }
-              : c
-          )
+              : c,
+          ),
         );
         return true;
       } catch {
@@ -60,11 +63,16 @@ export function useComments(postId: string) {
         setIsSubmitting(false);
       }
     },
-    [postId]
+    [postId],
   );
 
   const editComment = useCallback(
-    async (commentId: string, body: string, isReply = false, parentId?: string): Promise<boolean> => {
+    async (
+      commentId: string,
+      body: string,
+      isReply = false,
+      parentId?: string,
+    ): Promise<boolean> => {
       try {
         const res = await commentsApi.update(commentId, { body });
         if (isReply && parentId) {
@@ -74,17 +82,17 @@ export function useComments(postId: string) {
                 ? {
                     ...c,
                     replies: c.replies.map((r) =>
-                      r.id === commentId ? { ...r, body: res.data.body } : r
+                      r.id === commentId ? { ...r, body: res.data.body } : r,
                     ),
                   }
-                : c
-            )
+                : c,
+            ),
           );
         } else {
           setComments((prev) =>
             prev.map((c) =>
-              c.id === commentId ? { ...c, body: res.data.body } : c
-            )
+              c.id === commentId ? { ...c, body: res.data.body } : c,
+            ),
           );
         }
         return true;
@@ -92,12 +100,12 @@ export function useComments(postId: string) {
         return false;
       }
     },
-    []
+    [],
   );
 
   const countUserComments = useCallback(
     (userId: string) => comments.filter((c) => c.user.id === userId).length,
-    [comments]
+    [comments],
   );
 
   return {
