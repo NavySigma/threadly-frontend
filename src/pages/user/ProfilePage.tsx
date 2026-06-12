@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
+import { apiFetch } from "../../api/client";
+import type { Post } from "../../types";
+import { QuestionsTab } from "./profile/QuestionsTab";
 
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
@@ -90,6 +93,8 @@ function EmptyState({ message }: { message: string }) {
     </div>
   );
 }
+
+
 
 function ProfileContent({
   profileUser,
@@ -206,9 +211,15 @@ function ProfileContent({
 function ActivityContent({
   activeSubTab,
   setActiveSubTab,
+  posts,
+  loadingPosts,
+  postsError,
 }: {
   activeSubTab: ActivityTab;
   setActiveSubTab: (t: ActivityTab) => void;
+  posts: Post[];
+  loadingPosts: boolean;
+  postsError: string | null;
 }) {
   const subTabs: { key: ActivityTab; label: string }[] = [
     { key: "summary", label: "Summary" },
@@ -256,12 +267,11 @@ function ActivityContent({
           </div>
         )}
         {activeSubTab === "questions" && (
-          <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-              Questions
-            </p>
-            <EmptyState message="Belum ada pertanyaan." />
-          </div>
+          <QuestionsTab
+            posts={posts}
+            loadingPosts={loadingPosts}
+            postsError={postsError}
+          />
         )}
         {activeSubTab === "tags" && (
           <div>
@@ -315,14 +325,19 @@ export default function ProfilePage() {
   const { id } = useParams<{ id?: string }>();
 
   const isOwnProfile = !id || id === user?.id;
+  const targetUserId = isOwnProfile ? user?.id : (id ?? "");
 
   const [profileUser, setProfileUser] = useState<PublicUser | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
   const { isFollowing, isLoading: followLoading, toggle } = useFollow(false);
 
-  const [mainTab, setMainTab] = useState<MainTab>("profile");
-  const [activityTab, setActivityTab] = useState<ActivityTab>("summary");
+  const [mainTab, setMainTab] = useState<MainTab>("activity");
+  const [activityTab, setActivityTab] = useState<ActivityTab>("questions");
+
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [postsError, setPostsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOwnProfile || !id) return;
@@ -341,6 +356,26 @@ export default function ProfilePage() {
 
     loadProfile();
   }, [id, isOwnProfile]);
+
+  useEffect(() => {
+    if (!targetUserId) return;
+
+    async function loadUserPosts() {
+      setLoadingPosts(true);
+      setPostsError(null);
+      try {
+        const res = await apiFetch<{ data: Post[] }>(`/users/${targetUserId}/posts`);
+        setPosts(res.data);
+      } catch (err) {
+        console.error(err);
+        setPostsError("Gagal memuat postingan.");
+      } finally {
+        setLoadingPosts(false);
+      }
+    }
+
+    loadUserPosts();
+  }, [targetUserId]);
 
   if (!user) {
     return (
@@ -386,7 +421,15 @@ export default function ProfilePage() {
     ? user.created_at
     : (profileUser?.created_at ?? "");
   const displayEmail = isOwnProfile ? user.email : null;
-  const targetUserId = isOwnProfile ? user.id : (id ?? "");
+
+  const postsWithUser = posts.map((p) => ({
+    ...p,
+    user: p.user || {
+      id: targetUserId,
+      username: displayUsername,
+      avatar_url: displayAvatarUrl,
+    },
+  }));
 
   const mainTabs: { key: MainTab; label: string }[] = [
     { key: "profile", label: "Profile" },
@@ -545,6 +588,9 @@ export default function ProfilePage() {
         <ActivityContent
           activeSubTab={activityTab}
           setActiveSubTab={setActivityTab}
+          posts={postsWithUser}
+          loadingPosts={loadingPosts}
+          postsError={postsError}
         />
       )}
       {mainTab === "likes" && <LikesContent />}
