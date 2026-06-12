@@ -1,67 +1,52 @@
 import { usePostFilter } from "../../contexts/PostFilterContext";
 
-export function PostFilterBar() {
+export default function PostFilterBar() {
   const {
     filter,
+    setSearch,
     setCategory,
     resetFilter,
-    hasActiveFilter,
   } = usePostFilter();
 
-  const categories = [
-    {
-      id: "",
-      name: "All",
-    },
-    {
-      id: "frontend",
-      name: "Frontend",
-    },
-    {
-      id: "backend",
-      name: "Backend",
-    },
-    {
-      id: "react",
-      name: "React",
-    },
-    {
-      id: "laravel",
-      name: "Laravel",
-    },
-  ];
-
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Filter Questions
-        </h2>
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-4">
+      <div className="flex flex-col md:flex-row gap-3">
+        <input
+          type="text"
+          placeholder="Cari pertanyaan..."
+          value={filter.search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
 
-        {hasActiveFilter && (
-          <button
-            onClick={resetFilter}
-            className="rounded-lg border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50"
-          >
-            Reset
-          </button>
-        )}
+        <input
+          type="text"
+          placeholder="Category ID"
+          value={filter.category_id}
+          onChange={(e) => setCategory(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+
+        <button
+          onClick={resetFilter}
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition"
+        >
+          Reset
+        </button>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setCategory(category.id)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-              filter.category_id === category.id
-                ? "bg-orange-500 text-white"
-                : "border border-gray-200 bg-white text-gray-700 hover:bg-orange-50"
-            }`}
-          >
-            {category.name}
-          </button>
-        ))}
+        {filter.search && (
+          <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs">
+            Search: {filter.search}
+          </span>
+        )}
+
+        {filter.category_id && (
+          <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs">
+            Category: {filter.category_id}
+          </span>
+        )}
       </div>
     </div>
   );
