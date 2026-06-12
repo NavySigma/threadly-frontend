@@ -20,6 +20,7 @@ export interface PostUser {
   username: string;
   avatar_url: string | null;
   reputation_points?: number;
+  name?: string;
 }
 
 export interface Post {
@@ -36,6 +37,10 @@ export interface Post {
   user: PostUser;
   category: Category;
   tags: Tag[];
+  votes_count?: number;
+  answers_count?: number;
+  views_count?: number;
+  created_at_human?: string;
 }
 
 export interface CreatePostPayload {
@@ -72,3 +77,11 @@ export interface InitialValueCreatePost {
   body: string;
   selectedTags: Tag[];
 }
+
+export interface InitialValueEditPost {
+  category_id: string;
+  title: string;
+  body: string;
+  selectedTags: Tag[];
+}
+
