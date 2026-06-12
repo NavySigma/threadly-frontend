@@ -17,6 +17,7 @@ import ResetPassword from "./pages/ResetPassword";
 import TagsPage from "./pages/user/TagsPage";
 import SearchPage from "./pages/user/SearchPages";
 import CreatePostPage from "./pages/user/post/CreatePostPage";
+import { PostsPage } from "./pages/PostPage";
 // import SearchPage from "./pages/user/SearchPages";
 
 
@@ -37,14 +38,15 @@ function App() {
           {/* Main app — navbar + sidebar */}
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/posts/create" element={<CreatePostPage />} />
+            <Route path="/posts" element={<PostsPage />} />
+            <Route path="/posts/create" element={<Home />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id/edit" element={<EditPostPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
-            <Route path="/search" element={<SearchPage />} />
+            <Route path="/search" element={<Home />} />
           </Route>
         </Routes>
       </AuthProvider>

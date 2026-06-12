@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { usePostFilter } from "../contexts/PostFilterContext";
 import { usePosts } from "../hooks";
 import { PostFilterBar } from "../components/post/PostFilterBar";
@@ -19,9 +20,12 @@ export function PostsPage() {
       {/* Header */}
       <div className="flex justify-between items-center gap-3">
         <h1 className="text-xl font-bold text-gray-800">Semua Pertanyaan</h1>
-        <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition">
+        <Link 
+          to="/posts/create"
+          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition"
+        >
           + Ajukan Pertanyaan
-        </button>
+        </Link>
       </div>
 
       {/* Filter */}

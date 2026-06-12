@@ -1,9 +1,11 @@
 // src/pages/Home.tsx
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "../contexts/useAuth";
 import { usePosts } from "../hooks/usePosts";
 import { parseSearchQuery } from "../api/search";
 import type { Post } from "../types/posts";
+import CreatePostPage from "./user/post/CreatePostPage";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -141,7 +143,10 @@ function PostSkeleton() {
 
 export default function Home() {
   const { user } = useAuth();
+  const location = useLocation();
   const [params] = useSearchParams();
+  const isCreating = location.pathname === "/posts/create";
+
   const rawSearch = params.get("search") || "";
   const explicitType = (params.get("type") || "all") as
     | "all"
@@ -164,6 +169,17 @@ export default function Home() {
     goToPage,
   } = usePosts(effectiveSearch);
 
+  // Default ke popular di Home
+  useEffect(() => {
+    if (!effectiveSearch && sortBy === "newest") {
+      setSortBy("popular");
+    }
+  }, [effectiveSearch, setSortBy, sortBy]);
+
+  if (isCreating) {
+    return <CreatePostPage />;
+  }
+
   return (
     <div>
       {/* Header */}
@@ -173,7 +189,7 @@ export default function Home() {
             ? searchType !== "all"
               ? `Hasil pencarian ${searchType} untuk "${effectiveSearch}"`
               : `Hasil pencarian untuk "${effectiveSearch}"`
-            : "All Questions"}
+            : "Popular Questions"}
         </h1>
         {effectiveSearch && (
           <Link to="/" style={{ marginLeft: 12, fontSize: 13 }}>
@@ -206,7 +222,7 @@ export default function Home() {
           {isLoading ? "Loading..." : `${total.toLocaleString()} questions`}
         </span>
         <div className="filter-bar">
-          {(["newest", "votes", "unanswered"] as const).map((s) => (
+          {(["popular", "newest", "votes", "unanswered"] as const).map((s) => (
             <button
               key={s}
               className={`filter-btn${sortBy === s ? " active" : ""}`}
