@@ -16,7 +16,10 @@ const ForgotPassword = () => {
         setError('');
 
         try {
-            await api.post('/forgot-password', { email });
+            await api.post('/forgot-password', { 
+                email,
+                frontend_url: window.location.origin
+            });
             setSuccess(true);
         } catch (err) {
             const e = err as AxiosError<ApiError>;

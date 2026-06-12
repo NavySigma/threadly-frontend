@@ -12,10 +12,12 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const handleGoogle = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google/redirect`;
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google/redirect?frontend_url=${origin}`;
   };
   const handleGithub = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/github/redirect`;
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/github/redirect?frontend_url=${origin}`;
   };
 
   const handleSubmit = async (e: FormEvent) => {
