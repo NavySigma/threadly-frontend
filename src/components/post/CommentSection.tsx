@@ -3,8 +3,8 @@ import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
 import { commentsApi } from "../../api/comments";
 import type { Comment } from "../../api/comments";
-import CommentVote from "../../pages/user/post/comment/CommentVote";
-import CommentLike from "../../pages/user/post/comment/CommentLike";
+import CommentVote from "../../pages/post/comment/CommentVote";
+import CommentLike from "../../pages/post/comment/CommentLike";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
