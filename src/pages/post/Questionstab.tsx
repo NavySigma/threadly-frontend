@@ -38,7 +38,9 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
       {!isLoading && !error && posts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white border border-gray-200 rounded-xl">
           <p className="text-3xl">🔍</p>
-          <p className="text-sm font-semibold text-gray-600">Tidak ada pertanyaan ditemukan</p>
+          <p className="text-sm font-semibold text-gray-600">
+            Tidak ada pertanyaan ditemukan
+          </p>
         </div>
       )}
 
@@ -107,9 +109,18 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
                 </div>
               </div>
 
-              {/* Action Menu (Edit/Delete) */}
-              <div className="absolute right-4 top-4" onClick={(e) => e.stopPropagation()}>
-                <PostActionMenu postId={post.id} onDeleted={refetch} />
+              {/* Action Menu (Edit/Private/Reopen/Delete) */}
+              <div
+                className="absolute left-4 top-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <PostActionMenu
+                  postId={post.id}
+                  postStatus={post.status}
+                  closedAt={post.closed_at}
+                  onDeleted={refetch}
+                  onUpdated={refetch}
+                />
               </div>
             </div>
           ))}
