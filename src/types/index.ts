@@ -41,6 +41,7 @@ export interface Post {
   created_at: string;
   created_at_human?: string;
   updated_at: string;
+  closed_at?: string | null;
   user: User;
   category: Category;
   tags: Tag[];

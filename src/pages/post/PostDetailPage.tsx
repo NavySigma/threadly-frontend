@@ -2,8 +2,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePostDetail } from "../../hooks/usePostDetail";
 import { useAuth } from "../../hooks/useAuth";
 import CommentSection from "../../components/post/CommentSection";
-import PostVote from "../user/post/PostVote";
-import PostLike from "../user/post/PostLike";
+import PostVote from "../post/vote/PostVote";
+import PostLike from "../post/like/PostLike";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);

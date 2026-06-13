@@ -90,7 +90,6 @@ export function PostActionMenu({
   };
 
   const canReopen = postStatus === "closed" && isReopenable(closedAt);
-  const cannotReopen = postStatus === "closed" && !canReopen;
 
   return (
     <div
