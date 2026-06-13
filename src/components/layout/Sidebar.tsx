@@ -1,57 +1,91 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation } from "react-router-dom";
 
-// List link navigasi buat sidebar, isinya path, emoji icon, dan labelnya
 const links = [
-  { to: '/', icon: '&#127968;', label: 'Home' },
-  { to: '/posts', icon: '&#128203;', label: 'Questions' },
-  { to: '/tags', icon: '&#127991;', label: 'Tags' },
-  { to: '/users', icon: '&#128101;', label: 'Users' },
-  { to: '/categories', icon: '&#128193;', label: 'Categories' },
-]
+  { to: "/", icon: "🏠", label: "Home" },
+  { to: "/posts", icon: "📝", label: "Questions" },
+  { to: "/tags", icon: "🏷️", label: "Tags" },
+  { to: "/users", icon: "👥", label: "Users" },
+  { to: "/categories", icon: "📁", label: "Categories" },
+  { to: "/history", icon: "💰", label: "History Points" },
+];
 
 export default function Sidebar() {
   const location = useLocation();
 
   return (
-    // Container utama sidebar pake border kanan tipis & background kontras
-    <aside className="sidebar border-e border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 h-screen py-4 w-64">
-      {/* List menu navigasi */}
-      <ul className="sidebar-nav space-y-1">
+    <aside className="w-64 h-screen bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 shadow-sm sticky top-0">
+      {/* Header */}
+      <div className="px-5 py-5 border-b border-gray-200 dark:border-gray-800">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+          Threadly
+        </h2>
+
+        <p className="text-xs text-gray-400 mt-1">
+          Community Discussion Platform
+        </p>
+      </div>
+
+      {/* Navigation */}
+      <ul className="p-3 space-y-1">
         {links.map((link) => (
           <li key={link.to}>
-            {/* NavLink otomatis ngasih state isActive kalo path-nya cocok */}
             <NavLink
               to={link.to}
               className={({ isActive }) => {
                 let active = isActive;
-                
-                // Kalo path-nya /posts/create, paksa Home yang aktif, Questions matiin
-                if (location.pathname === '/posts/create') {
-                  if (link.to === '/') active = true;
-                  if (link.to === '/posts') active = false;
-                } else if (link.to === '/') {
-                  // Link home cuma aktif kalo pas di root /
-                  active = location.pathname === '/';
+
+                if (location.pathname === "/posts/create") {
+                  if (link.to === "/") active = true;
+                  if (link.to === "/posts") active = false;
+                } else if (link.to === "/") {
+                  active = location.pathname === "/";
                 }
 
-                return `flex items-center gap-3 border-s-[3px] px-4 py-3 transition-colors ${
-                  active
-                    ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400 font-semibold'
-                    : 'border-transparent text-gray-500 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-900/50 dark:hover:text-gray-200'
-                }`;
+                return `
+                  group
+                  flex items-center gap-3
+                  rounded-xl
+                  px-4 py-3
+                  transition-all duration-200
+                  ${
+                    active
+                      ? "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                  }
+                `;
               }}
             >
-              {/* Icon emoji */}
               <span
-                className="sidebar-link-icon size-5 opacity-75 inline-flex items-center justify-center text-base"
-                dangerouslySetInnerHTML={{ __html: link.icon }}
-              />
-              {/* Teks label menu */}
-              <span className="text-sm font-medium">{link.label}</span>
+                className={`
+                  flex items-center justify-center
+                  w-9 h-9
+                  rounded-lg
+                  text-lg
+                  transition-all
+                `}
+              >
+                {link.icon}
+              </span>
+
+              <span className="text-sm font-medium tracking-wide">
+                {link.label}
+              </span>
             </NavLink>
           </li>
         ))}
       </ul>
+
+      {/* Footer */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="rounded-xl bg-gray-50 dark:bg-gray-900 p-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Threadly Community
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            Ask, Answer, Learn 🚀
+          </p>
+        </div>
+      </div>
     </aside>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 /* Tailwind v4 — utilities only, skip Preflight so our existing styles are preserved */
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 *,
 *::before,
