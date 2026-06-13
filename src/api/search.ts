@@ -13,13 +13,13 @@ export interface SearchPost {
   user: { id: number; username: string; avatar_url: string | null };
 }
 
-
 export interface SearchTag {
   id: number;
   name: string;
   color: string | null;
   description?: string | null;
   posts_count?: number;
+  usage_count?: number;
 }
 
 export interface SearchUser {
@@ -32,7 +32,7 @@ export interface SearchUser {
 
 export interface SearchResults {
   posts: SearchPost[];
-  tags:  SearchTag[];
+  tags: SearchTag[];
   users: SearchUser[];
 }
 
@@ -41,11 +41,14 @@ export interface SearchResults {
 //               "code"       → { type: "all",   query: "code" }
 export type SearchType = "all" | "posts" | "tags" | "users";
 
-export function parseSearchQuery(raw: string): { type: SearchType; query: string } {
+export function parseSearchQuery(raw: string): {
+  type: SearchType;
+  query: string;
+} {
   const match = raw.match(/^(users|tags|posts):(.+)$/i);
   if (match) {
     return {
-      type:  match[1].toLowerCase() as SearchType,
+      type: match[1].toLowerCase() as SearchType,
       query: match[2].trim(),
     };
   }
@@ -78,7 +81,7 @@ export async function searchAll(q: string): Promise<SearchResults> {
   ]);
   return {
     posts: posts.data ?? [],
-    tags:  tags.data  ?? [],
+    tags: tags.data ?? [],
     users: users.data ?? [],
   };
 }

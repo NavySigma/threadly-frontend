@@ -15,6 +15,7 @@ import AuthCallback from "./pages/AuthCallback";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import TagsPage from "./pages/user/post/tags/TagsPage";
+import TagDetailPage from "./pages/user/post/tags/TagDetailPage";
 import SearchPage from "./pages/user/SearchPages";
 import CreatePostPage from "./pages/user/post/CreatePostPage";
 import { PostsPage } from "./pages/user/post/PostPage";
@@ -46,6 +47,7 @@ function App() {
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
+            <Route path="/tags/:id" element={<TagDetailPage />} />
             <Route path="/search" element={<Home />} />
           </Route>
         </Routes>
