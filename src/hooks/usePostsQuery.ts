@@ -18,7 +18,9 @@ export function usePosts(search?: string) {
 
   const sortedPosts = useMemo(() => {
     if (!data?.data) return [];
-    const posts = [...data.data];
+    
+    // STRICT FILTER: Hanya tampilkan yang statusnya 'open'
+    const posts = [...data.data].filter(p => p.status === "open");
 
     switch (sortBy) {
       case "votes":

@@ -42,6 +42,9 @@ export interface PublicUser {
   avatar_url: string | null;
   bio: string | null;
   reputation_points: number;
+  level: number;
+  level_title?: string;
+  next_level_points?: number;
   created_at: string;
   followers_count: number;
   following_count: number;

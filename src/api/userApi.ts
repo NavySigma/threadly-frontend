@@ -1,4 +1,7 @@
 import { getToken } from "./client";
+import type { User } from "../types/auth";
+
+export type { User };
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
@@ -39,23 +42,11 @@ export interface Role {
   name: string;
 }
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  avatar_url: string | null;
-  bio: string | null;
-  reputation_points: number;
-  is_oauth: boolean;
-  created_at: string;
-  updated_at: string;
-  roles: Role[];
-}
-
 export interface UpdateProfilePayload {
   username?: string;
   avatar_url?: string | null;
   bio?: string | null;
+  avatar?: File | null;
 }
 
 export interface UpdatePasswordPayload {
@@ -72,6 +63,33 @@ export async function fetchMe(): Promise<{ data: User }> {
 export async function updateProfile(
   payload: UpdateProfilePayload,
 ): Promise<{ message: string; data: User }> {
+  const hasFile = !!payload.avatar;
+
+  if (hasFile) {
+    const formData = new FormData();
+    if (payload.username) formData.append("username", payload.username);
+    if (payload.bio !== undefined) formData.append("bio", payload.bio || "");
+    if (payload.avatar) formData.append("avatar", payload.avatar);
+    if (payload.avatar_url) formData.append("avatar_url", payload.avatar_url);
+
+    // Laravel method spoofing: send as POST but tell Laravel it's a PUT
+    // However, since the server explicitly says only PUT is supported,
+    // we'll try sending as PUT with FormData first.
+    // If that fails to pick up the file, we need the backend to support POST.
+
+    const token = getToken();
+    const res = await fetch(`${BASE_URL}/me`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+    return handleResponse<{ message: string; data: User }>(res);
+  }
+
+  // Fallback to JSON for non-file updates
   const res = await fetch(`${BASE_URL}/me`, {
     method: "PUT",
     headers: authHeaders(),

@@ -93,8 +93,13 @@ export function PostsPage() {
               {/* Kanan: Content Details */}
               <div className="flex-1 flex flex-col gap-1">
                 {/* Title */}
-                <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-800 line-clamp-2">
-                  {post.title}
+                <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-800 line-clamp-2 flex items-center gap-2">
+                  {post.status === "closed" && (
+                    <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
+                      Private
+                    </span>
+                  )}
+                  <span>{post.title}</span>
                 </h3>
 
                 {/* Body Preview */}

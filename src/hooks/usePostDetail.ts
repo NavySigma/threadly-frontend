@@ -9,22 +9,22 @@ export function usePostDetail(id: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchPost = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const res = await postsApi.getById(id);
+
+      setPost(res.data);
+    } catch {
+      setError("Gagal memuat postingan");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const res = await postsApi.getById(id);
-
-        setPost(res.data);
-      } catch {
-        setError("Gagal memuat postingan");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (id) {
       fetchPost();
     }
@@ -34,5 +34,6 @@ export function usePostDetail(id: string) {
     post,
     isLoading,
     error,
+    refetch: fetchPost,
   };
 }

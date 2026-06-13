@@ -1,5 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  User,
+  Mail,
+  Edit2,
+  Calendar,
+  Trophy,
+  Activity,
+  Heart,
+  MessageSquare,
+  Tag,
+  Award,
+  TrendingUp,
+  LogOut,
+} from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
@@ -144,7 +158,7 @@ function ProfileContent({
             justifyContent: "space-between",
           }}
         >
-          <span style={{ fontSize: 14, color: "#4f46e5" }}>Threadly</span>
+          <a href="/" style={{ fontSize: 14, color: "#4f46e5", textDecoration: "none" }}>Threadly</a>
           <span style={{ fontSize: 14, color: "#6b7280" }}>1</span>
         </div>
       </div>
@@ -196,11 +210,85 @@ function ProfileContent({
           </div>
         )}
 
-        {/* Rank (sebelumnya Badges) */}
+        {/* Rank Section */}
         <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>
           Rank
         </p>
-        <EmptyState message="Belum punya rank." />
+        <div
+          style={{
+            background: "#f9fafb",
+            borderRadius: 8,
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                background: "#0d9488",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 20,
+                color: "#fff",
+                boxShadow: "0 2px 4px rgba(13, 148, 136, 0.2)",
+              }}
+            >
+              <Trophy size={24} />
+            </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "#111827" }}>
+                {displayUser?.level_title ?? "Newbie"}
+              </div>
+              <div style={{ fontSize: 13, color: "#6b7280" }}>
+                Level {displayUser?.level ?? 1}
+              </div>
+            </div>
+          </div>
+
+          {displayUser?.next_level_points !== undefined && (
+            <div style={{ marginTop: 4 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  marginBottom: 6,
+                }}
+              >
+                <span style={{ color: "#6b7280" }}>Progress ke level berikutnya</span>
+                <span style={{ fontWeight: 600, color: "#0d9488" }}>
+                  {displayUser.reputation_points} / {displayUser.next_level_points} pts
+                </span>
+              </div>
+              <div
+                style={{
+                  height: 6,
+                  background: "#e5e7eb",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    background: "#0d9488",
+                    width: `${Math.min(
+                      100,
+                      (displayUser.reputation_points / (displayUser.next_level_points || 1)) * 100
+                    )}%`,
+                    transition: "width 0.5s ease-out",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -226,17 +314,17 @@ function ActivityContent({
     }
   };
 
-  const subTabs: { key: ActivityTab | "logout"; label: string }[] = [
-    { key: "summary", label: "Summary" },
-    { key: "answers", label: "Answers" },
-    { key: "questions", label: "Questions" },
-    { key: "tags", label: "Tags" },
-    { key: "badges", label: "Rank" },
-    { key: "reputation", label: "Reputation" },
+  const subTabs: { key: ActivityTab | "logout"; label: string; icon: React.ReactNode }[] = [
+    { key: "summary", label: "Summary", icon: <Activity size={16} /> },
+    { key: "answers", label: "Answers", icon: <MessageSquare size={16} /> },
+    { key: "questions", label: "Questions", icon: <MessageSquare size={16} /> },
+    { key: "tags", label: "Tags", icon: <Tag size={16} /> },
+    { key: "badges", label: "Rank", icon: <Award size={16} /> },
+    { key: "reputation", label: "Reputation", icon: <TrendingUp size={16} /> },
   ];
 
   if (isOwnProfile) {
-    subTabs.push({ key: "logout", label: "Logout" });
+    subTabs.push({ key: "logout", label: "Logout", icon: <LogOut size={16} /> });
   }
 
   return (
@@ -250,7 +338,7 @@ function ActivityContent({
                 if (t.key === "logout") {
                   handleLogout();
                 } else {
-                  setActiveSubTab(t.key);
+                  setActiveSubTab(t.key as ActivityTab);
                 }
               }}
               style={{
@@ -266,6 +354,9 @@ function ActivityContent({
                   : (activeSubTab === t.key ? "#f3f4f6" : "transparent"),
                 color: t.key === "logout" ? "#dc2626" : (activeSubTab === t.key ? "#111827" : "#6b7280"),
                 transition: "all .15s",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}
               onMouseOver={(e) => {
                 if (t.key === "logout") e.currentTarget.style.background = "#fef2f2";
@@ -276,6 +367,7 @@ function ActivityContent({
                 else if (activeSubTab !== t.key) e.currentTarget.style.background = "transparent";
               }}
             >
+              {t.icon}
               {t.label}
             </button>
           ))}
@@ -421,10 +513,10 @@ export default function ProfilePage() {
 
 
 
-  const mainTabs: { key: MainTab; label: string }[] = [
-    { key: "profile", label: "Profile" },
-    { key: "activity", label: "Activity" },
-    { key: "likes", label: "Likes" },
+  const mainTabs: { key: MainTab; label: string; icon: React.ReactNode }[] = [
+    { key: "profile", label: "Profile", icon: <User size={16} /> },
+    { key: "activity", label: "Activity", icon: <Activity size={16} /> },
+    { key: "likes", label: "Likes", icon: <Heart size={16} /> },
   ];
 
   return (
@@ -469,7 +561,7 @@ export default function ProfilePage() {
                   gap: 4,
                 }}
               >
-                👤 Member sejak{" "}
+                <Calendar size={14} /> Member sejak{" "}
                 {new Date(displayCreatedAt).toLocaleDateString("id-ID", {
                   year: "numeric",
                   month: "long",
@@ -477,8 +569,8 @@ export default function ProfilePage() {
               </span>
             )}
             {displayEmail && (
-              <span style={{ fontSize: 13, color: "#6b7280" }}>
-                ✉️ {displayEmail}
+              <span style={{ fontSize: 13, color: "#6b7280", display: "flex", alignItems: "center", gap: 4 }}>
+                <Mail size={14} /> {displayEmail}
               </span>
             )}
           </div>
@@ -500,7 +592,7 @@ export default function ProfilePage() {
                   cursor: "pointer",
                 }}
               >
-                ✐ Edit profil
+                <Edit2 size={14} /> Edit profil
               </button>
             ) : (
               <button
@@ -560,8 +652,12 @@ export default function ProfilePage() {
               cursor: "pointer",
               borderRadius: "8px 8px 0 0",
               transition: "all .15s",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
+            {t.icon}
             {t.label}
           </button>
         ))}
