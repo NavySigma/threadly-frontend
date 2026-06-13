@@ -210,12 +210,23 @@ function ActivityContent({
   activeSubTab,
   setActiveSubTab,
   userId,
+  isOwnProfile,
 }: {
   activeSubTab: ActivityTab;
   setActiveSubTab: (t: ActivityTab) => void;
   userId: string;
+  isOwnProfile: boolean;
 }) {
-  const subTabs: { key: ActivityTab; label: string }[] = [
+  const { logout } = useAuth();
+  
+  const handleLogout = async () => {
+    if (window.confirm("Apakah kamu yakin ingin logout?")) {
+      await logout();
+      window.location.href = "/login";
+    }
+  };
+
+  const subTabs: { key: ActivityTab | "logout"; label: string }[] = [
     { key: "summary", label: "Summary" },
     { key: "answers", label: "Answers" },
     { key: "questions", label: "Questions" },
@@ -224,6 +235,10 @@ function ActivityContent({
     { key: "reputation", label: "Reputation" },
   ];
 
+  if (isOwnProfile) {
+    subTabs.push({ key: "logout", label: "Logout" });
+  }
+
   return (
     <div style={{ display: "flex", gap: 20 }}>
       <div style={{ width: 160, flexShrink: 0 }}>
@@ -231,7 +246,13 @@ function ActivityContent({
           {subTabs.map((t) => (
             <button
               key={t.key}
-              onClick={() => setActiveSubTab(t.key)}
+              onClick={() => {
+                if (t.key === "logout") {
+                  handleLogout();
+                } else {
+                  setActiveSubTab(t.key);
+                }
+              }}
               style={{
                 textAlign: "left",
                 padding: "8px 14px",
@@ -240,9 +261,19 @@ function ActivityContent({
                 fontSize: 14,
                 cursor: "pointer",
                 fontWeight: activeSubTab === t.key ? 500 : 400,
-                background: activeSubTab === t.key ? "#f3f4f6" : "transparent",
-                color: activeSubTab === t.key ? "#111827" : "#6b7280",
+                background: t.key === "logout" 
+                  ? "transparent" 
+                  : (activeSubTab === t.key ? "#f3f4f6" : "transparent"),
+                color: t.key === "logout" ? "#dc2626" : (activeSubTab === t.key ? "#111827" : "#6b7280"),
                 transition: "all .15s",
+              }}
+              onMouseOver={(e) => {
+                if (t.key === "logout") e.currentTarget.style.background = "#fef2f2";
+                else e.currentTarget.style.background = "#f3f4f6";
+              }}
+              onMouseOut={(e) => {
+                if (t.key === "logout") e.currentTarget.style.background = "transparent";
+                else if (activeSubTab !== t.key) e.currentTarget.style.background = "transparent";
               }}
             >
               {t.label}
@@ -322,7 +353,7 @@ export default function ProfilePage() {
 
   const { isFollowing, isLoading: followLoading, toggle } = useFollow(false);
 
-  const [mainTab, setMainTab] = useState<MainTab>("activity");
+  const [mainTab, setMainTab] = useState<MainTab>("profile");
   const [activityTab, setActivityTab] = useState<ActivityTab>("questions");
 
   useEffect(() => {
@@ -392,8 +423,8 @@ export default function ProfilePage() {
 
   const mainTabs: { key: MainTab; label: string }[] = [
     { key: "profile", label: "Profile" },
-    { key: "activity", label: "🟠 Activity" },
-    { key: "likes", label: "❤️ Likes" },
+    { key: "activity", label: "Activity" },
+    { key: "likes", label: "Likes" },
   ];
 
   return (
@@ -469,7 +500,7 @@ export default function ProfilePage() {
                   cursor: "pointer",
                 }}
               >
-                ✏️ Edit profil
+                ✐ Edit profil
               </button>
             ) : (
               <button
@@ -520,12 +551,12 @@ export default function ProfilePage() {
               border: "none",
               borderBottom:
                 mainTab === t.key
-                  ? "2px solid #f97316"
+                  ? "2px solid #0d9488"
                   : "2px solid transparent",
-              background: mainTab === t.key ? "#fff7ed" : "transparent",
+              background: mainTab === t.key ? "#f0fdfa" : "transparent",
               fontSize: 14,
               fontWeight: mainTab === t.key ? 500 : 400,
-              color: mainTab === t.key ? "#f97316" : "#6b7280",
+              color: mainTab === t.key ? "#0d9488" : "#6b7280",
               cursor: "pointer",
               borderRadius: "8px 8px 0 0",
               transition: "all .15s",
@@ -548,6 +579,7 @@ export default function ProfilePage() {
           activeSubTab={activityTab}
           setActiveSubTab={setActivityTab}
           userId={targetUserId ?? ""}
+          isOwnProfile={isOwnProfile}
         />
       )}
       {mainTab === "likes" && <LikesContent />}

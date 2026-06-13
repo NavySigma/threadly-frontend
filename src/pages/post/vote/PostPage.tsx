@@ -18,7 +18,7 @@ export function PostsPage() {
         <h1 className="text-xl font-bold text-gray-800">Semua Pertanyaan</h1>
         <Link
           to="/posts/create"
-          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition"
+          className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition"
         >
           + Ajukan Pertanyaan
         </Link>
@@ -37,7 +37,7 @@ export function PostsPage() {
       {/* Loading */}
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-16 gap-3 bg-white border border-gray-200 rounded-xl">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-orange-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-teal-500 rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Memuat pertanyaan...</p>
         </div>
       )}

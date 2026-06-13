@@ -280,7 +280,7 @@ export default function CreatePostPage() {
           </h1>
           <p className="insufficient-points-text text-gray-600 dark:text-gray-400 mb-4">
             You need at least{" "}
-            <strong style={{ color: "var(--orange)" }}>
+            <strong style={{ color: "#0d9488" }}>
               15 reputation points
             </strong>{" "}
             to create a post.
