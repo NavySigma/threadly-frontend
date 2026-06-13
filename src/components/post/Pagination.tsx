@@ -49,8 +49,8 @@ function PageBtn({ children, active, disabled, onClick }: {
       disabled={disabled}
       className={`px-2.5 py-1.5 rounded-md border text-xs font-medium transition min-w-[34px]
         ${active
-          ? "bg-orange-500 border-orange-500 text-white"
-          : "bg-white border-gray-200 text-gray-600 hover:bg-orange-50 hover:border-orange-400 hover:text-orange-500"}
+          ? "bg-teal-500 border-teal-500 text-white"
+          : "bg-white border-gray-200 text-gray-600 hover:bg-teal-50 hover:border-teal-400 hover:text-teal-500"}
         disabled:opacity-40 disabled:cursor-not-allowed`}
     >
       {children}

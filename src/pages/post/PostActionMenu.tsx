@@ -4,13 +4,32 @@ import { postsApi } from "../../api/posts";
 
 interface PostActionMenuProps {
   postId: string;
+  postStatus: "open" | "closed" | "deleted";
+  closedAt?: string | null;
   onDeleted?: () => void;
+  onUpdated?: () => void;
 }
 
-export function PostActionMenu({ postId, onDeleted }: PostActionMenuProps) {
+function isReopenable(closedAt?: string | null) {
+  if (!closedAt) return false;
+  const closedMs = new Date(closedAt).getTime();
+  if (Number.isNaN(closedMs)) return false;
+  const elapsedMs = Date.now() - closedMs;
+  return elapsedMs < 24 * 60 * 60 * 1000;
+}
+
+export function PostActionMenu({
+  postId,
+  postStatus,
+  closedAt,
+  onDeleted,
+  onUpdated,
+}: PostActionMenuProps) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isReopening, setIsReopening] = useState(false);
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -22,6 +41,7 @@ export function PostActionMenu({ postId, onDeleted }: PostActionMenuProps) {
     try {
       await postsApi.delete(postId);
       onDeleted?.();
+      onUpdated?.();
     } catch (err) {
       console.error(err);
       alert("Gagal menghapus postingan.");
@@ -31,39 +51,126 @@ export function PostActionMenu({ postId, onDeleted }: PostActionMenuProps) {
     }
   };
 
+  const handleClose = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (
+      !window.confirm(
+        "Jadikan postingan ini private? Anda bisa membukanya kembali dalam 24 jam.",
+      )
+    ) {
+      return;
+    }
+
+    setIsClosing(true);
+    try {
+      await postsApi.close(postId);
+      onUpdated?.();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menjadikan postingan private.");
+    } finally {
+      setIsClosing(false);
+      setIsOpen(false);
+    }
+  };
+
+  const handleReopen = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsReopening(true);
+    try {
+      await postsApi.reopen(postId);
+      onUpdated?.();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal membuka kembali postingan. Mungkin sudah lewat 24 jam.");
+    } finally {
+      setIsReopening(false);
+      setIsOpen(false);
+    }
+  };
+
+  const canReopen = postStatus === "closed" && isReopenable(closedAt);
+
   return (
-    <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="relative inline-block text-left"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen((prev) => !prev);
+          }}
           type="button"
-          className="inline-flex justify-center w-full rounded-md px-2 py-1 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
+          className="inline-flex justify-center items-center rounded-full p-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm focus:outline-none"
           id="menu-button"
-          aria-expanded="true"
+          aria-expanded={isOpen}
           aria-haspopup="true"
         >
-          <span className="sr-only">Open options</span>
-          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+          <span className="sr-only">Open post actions</span>
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6-2a2 2 0 100 4 2 2 0 000-4zm6 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         </button>
       </div>
 
       {isOpen && (
         <div
-          className="origin-top-right absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10"
+          className="origin-top-left absolute left-0 mt-2 w-44 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="menu-button"
         >
           <div className="py-1" role="none">
-            <button
-              onClick={() => navigate(`/posts/${postId}/edit`)}
-              className="text-gray-700 block px-4 py-2 text-xs text-left w-full hover:bg-gray-100"
-              role="menuitem"
-            >
-              ✏️ Edit
-            </button>
+            {postStatus === "open" && (
+              <>
+                <button
+                  onClick={() => navigate(`/posts/${postId}/edit`)}
+                  className="text-gray-700 block px-4 py-2 text-xs text-left w-full hover:bg-gray-100"
+                  role="menuitem"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  onClick={handleClose}
+                  disabled={isClosing}
+                  className="text-gray-700 block px-4 py-2 text-xs text-left w-full hover:bg-gray-100"
+                  role="menuitem"
+                >
+                  {isClosing ? "..." : "🔒 Private"}
+                </button>
+              </>
+            )}
+
+            {postStatus === "closed" && (
+              <>
+                {canReopen ? (
+                  <button
+                    onClick={handleReopen}
+                    disabled={isReopening}
+                    className="text-gray-700 block px-4 py-2 text-xs text-left w-full hover:bg-gray-100"
+                    role="menuitem"
+                  >
+                    {isReopening ? "..." : "🔓 Buka kembali"}
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="text-gray-400 block px-4 py-2 text-xs text-left w-full cursor-not-allowed"
+                    role="menuitem"
+                  >
+                    🔒 Sudah permanent
+                  </button>
+                )}
+              </>
+            )}
+
             <button
               onClick={handleDelete}
               disabled={isDeleting}

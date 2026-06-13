@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { commentVoteApi } from "../../../../api/commentVote.api";
+import { commentVoteApi } from "../../../api/commentVote.api";
 
 interface CommentVoteProps {
   commentId: string;

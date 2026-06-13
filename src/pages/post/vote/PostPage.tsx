@@ -1,74 +1,97 @@
-import { useNavigate } from "react-router-dom";
-import { useMyPosts } from "../../hooks/useMyPosts";
-import { PostActionMenu } from "./PostActionMenu";
-import type { UserPost } from "../../types/userPost.type";
+import { Link, useNavigate } from "react-router-dom";
+import { usePostFilter } from "../../../contexts/PostFilterContext";
+import { usePosts } from "../../../hooks";
+import { PostFilterBar } from "../../../components/post/PostFilterBar";
+import { Pagination } from "../../../components/post/Pagination";
+import { getTagColor } from "../../../lib/tagColor";
+import type { Post } from "../../../types";
 
-function timeAgo(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-  return new Date(dateStr).toLocaleDateString();
-}
-
-interface QuestionsTabProps {
-  userId: string;
-}
-
-export function QuestionsTab({ userId }: QuestionsTabProps) {
-  const { posts, isLoading, error, refetch } = useMyPosts(userId);
+export function PostsPage() {
+  const { filter } = usePostFilter();
+  const { posts, meta, isLoading, error, page, setPage } = usePosts(filter);
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex justify-between items-center gap-3">
+        <h1 className="text-xl font-bold text-gray-800">Semua Pertanyaan</h1>
+        <Link
+          to="/posts/create"
+          className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition"
+        >
+          + Ajukan Pertanyaan
+        </Link>
+      </div>
+
+      {/* Filter */}
+      <PostFilterBar />
+
+      {/* Result count */}
+      {!isLoading && meta && (
+        <p className="text-xs text-gray-400">
+          {meta.total} pertanyaan ditemukan
+        </p>
+      )}
+
+      {/* Loading */}
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-16 gap-3 bg-white border border-gray-200 rounded-xl">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-orange-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-teal-500 rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Memuat pertanyaan...</p>
         </div>
       )}
 
+      {/* Error */}
       {!isLoading && error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
           ⚠️ {error}
         </div>
       )}
 
+      {/* Empty */}
       {!isLoading && !error && posts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white border border-gray-200 rounded-xl">
           <p className="text-3xl">🔍</p>
-          <p className="text-sm font-semibold text-gray-600">Tidak ada pertanyaan ditemukan</p>
+          <p className="text-sm font-semibold text-gray-600">
+            Tidak ada pertanyaan ditemukan
+          </p>
+          <p className="text-xs text-gray-400">
+            Coba ubah filter atau kata kunci pencarian kamu.
+          </p>
         </div>
       )}
 
+      {/* Post list */}
       {!isLoading && !error && posts.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
-          {posts.map((post: UserPost) => (
+          {posts.map((post: Post) => (
             <div
               key={post.id}
               onClick={() => navigate(`/posts/${post.id}`)}
-              className="p-5 flex gap-5 hover:bg-gray-50/50 cursor-pointer transition relative"
+              className="p-5 flex gap-5 hover:bg-gray-50/50 cursor-pointer transition"
             >
               {/* Kiri: Stats (Votes, Answers, Views) */}
               <div className="flex flex-col items-end gap-1.5 text-right min-w-[70px] text-gray-500 text-xs">
                 <div>
                   <span className="font-semibold text-gray-700">
-                    {post.vote_score}
+                    {post.vote_score ?? 0}
                   </span>{" "}
                   votes
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">
-                    {post.is_answered ? "✓" : "0"}
+                    {post.answers_count ?? 0}
                   </span>{" "}
                   answers
                 </div>
-                <div className="text-gray-400">{post.view_count} views</div>
+                <div className="text-gray-400">
+                  {post.view_count ?? 0} views
+                </div>
               </div>
 
               {/* Kanan: Content Details */}
-              <div className="flex-1 flex flex-col gap-1 pr-8">
+              <div className="flex-1 flex flex-col gap-1">
                 {/* Title */}
                 <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-800 line-clamp-2">
                   {post.title}
@@ -79,8 +102,8 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
                   {post.body}
                 </p>
 
-                {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
+                {/* FIX: RENDER TAGS SECARA LANGSUNG DI SINI */}
+                {post.tags.length > 0 && (
                   <div
                     className="flex flex-wrap gap-1.5 my-1"
                     onClick={(e) => e.stopPropagation()}
@@ -89,7 +112,7 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
                       <span
                         key={tag.id}
                         className="px-2 py-0.5 rounded text-[11px] font-medium text-white transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: tag.color ?? "#4a5568" }}
+                        style={{ backgroundColor: getTagColor(tag) }}
                       >
                         {tag.name}
                       </span>
@@ -103,18 +126,19 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
                     {post.user?.username ?? "anonymous"}
                   </span>
                   <span>•</span>
-                  <span>{timeAgo(post.created_at)}</span>
+                  <span>
+                    {post.created_at_human ??
+                      new Date(post.created_at).toLocaleDateString()}
+                  </span>
                 </div>
-              </div>
-
-              {/* Action Menu (Edit/Delete) */}
-              <div className="absolute right-4 top-4" onClick={(e) => e.stopPropagation()}>
-                <PostActionMenu postId={post.id} onDeleted={refetch} />
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Pagination */}
+      {meta && <Pagination meta={meta} page={page} onPageChange={setPage} />}
     </div>
   );
 }

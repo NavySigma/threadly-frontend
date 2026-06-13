@@ -18,7 +18,10 @@ import TagsPage from "./pages/post/tags/TagsPage";
 import TagDetailPage from "./pages/post/tags/tagDetailPage";
 import SearchPage from "./pages/search/SearchPages";
 import CreatePostPage from "./pages/post/CreatePostPage";
-import { PostsPage } from "./pages/post/PostPage";
+import { PostsPage
+
+ } from "./pages/post/vote/PostPage";
+import NotificationsPage from "./pages/notification/NotificationsPage";
 
 
 function App() {
@@ -48,6 +51,7 @@ function App() {
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/tags/:id" element={<TagDetailPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>
       </AuthProvider>

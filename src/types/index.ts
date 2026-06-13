@@ -37,8 +37,11 @@ export interface Post {
   vote_score: number;
   is_answered: boolean;
   accepted_answer_id: string | null;
+  answers_count?: number;
   created_at: string;
+  created_at_human?: string;
   updated_at: string;
+  closed_at?: string | null;
   user: User;
   category: Category;
   tags: Tag[];

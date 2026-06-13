@@ -33,7 +33,7 @@ export function PostFilterBar() {
           placeholder="Cari pertanyaan..."
           value={filter.search}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-9 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 focus:bg-white transition"
+          className="w-full pl-9 pr-9 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 focus:bg-white transition"
         />
         {filter.search && (
           <button
@@ -54,7 +54,7 @@ export function PostFilterBar() {
             value={filter.category_id}
             onChange={(e) => setCategory(e.target.value)}
             disabled={loadingCats}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 cursor-pointer disabled:opacity-50"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 cursor-pointer disabled:opacity-50"
           >
             <option value="">Semua Kategori</option>
             {flatCats.map((cat) => (
@@ -73,7 +73,7 @@ export function PostFilterBar() {
           <select
             value={filter.sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 cursor-pointer"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 cursor-pointer"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -89,7 +89,7 @@ export function PostFilterBar() {
           <select
             value={filter.answer}
             onChange={(e) => setAnswer(e.target.value as AnswerFilter)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 cursor-pointer"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 cursor-pointer"
           >
             {ANSWER_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -100,7 +100,7 @@ export function PostFilterBar() {
         {hasActiveFilter && (
           <button
             onClick={resetFilter}
-            className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-orange-50 hover:border-orange-400 hover:text-orange-500 transition self-end"
+            className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-teal-50 hover:border-teal-400 hover:text-teal-500 transition self-end"
           >
             Reset Filter
           </button>
@@ -139,9 +139,9 @@ export function PostFilterBar() {
 
 function Badge({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-orange-50 border border-orange-200 text-orange-700 rounded-full text-xs font-medium">
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-teal-50 border border-teal-200 text-teal-700 rounded-full text-xs font-medium">
       {label}
-      <button onClick={onRemove} className="text-orange-400 hover:text-orange-700 text-[10px] leading-none">✕</button>
+      <button onClick={onRemove} className="text-teal-400 hover:text-teal-700 text-[10px] leading-none">✕</button>
     </span>
   );
 }

@@ -102,17 +102,17 @@ export default function PointsHistoryPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       {/* Header */}
-      <div className="mb-8 rounded-3xl bg-gradient-to-r from-orange-500 to-orange-400 p-8 text-white shadow-lg">
+      <div className="mb-8 rounded-3xl bg-gradient-to-r from-teal-500 to-teal-400 p-8 text-white shadow-lg">
         <h1 className="text-3xl font-bold">Reputation History</h1>
 
-        <p className="mt-2 text-orange-100">
+        <p className="mt-2 text-teal-100">
           Riwayat perubahan reputasi akun kamu.
         </p>
       </div>
 
       {/* Summary */}
       <div className="mb-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-400 p-6 text-white shadow">
+        <div className="rounded-2xl bg-gradient-to-r from-teal-500 to-teal-400 p-6 text-white shadow">
           <p className="text-sm opacity-80">Current Reputation</p>
 
           <h2 className="mt-2 text-4xl font-bold">{summary.current_points}</h2>
@@ -141,8 +141,8 @@ export default function PointsHistoryPage() {
           onClick={() => setFilter("all")}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             filter === "all"
-              ? "bg-orange-500 text-white"
-              : "border bg-white hover:bg-orange-50"
+              ? "bg-teal-500 text-white"
+              : "border bg-white hover:bg-teal-50"
           }`}
         >
           All
@@ -152,8 +152,8 @@ export default function PointsHistoryPage() {
           onClick={() => setFilter("earned")}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             filter === "earned"
-              ? "bg-orange-500 text-white"
-              : "border bg-white hover:bg-orange-50"
+              ? "bg-teal-500 text-white"
+              : "border bg-white hover:bg-teal-50"
           }`}
         >
           Earned
@@ -163,8 +163,8 @@ export default function PointsHistoryPage() {
           onClick={() => setFilter("deducted")}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             filter === "deducted"
-              ? "bg-orange-500 text-white"
-              : "border bg-white hover:bg-orange-50"
+              ? "bg-teal-500 text-white"
+              : "border bg-white hover:bg-teal-50"
           }`}
         >
           Deducted
@@ -173,7 +173,7 @@ export default function PointsHistoryPage() {
 
       {/* Table */}
       <div className="overflow-hidden rounded-2xl border bg-white shadow">
-        <div className="grid grid-cols-12 border-b bg-orange-50 px-6 py-4 text-sm font-semibold text-gray-700">
+        <div className="grid grid-cols-12 border-b bg-teal-50 px-6 py-4 text-sm font-semibold text-gray-700">
           <div className="col-span-2">Tanggal</div>
           <div className="col-span-8">Aktivitas</div>
           <div className="col-span-2 text-right">Poin</div>
@@ -181,7 +181,7 @@ export default function PointsHistoryPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center gap-3 p-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-500" />
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-500" />
             <span className="text-gray-500">Memuat riwayat poin...</span>
           </div>
         ) : filteredHistory.length === 0 ? (
@@ -198,7 +198,7 @@ export default function PointsHistoryPage() {
           filteredHistory.map((item) => (
             <div
               key={item.id}
-              className="grid grid-cols-12 items-center border-b px-6 py-4 transition hover:bg-orange-50"
+              className="grid grid-cols-12 items-center border-b px-6 py-4 transition hover:bg-teal-50"
             >
               <div className="col-span-2 text-sm text-gray-500">
                 {new Date(item.created_at).toLocaleDateString("id-ID")}

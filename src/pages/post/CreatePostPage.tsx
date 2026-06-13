@@ -3,8 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import { useCreatePost } from "../../hooks/useCreatePost";
 import { useAuth } from "../../hooks/useAuth";
-import type { Tag, CreatePostPayload, InitialValueCreatePost } from "../../types/posts";
+import type {
+  Tag,
+  CreatePostPayload,
+  InitialValueCreatePost,
+} from "../../types/posts";
 import { CreatePostSchema } from "./createpostpage.validation";
+import { tagsApi } from "../../api/posts";
+import { useQueryClient } from "@tanstack/react-query";
+import { getTagColor } from "../../lib/tagColor";
+
+const generateTempTagId = () =>
+  `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 // Komponen buat tampilin error per field
 function FieldError({ message }: { message?: string }) {
@@ -16,7 +26,6 @@ function FieldError({ message }: { message?: string }) {
   );
 }
 
-// Komponen badge tag yang bisa diklik atau dihapus
 function TagBadge({
   tag,
   onRemove,
@@ -30,7 +39,7 @@ function TagBadge({
     <span
       onClick={onClick}
       className="tag-badge inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-white cursor-pointer transition-colors"
-      style={{ backgroundColor: tag.color ?? "#6a737c" }}
+      style={{ backgroundColor: getTagColor(tag) }}
     >
       {tag.name}
       {onRemove && (
@@ -53,10 +62,10 @@ function TagBadge({
 export default function CreatePostPage() {
   // Pake navigate buat redirect halaman
   const navigate = useNavigate();
-  
+
   // Ambil status login user dari auth hook
   const { user, isAuthenticated, loading } = useAuth();
-  
+
   // State lokal buat nampung error dari server/API
   const [globalError, setGlobalError] = useState<string | null>(null);
 
@@ -107,11 +116,17 @@ export default function CreatePostPage() {
     validationSchema: CreatePostSchema,
     onSubmit: async (values) => {
       setGlobalError(null);
+      const pendingTag = tagSearch.trim();
+      const selectedTags = pendingTag
+        ? await createTag(pendingTag)
+        : formik.values.selectedTags;
+      if (selectedTags === false) return;
+
       const payload: CreatePostPayload = {
         category_id: values.category_id,
         title: values.title.trim(),
         body: values.body.trim(),
-        tags: values.selectedTags.map((t) => t.id),
+        tags: selectedTags.map((t) => t.id),
       };
 
       try {
@@ -126,7 +141,7 @@ export default function CreatePostPage() {
         if (err?.errors && typeof err.errors === "object") {
           const mapped: Record<string, string> = {};
           for (const [field, messages] of Object.entries(
-            err.errors as Record<string, unknown>
+            err.errors as Record<string, unknown>,
           )) {
             mapped[field] = Array.isArray(messages)
               ? String(messages[0])
@@ -153,17 +168,101 @@ export default function CreatePostPage() {
   const removeTag = (tagId: string) => {
     formik.setFieldValue(
       "selectedTags",
-      formik.values.selectedTags.filter((t) => t.id !== tagId)
+      formik.values.selectedTags.filter((t) => t.id !== tagId),
     );
   };
 
   // Minimal poin reputasi harus 15 buat bisa ngepost
   const hasEnoughPoints = (user?.reputation_points ?? 0) >= 15;
-  
-  // Saring list tag dropdown biar gak muncul tag yang udah kita pilih
+
+  const trimmedTagSearch = tagSearch.trim();
+  const exactTag = trimmedTagSearch
+    ? tags.find((t) => t.name.toLowerCase() === trimmedTagSearch.toLowerCase())
+    : undefined;
+
   const filteredTags = tags.filter(
-    (t) => !formik.values.selectedTags.some((s) => s.id === t.id)
+    (t) => !formik.values.selectedTags.some((s) => s.id === t.id),
   );
+
+  const queryClient = useQueryClient();
+
+  const canCreateTag =
+    trimmedTagSearch.length > 0 &&
+    !exactTag &&
+    !formik.values.selectedTags.some(
+      (t) => t.name.toLowerCase() === trimmedTagSearch.toLowerCase(),
+    );
+
+  const pendingTagPreview =
+    canCreateTag && trimmedTagSearch
+      ? {
+          id: `preview-${trimmedTagSearch}`,
+          name: trimmedTagSearch,
+          color: null,
+        }
+      : null;
+
+  const createTag = async (name: string): Promise<Tag[] | false> => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return formik.values.selectedTags;
+
+    const alreadySelected = formik.values.selectedTags.some(
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+    if (alreadySelected) {
+      setTagSearch("");
+      setShowTagDropdown(false);
+      return formik.values.selectedTags;
+    }
+
+    const existingTag = tags.find(
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+    if (existingTag) {
+      const nextSelectedTags = [...formik.values.selectedTags, existingTag];
+      formik.setFieldValue("selectedTags", nextSelectedTags);
+      setTagSearch("");
+      setShowTagDropdown(false);
+      return nextSelectedTags;
+    }
+
+    const tempId = generateTempTagId();
+    const tempTag: Tag = { id: tempId, name: trimmedName, color: null } as Tag;
+    const nextSelectedTags = [...formik.values.selectedTags, tempTag];
+    formik.setFieldValue("selectedTags", nextSelectedTags);
+    setTagSearch("");
+    setShowTagDropdown(false);
+
+    try {
+      const res = await tagsApi.create({ name: trimmedName });
+      const newTag = res.data;
+      const finalSelectedTags = nextSelectedTags.map((t) =>
+        t.id === tempId ? newTag : t,
+      );
+      formik.setFieldValue("selectedTags", finalSelectedTags);
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      return finalSelectedTags;
+    } catch (err) {
+      formik.setFieldValue(
+        "selectedTags",
+        nextSelectedTags.filter((t) => t.id !== tempId),
+      );
+      const e = err as Record<string, unknown>;
+      if (typeof e?.message === "string") setGlobalError(e.message);
+      else setGlobalError("Gagal membuat tag. Coba lagi.");
+      return false;
+    }
+  };
+
+  const handleTagSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      if (!trimmedTagSearch) return;
+      createTag(trimmedTagSearch);
+    }
+  };
 
   // Jangan render apa-apa dulu pas lagi ngecek status login biar gak kedap-kedip
   if (loading) {
@@ -176,10 +275,12 @@ export default function CreatePostPage() {
       <main className="insufficient-points-page max-w-2xl mx-auto px-4 py-12">
         <div className="insufficient-points-card border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-2xl p-8 text-center shadow-sm">
           <div className="insufficient-points-icon text-5xl mb-4">🔒</div>
-          <h1 className="insufficient-points-title text-2xl font-bold mb-2">Insufficient Points</h1>
+          <h1 className="insufficient-points-title text-2xl font-bold mb-2">
+            Insufficient Points
+          </h1>
           <p className="insufficient-points-text text-gray-600 dark:text-gray-400 mb-4">
             You need at least{" "}
-            <strong style={{ color: "var(--orange)" }}>
+            <strong style={{ color: "#0d9488" }}>
               15 reputation points
             </strong>{" "}
             to create a post.
@@ -211,7 +312,9 @@ export default function CreatePostPage() {
             ← Back
           </button>
         </div>
-        <h1 className="create-post-header text-3xl font-extrabold text-gray-900 dark:text-white mb-2">Create New Post</h1>
+        <h1 className="create-post-header text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
+          Create New Post
+        </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Ask a question to the community. Write clearly so it can be answered
           easily.
@@ -220,25 +323,27 @@ export default function CreatePostPage() {
 
       {/* Alert Error Global */}
       {globalError && (
-        <div
-          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm dark:bg-red-950/20 dark:border-red-900 dark:text-red-400"
-        >
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm dark:bg-red-950/20 dark:border-red-900 dark:text-red-400">
           {globalError}
         </div>
       )}
 
       {/* Form Utama */}
-      <form onSubmit={formik.handleSubmit} noValidate className="create-post-form space-y-6">
-        
+      <form
+        onSubmit={formik.handleSubmit}
+        noValidate
+        className="create-post-form space-y-6"
+      >
         {/* Input Kategori */}
         <div className="form-field flex flex-col">
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor="category"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Category <span className="text-red-500">*</span>
           </label>
           {isLoadingMeta ? (
-            <div
-              className="h-10 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse"
-            />
+            <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
           ) : (
             <select
               id="category"
@@ -294,9 +399,7 @@ export default function CreatePostPage() {
                     : undefined,
               }}
             />
-            <span
-              className="pointer-events-none absolute inset-y-0 start-3 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none"
-            >
+            <span className="pointer-events-none absolute inset-y-0 start-3 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none">
               Title <span className="text-red-500">*</span>
             </span>
           </label>
@@ -336,9 +439,7 @@ export default function CreatePostPage() {
                     : undefined,
               }}
             />
-            <span
-              className="pointer-events-none absolute start-3 top-0 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none"
-            >
+            <span className="pointer-events-none absolute start-3 top-0 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none">
               Content <span className="text-red-500">*</span>
             </span>
           </label>
@@ -366,7 +467,7 @@ export default function CreatePostPage() {
           </label>
 
           {/* List tag yang udah dipilih */}
-          {formik.values.selectedTags.length > 0 && (
+          {(formik.values.selectedTags.length > 0 || pendingTagPreview) && (
             <div className="tags-display flex flex-wrap gap-1.5">
               {formik.values.selectedTags.map((tag) => (
                 <TagBadge
@@ -375,6 +476,12 @@ export default function CreatePostPage() {
                   onRemove={() => removeTag(tag.id)}
                 />
               ))}
+              {pendingTagPreview && (
+                <TagBadge
+                  tag={pendingTagPreview}
+                  onRemove={() => setTagSearch("")}
+                />
+              )}
             </div>
           )}
 
@@ -396,11 +503,10 @@ export default function CreatePostPage() {
                     setShowTagDropdown(true);
                   }}
                   onFocus={() => setShowTagDropdown(true)}
+                  onKeyDown={handleTagSearchKeyDown}
                   className="peer w-full border-none bg-transparent px-3 py-3 text-sm placeholder-transparent focus:border-transparent focus:outline-none focus:ring-0 mt-0.5 rounded text-gray-900 dark:text-white"
                 />
-                <span
-                  className="pointer-events-none absolute inset-y-0 start-3 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none"
-                >
+                <span className="pointer-events-none absolute inset-y-0 start-3 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none">
                   Search tags...
                 </span>
               </label>
@@ -424,27 +530,32 @@ export default function CreatePostPage() {
                       className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left transition-colors"
                     >
                       <TagBadge tag={tag} />
-                      {tag.usage_count > 0 && (
-                        <span className="text-xs text-gray-400 ml-auto">
-                          {tag.usage_count}×
-                        </span>
-                      )}
+                      {typeof tag.usage_count === "number" &&
+                        tag.usage_count > 0 && (
+                          <span className="text-xs text-gray-400 ml-auto">
+                            {tag.usage_count}×
+                          </span>
+                        )}
                     </button>
                   ))}
+                  {canCreateTag && (
+                    <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300">
+                      Tekan Enter untuk menambahkan tag "{trimmedTagSearch}".
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Informasi kalo tag gak ketemu */}
-              {showTagDropdown &&
-                filteredTags.length === 0 &&
-                tagSearch.length > 0 && (
-                  <div
-                    ref={tagDropdownRef}
-                    className="tags-dropdown absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-400"
-                  >
-                    Tag "{tagSearch}" tidak ditemukan.
-                  </div>
-                )}
+              {showTagDropdown && canCreateTag && filteredTags.length === 0 && (
+                <div
+                  ref={tagDropdownRef}
+                  className="tags-dropdown absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-500 dark:text-gray-300"
+                >
+                  Tag "{trimmedTagSearch}" tidak ditemukan. Tekan Enter untuk
+                  menambahkan.
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -478,7 +589,11 @@ export default function CreatePostPage() {
               stroke="currentColor"
               className="size-4 rtl:rotate-180"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3"></path>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3"
+              ></path>
             </svg>
             <span>Cancel</span>
           </button>
@@ -501,7 +616,11 @@ export default function CreatePostPage() {
                 stroke="currentColor"
                 className="size-4 rtl:rotate-180"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3"></path>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3"
+                ></path>
               </svg>
             )}
           </button>
@@ -510,7 +629,9 @@ export default function CreatePostPage() {
 
       {/* Tips Tambahan */}
       <div className="create-post-tips mt-8 p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
-        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">💡 Tips for writing a good post:</h4>
+        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+          💡 Tips for writing a good post:
+        </h4>
         <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
           <li>Write a specific and clear title</li>
           <li>Provide context: what have you already tried?</li>

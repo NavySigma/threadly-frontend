@@ -96,7 +96,7 @@ export function PostCard({ post, onClick }: { post: Post; onClick?: (p: Post) =>
           </span>
           <span>·</span>
           <span className="flex items-center gap-1 text-gray-600 font-medium">
-            <span className="w-4 h-4 rounded-full bg-orange-400 text-white text-[9px] font-bold flex items-center justify-center">
+            <span className="w-4 h-4 rounded-full bg-teal-400 text-white text-[9px] font-bold flex items-center justify-center">
               {post.user.username.charAt(0).toUpperCase()}
             </span>
             {post.user.username}
