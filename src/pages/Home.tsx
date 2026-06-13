@@ -24,8 +24,8 @@ function PostCard({ post }: { post: Post }) {
       <div className="post-votes">
         <span className="vote-count">{post.vote_score}</span>
         <span className="vote-label">votes</span>
-        <span className={`vote-count${post.is_answered ? " green" : ""}`}>
-          {post.is_answered ? "✓" : "0"}
+        <span className={`vote-count${post.is_answered || (post as any).answers_count > 0 ? " green" : ""}`}>
+          {(post as any).answers_count ?? (post.is_answered ? 1 : 0)}
         </span>
         <span className="vote-label">answers</span>
         <span>{post.view_count}</span>
@@ -197,7 +197,7 @@ export default function Home() {
           </Link>
         )}
         {user ? (
-          <Link to="/posts/create" className="btn btn-orange">
+          <Link to="/posts/create" className="btn btn-tosca-outline">
             Ask Question
           </Link>
         ) : (
