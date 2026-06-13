@@ -41,6 +41,43 @@ const saveBtnStyle: React.CSSProperties = {
   gap: 8,
 };
 
+const fileBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "8px 14px",
+  border: "0.5px solid #d1d5db",
+  borderRadius: 8,
+  fontSize: 13,
+  color: "#374151",
+  background: "#fff",
+  cursor: "pointer",
+  width: "fit-content",
+};
+
+async function uploadToCatbox(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("reqtype", "fileupload");
+  formData.append("fileToUpload", file);
+
+  const res = await fetch("https://catbox.moe/user/api.php", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error("Upload gambar gagal. Coba lagi.");
+  }
+
+  const url = (await res.text()).trim();
+
+  if (!url.startsWith("http")) {
+    throw new Error("Upload gambar gagal. Coba lagi.");
+  }
+
+  return url;
+}
+
 function getInitial(name: string) {
   return name ? name.charAt(0).toUpperCase() : "U";
 }
@@ -136,6 +173,8 @@ export function ProfileFormik() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     user?.avatar_url ?? null,
   );
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const formik = useFormik<ProfileFormValues>({
     initialValues: {
@@ -175,6 +214,33 @@ export function ProfileFormik() {
     return () => clearTimeout(timeout);
   }, [formik.values.avatar_url]);
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+
+    // Preview lokal langsung, sebelum upload selesai
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
+
+    setIsUploading(true);
+    try {
+      const uploadedUrl = await uploadToCatbox(file);
+      formik.setFieldValue("avatar_url", uploadedUrl);
+      setPreviewUrl(uploadedUrl);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Gagal upload gambar.",
+      );
+      setPreviewUrl(user?.avatar_url ?? null);
+    } finally {
+      setIsUploading(false);
+      // reset input agar bisa pilih file yang sama lagi kalau perlu
+      e.target.value = "";
+    }
+  }
+
   const charLeft = 500 - formik.values.bio.length;
 
   return (
@@ -193,21 +259,28 @@ export function ProfileFormik() {
           style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}
         >
           <label style={fieldLabel}>Foto profil</label>
-          <input
-            type="url"
-            name="avatar_url"
-            placeholder="https://example.com/photo.jpg"
-            value={formik.values.avatar_url}
-            onChange={formik.handleChange}
-            style={inputStyle}
-          />
-          {formik.touched.avatar_url && formik.errors.avatar_url ? (
+          <label style={fileBtnStyle}>
+            {isUploading ? "Mengupload..." : "📁 Pilih file"}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={isUploading}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          {uploadError ? (
+            <span style={{ fontSize: 12, color: "#ef4444" }}>
+              {uploadError}
+            </span>
+          ) : formik.touched.avatar_url && formik.errors.avatar_url ? (
             <span style={{ fontSize: 12, color: "#ef4444" }}>
               {formik.errors.avatar_url}
             </span>
           ) : (
             <span style={{ fontSize: 12, color: "#9ca3af" }}>
-              Paste URL gambar profil kamu
+              Pilih gambar dari perangkat kamu (JPG/PNG)
             </span>
           )}
         </div>
@@ -261,11 +334,11 @@ export function ProfileFormik() {
 
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || isUploading}
         style={{
           ...saveBtnStyle,
-          opacity: isLoading ? 0.7 : 1,
-          cursor: isLoading ? "not-allowed" : "pointer",
+          opacity: isLoading || isUploading ? 0.7 : 1,
+          cursor: isLoading || isUploading ? "not-allowed" : "pointer",
         }}
       >
         {isLoading ? "Menyimpan..." : "Simpan perubahan"}
