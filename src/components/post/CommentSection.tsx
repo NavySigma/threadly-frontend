@@ -3,6 +3,8 @@ import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
 import { commentsApi } from "../../api/comments";
 import type { Comment } from "../../api/comments";
+import CommentVote from "../../pages/user/post/comment/CommentVote";
+import CommentLike from "../../pages/user/post/comment/CommentLike";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -15,10 +17,31 @@ function timeAgo(dateStr: string): string {
 
 function Avatar({ user }: { user: Comment["user"] }) {
   return (
-    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#818cf8", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 13, flexShrink: 0, overflow: "hidden" }}>
-      {user.avatar_url
-        ? <img src={user.avatar_url} alt={user.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        : user.username[0].toUpperCase()}
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        background: "#818cf8",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#fff",
+        fontWeight: 700,
+        fontSize: 13,
+        flexShrink: 0,
+        overflow: "hidden",
+      }}
+    >
+      {user.avatar_url ? (
+        <img
+          src={user.avatar_url}
+          alt={user.username}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        (user.username?.[0] ?? "?").toUpperCase()
+      )}
     </div>
   );
 }
@@ -47,7 +70,18 @@ function CommentBox({
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         rows={3}
-        style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14, lineHeight: 1.6, resize: "vertical", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
+        style={{
+          width: "100%",
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: "1px solid #d1d5db",
+          fontSize: 14,
+          lineHeight: 1.6,
+          resize: "vertical",
+          fontFamily: "inherit",
+          outline: "none",
+          boxSizing: "border-box",
+        }}
         onFocus={(e) => (e.currentTarget.style.borderColor = "#4f46e5")}
         onBlur={(e) => (e.currentTarget.style.borderColor = "#d1d5db")}
       />
@@ -55,15 +89,34 @@ function CommentBox({
         {onCancel && (
           <button
             onClick={onCancel}
-            style={{ padding: "6px 14px", border: "1px solid #d1d5db", borderRadius: 6, background: "none", fontSize: 13, cursor: "pointer", color: "#6a737c" }}
+            style={{
+              padding: "6px 14px",
+              border: "1px solid #d1d5db",
+              borderRadius: 6,
+              background: "none",
+              fontSize: 13,
+              cursor: "pointer",
+              color: "#6a737c",
+            }}
           >
             Batal
           </button>
         )}
         <button
-          onClick={() => { if (value.trim()) onSubmit(value.trim()); }}
+          onClick={() => {
+            if (value.trim()) onSubmit(value.trim());
+          }}
           disabled={isSubmitting || !value.trim()}
-          style={{ padding: "6px 16px", borderRadius: 6, border: "none", background: isSubmitting || !value.trim() ? "#c7d2fe" : "#4f46e5", color: "#fff", fontSize: 13, fontWeight: 600, cursor: isSubmitting || !value.trim() ? "not-allowed" : "pointer" }}
+          style={{
+            padding: "6px 16px",
+            borderRadius: 6,
+            border: "none",
+            background: isSubmitting || !value.trim() ? "#c7d2fe" : "#4f46e5",
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: isSubmitting || !value.trim() ? "not-allowed" : "pointer",
+          }}
         >
           {isSubmitting ? "Mengirim..." : submitLabel}
         </button>
@@ -92,7 +145,12 @@ function SingleComment({
   isAccepted: boolean;
   canVote: boolean;
   onReply?: () => void;
-  onEdit: (commentId: string, newBody: string, isReply: boolean, parentId?: string) => Promise<boolean>;
+  onEdit: (
+    commentId: string,
+    newBody: string,
+    isReply: boolean,
+    parentId?: string,
+  ) => Promise<boolean>;
   onAccept?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -107,17 +165,58 @@ function SingleComment({
   };
 
   return (
-    <div style={{ display: "flex", gap: 10, padding: "14px 0", borderBottom: "1px solid #f3f4f6", position: "relative" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: 10,
+        padding: "14px 0",
+        borderBottom: "1px solid #f3f4f6",
+        position: "relative",
+      }}
+    >
       {isAccepted && (
-        <div style={{ position: "absolute", left: -16, top: 0, bottom: 0, width: 3, background: "#22c55e", borderRadius: 2 }} />
+        <div
+          style={{
+            position: "absolute",
+            left: -16,
+            top: 0,
+            bottom: 0,
+            width: 3,
+            background: "#22c55e",
+            borderRadius: 2,
+          }}
+        />
       )}
+
       <Avatar user={comment.user} />
+
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-          <span style={{ fontWeight: 600, fontSize: 13, color: "#111827" }}>{comment.user.username}</span>
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>{timeAgo(comment.created_at)}</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: 4,
+          }}
+        >
+          <span style={{ fontWeight: 600, fontSize: 13, color: "#111827" }}>
+            {comment.user.username}
+          </span>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>
+            {timeAgo(comment.created_at)}
+          </span>
           {isAccepted && (
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "#16a34a",
+                background: "#dcfce7",
+                padding: "2px 8px",
+                borderRadius: 12,
+              }}
+            >
               ✓ Jawaban Diterima
             </span>
           )}
@@ -133,38 +232,94 @@ function SingleComment({
             isSubmitting={editLoading}
           />
         ) : (
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#374151", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 14,
+              lineHeight: 1.65,
+              color: "#374151",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
             {comment.body}
           </p>
         )}
 
         {!editing && (
-          <div style={{ display: "flex", gap: 12, marginTop: 8, alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              marginTop: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            {/* Vote — hanya untuk comment bukan reply, dan bukan milik sendiri */}
             {!isReply && canVote && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <button style={{ background: "none", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 7px", cursor: "pointer", fontSize: 12, color: "#6a737c" }}>▲</button>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>{comment.vote_score}</span>
-                <button style={{ background: "none", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 7px", cursor: "pointer", fontSize: 12, color: "#6a737c" }}>▼</button>
-              </div>
+              <CommentVote
+                commentId={comment.id}
+                voteScore={comment.vote_score}
+              />
             )}
+
+            {/* Like — hanya untuk comment bukan reply, dan bukan milik sendiri */}
+            {!isReply && canVote && (
+              <CommentLike commentId={comment.id} />
+            )}
+
             {!isReply && onReply && currentUserId && (
-              <button onClick={onReply} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#6b7280", padding: 0 }}>
+              <button
+                onClick={onReply}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  color: "#6b7280",
+                  padding: 0,
+                }}
+              >
                 Balas
               </button>
             )}
+
             {isOwner && (
-              <button onClick={() => setEditing(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#4f46e5", padding: 0 }}>
+              <button
+                onClick={() => setEditing(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  color: "#4f46e5",
+                  padding: 0,
+                }}
+              >
                 Edit
               </button>
             )}
-            {!isReply && currentUserId === postOwnerId && currentUserId !== comment.user.id && onAccept && (
-              <button
-                onClick={onAccept}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: isAccepted ? "#16a34a" : "#6b7280", padding: 0, fontWeight: isAccepted ? 600 : 400 }}
-              >
-                {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
-              </button>
-            )}
+
+            {!isReply &&
+              currentUserId === postOwnerId &&
+              currentUserId !== comment.user.id &&
+              onAccept && (
+                <button
+                  onClick={onAccept}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: isAccepted ? "#16a34a" : "#6b7280",
+                    padding: 0,
+                    fontWeight: isAccepted ? 600 : 400,
+                  }}
+                >
+                  {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
+                </button>
+              )}
           </div>
         )}
       </div>
@@ -188,7 +343,12 @@ function CommentThread({
   acceptedAnswerId: string | null;
   isSubmitting: boolean;
   onReply: (parentId: string, body: string) => Promise<boolean>;
-  onEdit: (commentId: string, body: string, isReply: boolean, parentId?: string) => Promise<boolean>;
+  onEdit: (
+    commentId: string,
+    body: string,
+    isReply: boolean,
+    parentId?: string,
+  ) => Promise<boolean>;
   onAccept: (commentId: string) => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
@@ -212,8 +372,15 @@ function CommentThread({
         onEdit={onEdit}
         onAccept={() => onAccept(comment.id)}
       />
+
       {comment.replies && comment.replies.length > 0 && (
-        <div style={{ marginLeft: 42, borderLeft: "2px solid #e5e7eb", paddingLeft: 16 }}>
+        <div
+          style={{
+            marginLeft: 42,
+            borderLeft: "2px solid #e5e7eb",
+            paddingLeft: 16,
+          }}
+        >
           {comment.replies.map((reply) => (
             <SingleComment
               key={reply.id}
@@ -229,6 +396,7 @@ function CommentThread({
           ))}
         </div>
       )}
+
       {replyOpen && currentUserId && (
         <div style={{ marginLeft: 42, marginTop: 8 }}>
           <CommentBox
@@ -258,8 +426,19 @@ export default function CommentSection({
   postStatus,
 }: CommentSectionProps) {
   const { user } = useAuth();
-  const { comments, isLoading, error, isSubmitting, addComment, addReply, editComment, countUserComments } = useComments(postId);
-  const [acceptedAnswerId, setAcceptedAnswerId] = useState<string | null>(initialAcceptedAnswerId);
+  const {
+    comments,
+    isLoading,
+    error,
+    isSubmitting,
+    addComment,
+    addReply,
+    editComment,
+    countUserComments,
+  } = useComments(postId);
+  const [acceptedAnswerId, setAcceptedAnswerId] = useState<string | null>(
+    initialAcceptedAnswerId,
+  );
 
   const isPostOpen = postStatus === "open";
   const myCommentCount = user ? countUserComments(user.id) : 0;
@@ -277,12 +456,23 @@ export default function CommentSection({
 
   return (
     <div style={{ marginTop: 32 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottom: "2px solid #e5e7eb" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 16,
+          paddingBottom: 12,
+          borderBottom: "2px solid #e5e7eb",
+        }}
+      >
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" }}>
           {comments.length} Komentar
         </h3>
         {!isPostOpen && (
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>Post ditutup — tidak bisa berkomentar</span>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>
+            Post ditutup — tidak bisa berkomentar
+          </span>
         )}
       </div>
 
@@ -291,6 +481,7 @@ export default function CommentSection({
           Memuat komentar...
         </div>
       )}
+
       {error && (
         <div style={{ textAlign: "center", padding: "24px 0", color: "#ef4444", fontSize: 14 }}>
           {error}
@@ -300,7 +491,14 @@ export default function CommentSection({
       {!isLoading && !error && (
         <>
           {comments.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "32px 0", color: "#9ca3af", fontSize: 14 }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "32px 0",
+                color: "#9ca3af",
+                fontSize: 14,
+              }}
+            >
               Belum ada komentar. Jadilah yang pertama!
             </div>
           ) : (
@@ -322,12 +520,43 @@ export default function CommentSection({
           )}
 
           {user && isPostOpen && (
-            <div style={{ marginTop: 24, padding: 16, background: "#f9fafb", borderRadius: 10, border: "1px solid #e5e7eb" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <Avatar user={{ id: user.id, username: user.username, avatar_url: user.avatar_url ?? null }} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>Tambah Komentar</span>
+            <div
+              style={{
+                marginTop: 24,
+                padding: 16,
+                background: "#f9fafb",
+                borderRadius: 10,
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  marginBottom: 10,
+                }}
+              >
+                <Avatar
+                  user={{
+                    id: user.id,
+                    username: user.username,
+                    avatar_url: user.avatar_url ?? null,
+                  }}
+                />
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                  Tambah Komentar
+                </span>
                 {myCommentCount >= 2 && (
-                  <span style={{ fontSize: 12, color: "#ef4444", background: "#fef2f2", padding: "2px 8px", borderRadius: 12 }}>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "#ef4444",
+                      background: "#fef2f2",
+                      padding: "2px 8px",
+                      borderRadius: 12,
+                    }}
+                  >
                     Batas komentar tercapai (maks. 2)
                   </span>
                 )}
@@ -343,8 +572,24 @@ export default function CommentSection({
           )}
 
           {!user && (
-            <div style={{ marginTop: 24, padding: "16px 20px", background: "#f9fafb", borderRadius: 10, border: "1px solid #e5e7eb", textAlign: "center", fontSize: 14, color: "#6b7280" }}>
-              <a href="/login" style={{ color: "#4f46e5", fontWeight: 600, textDecoration: "none" }}>Login</a>{" "}
+            <div
+              style={{
+                marginTop: 24,
+                padding: "16px 20px",
+                background: "#f9fafb",
+                borderRadius: 10,
+                border: "1px solid #e5e7eb",
+                textAlign: "center",
+                fontSize: 14,
+                color: "#6b7280",
+              }}
+            >
+              <a
+                href="/login"
+                style={{ color: "#4f46e5", fontWeight: 600, textDecoration: "none" }}
+              >
+                Login
+              </a>{" "}
               untuk berkomentar.
             </div>
           )}

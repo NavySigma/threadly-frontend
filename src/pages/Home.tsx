@@ -2,7 +2,7 @@
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuth } from "../contexts/useAuth";
-import { usePosts } from "../hooks/usePosts";
+import { usePosts } from "../hooks/usePostsQuery";
 import { parseSearchQuery } from "../api/search";
 import type { Post } from "../types/posts";
 import CreatePostPage from "./post/CreatePostPage";

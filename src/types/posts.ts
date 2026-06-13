@@ -32,6 +32,7 @@ export interface Post {
   vote_score: number;
   is_answered: boolean;
   accepted_answer_id: string | null;
+  closed_at?: string | null;
   created_at: string;
   updated_at: string;
   user: PostUser;
@@ -84,4 +85,3 @@ export interface InitialValueEditPost {
   body: string;
   selectedTags: Tag[];
 }
-

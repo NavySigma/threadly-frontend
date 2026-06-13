@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { usePostFilter } from "../../contexts/PostFilterContext";
 import { usePosts } from "../../hooks";
 import { PostFilterBar } from "../../components/post/PostFilterBar";
@@ -9,10 +9,7 @@ import type { Post } from "../../types";
 export function PostsPage() {
   const { filter } = usePostFilter();
   const { posts, meta, isLoading, error, page, setPage } = usePosts(filter);
-
-  function handleClick(post: Post) {
-    console.log("Navigate to:", post.id); // ganti dengan navigate(`/posts/${post.id}`)
-  }
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-4">
@@ -68,10 +65,10 @@ export function PostsPage() {
       {/* Post list */}
       {!isLoading && !error && posts.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
-          {posts.map((post) => (
+          {posts.map((post: Post) => (
             <div
               key={post.id}
-              onClick={() => handleClick(post)}
+              onClick={() => navigate(`/posts/${post.id}`)}
               className="p-5 flex gap-5 hover:bg-gray-50/50 cursor-pointer transition"
             >
               {/* Kiri: Stats (Votes, Answers, Views) */}
@@ -84,7 +81,7 @@ export function PostsPage() {
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">
-                    {(post as any).answers_count ?? 0}
+                    {post.answers_count ?? 0}
                   </span>{" "}
                   answers
                 </div>
@@ -106,12 +103,12 @@ export function PostsPage() {
                 </p>
 
                 {/* FIX: RENDER TAGS SECARA LANGSUNG DI SINI */}
-                {post.tags && post.tags.length > 0 && (
+                {post.tags.length > 0 && (
                   <div
                     className="flex flex-wrap gap-1.5 my-1"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {post.tags.map((tag: any) => (
+                    {post.tags.map((tag) => (
                       <span
                         key={tag.id}
                         className="px-2 py-0.5 rounded text-[11px] font-medium text-white transition-opacity hover:opacity-90"
@@ -130,7 +127,7 @@ export function PostsPage() {
                   </span>
                   <span>•</span>
                   <span>
-                    {(post as any).created_at_human ??
+                    {post.created_at_human ??
                       new Date(post.created_at).toLocaleDateString()}
                   </span>
                 </div>

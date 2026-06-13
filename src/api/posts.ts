@@ -47,6 +47,17 @@ export const postsApi = {
       body: JSON.stringify(payload),
     }),
 
+  close: (id: string) =>
+    apiFetch<{ message: string; closed_at: string; reopen_deadline: string }>(
+      `/posts/${id}/close`,
+      { method: "PATCH" },
+    ),
+
+  reopen: (id: string) =>
+    apiFetch<{ message: string }>(`/posts/${id}/reopen`, {
+      method: "PATCH",
+    }),
+
   delete: (id: string) =>
     apiFetch<{ message: string }>(`/posts/${id}`, { method: "DELETE" }),
 };
