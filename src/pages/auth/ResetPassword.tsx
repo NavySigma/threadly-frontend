@@ -1,8 +1,8 @@
 // src/pages/ResetPassword.tsx
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../lib/axios';
-import type { ApiError } from '../types/auth';
+import api from "../../lib/axios";
+import type { ApiError } from "../../types/auth";
 import { AxiosError } from 'axios';
 
 const ResetPassword = () => {

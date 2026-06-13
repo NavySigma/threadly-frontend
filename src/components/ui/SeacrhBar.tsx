@@ -115,12 +115,13 @@ export default function SearchBar() {
         style={{
           display: "flex",
           alignItems: "center",
-          border: `1px solid ${isOpen ? "#4f46e5" : "#babfc4"}`,
+          border: `1px solid ${isOpen ? "#1abc9c" : "#babfc4"}`,
+          boxShadow: isOpen ? "0 0 0 4px rgba(26, 188, 156, 0.2)" : "none",
           borderRadius: 6,
           background: "#fff",
           padding: "0 10px",
           gap: 6,
-          transition: "border-color .15s",
+          transition: "all .15s ease-in-out",
         }}
       >
         <span style={{ color: "#6a737c", fontSize: 14, flexShrink: 0 }}>

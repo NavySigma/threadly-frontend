@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "../../../hooks/useAuth";
-import { useChangePassword } from "../../../hooks/useChangePassword";
+import { useAuth } from "../../hooks/useAuth";
+import { useChangePassword } from "../../hooks/useChangePassword";
 
-import type { UpdatePasswordPayload } from "../../../api/userApi";
+import type { UpdatePasswordPayload } from "../../api/userApi";
 
 import { ProfileFormik } from "./ProfileFormik";
 

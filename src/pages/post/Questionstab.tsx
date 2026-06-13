@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useMyPosts } from "../../../hooks/useMyPosts";
+import { useMyPosts } from "../../hooks/useMyPosts";
 import { PostActionMenu } from "./PostActionMenu";
-import type { UserPost } from "../../../types/userPost.type";
+import type { UserPost } from "../../types/userPost.type";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);

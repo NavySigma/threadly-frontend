@@ -1,4 +1,4 @@
-import { usePostFilter } from "../../contexts/PostFilterContext";
+import { usePostFilter } from "../../../contexts/PostFilterContext";
 
 export default function PostFilterBar() {
   const {

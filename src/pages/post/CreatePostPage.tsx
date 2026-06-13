@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
-import { useCreatePost } from "../../../hooks/useCreatePost";
-import { useAuth } from "../../../hooks/useAuth";
-import type { Tag, Category, CreatePostPayload, InitialValueCreatePost } from "../../../types/posts";
+import { useCreatePost } from "../../hooks/useCreatePost";
+import { useAuth } from "../../hooks/useAuth";
+import type { Tag, CreatePostPayload, InitialValueCreatePost } from "../../types/posts";
 import { CreatePostSchema } from "./createpostpage.validation";
 
 // Komponen buat tampilin error per field

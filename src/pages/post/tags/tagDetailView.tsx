@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { type TagDetail, type TagDetailPost } from "../../../../api/tags";
+import { type TagDetail, type TagDetailPost } from "../../../api/tags";
 
 type TagDetailViewProps = {
   tag: TagDetail;

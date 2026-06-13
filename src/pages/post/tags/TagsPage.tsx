@@ -1,4 +1,4 @@
-import { useTags } from "../../../../hooks/useTags";
+import { useTags } from "../../../hooks/useTags";
 import TagsView from "./TagsView";
 
 export default function TagsPage() {

@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/useAuth";
 import { usePosts } from "../hooks/usePosts";
 import { parseSearchQuery } from "../api/search";
 import type { Post } from "../types/posts";
-import CreatePostPage from "./user/post/CreatePostPage";
+import CreatePostPage from "./post/CreatePostPage";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);

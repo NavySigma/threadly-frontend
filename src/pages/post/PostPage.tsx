@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { usePostFilter } from "../../../contexts/PostFilterContext";
-import { usePosts } from "../../../hooks";
-import { PostFilterBar } from "../../../components/post/PostFilterBar";
-import { Pagination } from "../../../components/post/Pagination";
-import type { Post } from "../../../types";
+import { usePostFilter } from "../../contexts/PostFilterContext";
+import { usePosts } from "../../hooks";
+import { PostFilterBar } from "../../components/post/PostFilterBar";
+import { Pagination } from "../../components/post/Pagination";
+import type { Post } from "../../types";
 
 export function PostsPage() {
   const { filter } = usePostFilter();
@@ -70,9 +70,9 @@ export function PostsPage() {
             >
               {/* Kiri: Stats (Votes, Answers, Views) */}
               <div className="flex flex-col items-end gap-1.5 text-right min-w-[70px] text-gray-500 text-xs">
-                <div><span className="font-semibold text-gray-700">{post.votes_count ?? 0}</span> votes</div>
-                <div><span className="font-semibold text-gray-700">{post.answers_count ?? 0}</span> answers</div>
-                <div className="text-gray-400">{post.views_count ?? 0} views</div>
+                <div><span className="font-semibold text-gray-700">{post.vote_score ?? 0}</span> votes</div>
+                <div><span className="font-semibold text-gray-700">{(post as any).answers_count ?? 0}</span> answers</div>
+                <div className="text-gray-400">{post.view_count ?? 0} views</div>
               </div>
 
               {/* Kanan: Content Details */}
@@ -104,9 +104,9 @@ export function PostsPage() {
 
                 {/* Meta User Info */}
                 <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
-                  <span className="font-medium text-gray-600">{post.user?.name ?? "anonymous"}</span>
+                  <span className="font-medium text-gray-600">{post.user?.username ?? "anonymous"}</span>
                   <span>•</span>
-                  <span>{post.created_at_human ?? "baru saja"}</span>
+                  <span>{(post as any).created_at_human ?? new Date(post.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
 

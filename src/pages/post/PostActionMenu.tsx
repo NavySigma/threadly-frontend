@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { postsApi } from "../../../api/posts";
+import { postsApi } from "../../api/posts";
 
 interface PostActionMenuProps {
   postId: string;

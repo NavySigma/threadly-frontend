@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import threadlyLogo from "../../assets/logo-threadly.png";
+import threadlyLogo from "../../assets/threadly-removebg-preview.png";
 import SearchBar from "../ui/SeacrhBar";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <nav className="navbar">
@@ -26,14 +26,20 @@ export default function Navbar() {
         <div className="navbar-actions">
           {user ? (
             <div className="navbar-user">
-              <button className="navbar-btn" title="Notifications">
-                &#128276;
-              </button>
-              <Link to="/profile" className="navbar-avatar" title="Profile">
-                {user.username.charAt(0).toUpperCase()}
+              <Link 
+                to="/profile" 
+                className="navbar-avatar" 
+                title="Profile"
+                style={{ overflow: 'hidden' }}
+              >
+                <img
+                  src={user.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.username}`}
+                  alt={user.username}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               </Link>
-              <button className="navbar-btn" onClick={logout} title="Logout">
-                &#10140;
+              <button className="navbar-btn" title="Messages">
+                ✉
               </button>
             </div>
           ) : (

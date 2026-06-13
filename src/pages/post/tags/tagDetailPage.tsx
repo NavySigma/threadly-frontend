@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchTag, type TagDetail } from "../../../../api/tags";
+import { fetchTag, type TagDetail } from "../../../api/tags";
 import TagDetailView, { DetailSkeleton } from "./tagDetailView";
 
 export default function TagDetailPage() {
