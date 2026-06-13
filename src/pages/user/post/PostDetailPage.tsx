@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { usePostDetail } from "../../hooks/usePostDetail";
-import { useAuth } from "../../contexts/useAuth";
+import { usePostDetail } from "../../../hooks/usePostDetail";
+import { useAuth } from "../../../contexts/useAuth";
+import CommentSection from "../../../components/post/CommentSection";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -110,6 +111,14 @@ export default function PostDetailPage() {
       <div style={{ marginTop: 24, padding: "12px 16px", background: "#f9fafb", borderRadius: 8, fontSize: 13, color: "#6a737c" }}>
         Kategori: <strong style={{ color: "#111827" }}>{post.category.name}</strong>
       </div>
+
+      {/* Comment Section */}
+      <CommentSection
+        postId={post.id}
+        postOwnerId={post.user.id}
+        acceptedAnswerId={post.accepted_answer_id}
+        postStatus={post.status}
+      />
     </div>
   );
 }
