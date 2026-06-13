@@ -205,7 +205,7 @@ function PasswordField({
             lineHeight: 1,
           }}
         >
-          {show ? "🙈" : "👁"}
+          {show ? "/" : "👁"}
         </button>
       </div>
     </div>
@@ -213,7 +213,7 @@ function PasswordField({
 }
 
 function PasswordTab() {
-  const { logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const { isLoading, error, success, submit, reset } = useChangePassword();
 
   const [next, setNext] = useState("");
@@ -230,7 +230,26 @@ function PasswordTab() {
       new_password_confirmation: confirm,
     };
     const ok = await submit(payload);
-    if (ok) setTimeout(() => logout(), 2000);
+
+    if (ok) {
+      if (user?.email) {
+        try {
+          // Re-login diam-diam pakai password baru,
+          // supaya token diperbarui tanpa perlu user login manual lagi.
+          await login({ email: user.email, password: next });
+        } catch (err) {
+          console.warn("Auto re-login gagal:", err);
+          // Fallback: kalau auto re-login gagal, baru logout
+          logout();
+        }
+      } else {
+        // fallback kalau data user/email tidak tersedia
+        logout();
+      }
+
+      setNext("");
+      setConfirm("");
+    }
   }
 
   return (
@@ -313,11 +332,7 @@ function PasswordTab() {
 
       {error && <Alert type="error" message={error} onClose={reset} />}
       {success && (
-        <Alert
-          type="success"
-          message={`${success} Mengalihkan ke login...`}
-          onClose={reset}
-        />
+        <Alert type="success" message={success} onClose={reset} />
       )}
 
       <button
