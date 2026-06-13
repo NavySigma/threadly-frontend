@@ -6,6 +6,7 @@ import { usePosts } from "../hooks/usePostsQuery";
 import { parseSearchQuery } from "../api/search";
 import type { Post } from "../types/posts";
 import CreatePostPage from "./post/CreatePostPage";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -284,8 +285,9 @@ export default function Home() {
             className="filter-btn"
             disabled={currentPage === 1}
             onClick={() => goToPage(currentPage - 1)}
+            style={{ display: "flex", alignItems: "center", gap: 4 }}
           >
-            ← Prev
+            <ChevronLeft size={16} /> Prev
           </button>
 
           {Array.from({ length: lastPage }, (_, i) => i + 1)
@@ -323,8 +325,9 @@ export default function Home() {
             className="filter-btn"
             disabled={currentPage === lastPage}
             onClick={() => goToPage(currentPage + 1)}
+            style={{ display: "flex", alignItems: "center", gap: 4 }}
           >
-            Next →
+            Next <ChevronRight size={16} />
           </button>
         </div>
       )}

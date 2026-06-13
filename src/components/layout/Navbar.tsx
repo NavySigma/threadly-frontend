@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import threadlyLogo from "../../assets/threadly-removebg-preview.png";
 import SearchBar from "../ui/SeacrhBar";
+import { Bell } from "lucide-react";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -38,9 +39,9 @@ export default function Navbar() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </Link>
-              <button className="navbar-btn" title="Messages">
-                ✉
-              </button>
+              <Link to="/notifications" className="navbar-btn" title="Notifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Bell size={20} />
+              </Link>
             </div>
           ) : (
             <div className="navbar-user">

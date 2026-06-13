@@ -1,12 +1,21 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { 
+  Home, 
+  FileText, 
+  Tag, 
+  Users, 
+  Folder, 
+  Coins,
+  Rocket
+} from "lucide-react";
 
 const links = [
-  { to: "/", icon: "🏠", label: "Home" },
-  { to: "/posts", icon: "📝", label: "Questions" },
-  { to: "/tags", icon: "🏷️", label: "Tags" },
-  { to: "/users", icon: "👥", label: "Users" },
-  { to: "/categories", icon: "📁", label: "Categories" },
-  { to: "/history", icon: "💰", label: "History Points" },
+  { to: "/", icon: <Home size={20} />, label: "Home" },
+  { to: "/posts", icon: <FileText size={20} />, label: "Questions" },
+  { to: "/tags", icon: <Tag size={20} />, label: "Tags" },
+  { to: "/users", icon: <Users size={20} />, label: "Users" },
+  { to: "/categories", icon: <Folder size={20} />, label: "Categories" },
+  { to: "/history", icon: <Coins size={20} />, label: "History Points" },
 ];
 
 export default function Sidebar() {
@@ -55,17 +64,14 @@ export default function Sidebar() {
                 `;
               }}
             >
-              <span
+              <div
                 className={`
                   flex items-center justify-center
-                  w-9 h-9
-                  rounded-lg
-                  text-lg
                   transition-all
                 `}
               >
                 {link.icon}
-              </span>
+              </div>
 
               <span className="text-sm font-medium tracking-wide">
                 {link.label}
@@ -81,9 +87,10 @@ export default function Sidebar() {
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Threadly Community
           </p>
-          <p className="text-[11px] text-gray-400 mt-1">
-            Ask, Answer, Learn 🚀
-          </p>
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
+            <span>Ask, Answer, Learn</span>
+            <Rocket size={12} className="text-indigo-500" />
+          </div>
         </div>
       </div>
     </aside>

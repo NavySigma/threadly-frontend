@@ -196,11 +196,85 @@ function ProfileContent({
           </div>
         )}
 
-        {/* Rank (sebelumnya Badges) */}
+        {/* Rank Section */}
         <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>
           Rank
         </p>
-        <EmptyState message="Belum punya rank." />
+        <div
+          style={{
+            background: "#f9fafb",
+            borderRadius: 8,
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                background: "#0d9488",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 20,
+                color: "#fff",
+                boxShadow: "0 2px 4px rgba(13, 148, 136, 0.2)",
+              }}
+            >
+              🏆
+            </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "#111827" }}>
+                {displayUser?.level_title ?? "Newbie"}
+              </div>
+              <div style={{ fontSize: 13, color: "#6b7280" }}>
+                Level {displayUser?.level ?? 1}
+              </div>
+            </div>
+          </div>
+
+          {displayUser?.next_level_points !== undefined && (
+            <div style={{ marginTop: 4 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  marginBottom: 6,
+                }}
+              >
+                <span style={{ color: "#6b7280" }}>Progress ke level berikutnya</span>
+                <span style={{ fontWeight: 600, color: "#0d9488" }}>
+                  {displayUser.reputation_points} / {displayUser.next_level_points} pts
+                </span>
+              </div>
+              <div
+                style={{
+                  height: 6,
+                  background: "#e5e7eb",
+                  borderRadius: 3,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    background: "#0d9488",
+                    width: `${Math.min(
+                      100,
+                      (displayUser.reputation_points / (displayUser.next_level_points || 1)) * 100
+                    )}%`,
+                    transition: "width 0.5s ease-out",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ const inputStyle: React.CSSProperties = {
 
 const saveBtnStyle: React.CSSProperties = {
   alignSelf: "flex-start",
-  background: "#4f46e5",
+  background: "#0d9488", // Teal color
   color: "#fff",
   border: "none",
   borderRadius: 8,
@@ -55,29 +55,6 @@ const fileBtnStyle: React.CSSProperties = {
   width: "fit-content",
 };
 
-async function uploadToCatbox(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append("reqtype", "fileupload");
-  formData.append("fileToUpload", file);
-
-  const res = await fetch("https://catbox.moe/user/api.php", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!res.ok) {
-    throw new Error("Upload gambar gagal. Coba lagi.");
-  }
-
-  const url = (await res.text()).trim();
-
-  if (!url.startsWith("http")) {
-    throw new Error("Upload gambar gagal. Coba lagi.");
-  }
-
-  return url;
-}
-
 function getInitial(name: string) {
   return name ? name.charAt(0).toUpperCase() : "U";
 }
@@ -95,7 +72,7 @@ function Avatar({
     <div
       style={{
         borderRadius: 6,
-        background: "#c084fc",
+        background: "#0d9488", // Teal color
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -173,24 +150,31 @@ export function ProfileFormik() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     user?.avatar_url ?? null,
   );
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const formik = useFormik<ProfileFormValues>({
+  const formik = useFormik<ProfileFormValues & { avatar?: File | null }>({
     initialValues: {
       username: user?.username ?? "",
       bio: user?.bio ?? "",
       avatar_url: user?.avatar_url ?? "",
+      avatar: null,
     },
     validationSchema: ProfileSchema,
     onSubmit: async (values) => {
       reset();
-      const payload: Record<string, string | null | undefined> = {};
-      if (values.username !== user?.username)
-        payload.username = values.username;
+      
+      const payload: any = {};
+      if (values.username !== user?.username) payload.username = values.username;
       if (values.bio !== (user?.bio ?? "")) payload.bio = values.bio || null;
-      if (values.avatar_url !== (user?.avatar_url ?? ""))
+      
+      // If a file was selected, send it as 'avatar'
+      if (selectedFile) {
+        payload.avatar = selectedFile;
+      } else if (values.avatar_url !== (user?.avatar_url ?? "")) {
+        // Only send avatar_url string if no file is selected and string changed
         payload.avatar_url = values.avatar_url || null;
+      }
+
       if (Object.keys(payload).length === 0) return;
 
       const updated = await submit(payload);
@@ -200,45 +184,36 @@ export function ProfileFormik() {
           username: updated.username,
           bio: updated.bio ?? "",
           avatar_url: updated.avatar_url ?? "",
+          avatar: null,
         });
         setPreviewUrl(updated.avatar_url ?? null);
+        setSelectedFile(null);
       }
     },
   });
 
   useEffect(() => {
-    const trimmed = formik.values.avatar_url.trim();
-    const timeout = setTimeout(() => {
-      setPreviewUrl(trimmed || null);
-    }, 600);
-    return () => clearTimeout(timeout);
-  }, [formik.values.avatar_url]);
+    // Only update preview from URL if no file is selected
+    if (!selectedFile) {
+      const trimmed = formik.values.avatar_url.trim();
+      const timeout = setTimeout(() => {
+        setPreviewUrl(trimmed || null);
+      }, 600);
+      return () => clearTimeout(timeout);
+    }
+  }, [formik.values.avatar_url, selectedFile]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadError(null);
-
-    // Preview lokal langsung, sebelum upload selesai
+    // Preview lokal langsung
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
-
-    setIsUploading(true);
-    try {
-      const uploadedUrl = await uploadToCatbox(file);
-      formik.setFieldValue("avatar_url", uploadedUrl);
-      setPreviewUrl(uploadedUrl);
-    } catch (err) {
-      setUploadError(
-        err instanceof Error ? err.message : "Gagal upload gambar.",
-      );
-      setPreviewUrl(user?.avatar_url ?? null);
-    } finally {
-      setIsUploading(false);
-      // reset input agar bisa pilih file yang sama lagi kalau perlu
-      e.target.value = "";
-    }
+    setSelectedFile(file);
+    
+    // reset input agar bisa pilih file yang sama lagi kalau perlu
+    e.target.value = "";
   }
 
   const charLeft = 500 - formik.values.bio.length;
@@ -260,21 +235,17 @@ export function ProfileFormik() {
         >
           <label style={fieldLabel}>Foto profil</label>
           <label style={fileBtnStyle}>
-            {isUploading ? "Mengupload..." : "📁 Pilih file"}
+            {isLoading ? "Memproses..." : "📁 Pilih file"}
             <input
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              disabled={isUploading}
+              disabled={isLoading}
               style={{ display: "none" }}
             />
           </label>
 
-          {uploadError ? (
-            <span style={{ fontSize: 12, color: "#ef4444" }}>
-              {uploadError}
-            </span>
-          ) : formik.touched.avatar_url && formik.errors.avatar_url ? (
+          {formik.touched.avatar_url && formik.errors.avatar_url ? (
             <span style={{ fontSize: 12, color: "#ef4444" }}>
               {formik.errors.avatar_url}
             </span>
@@ -334,11 +305,11 @@ export function ProfileFormik() {
 
       <button
         type="submit"
-        disabled={isLoading || isUploading}
+        disabled={isLoading}
         style={{
           ...saveBtnStyle,
-          opacity: isLoading || isUploading ? 0.7 : 1,
-          cursor: isLoading || isUploading ? "not-allowed" : "pointer",
+          opacity: isLoading ? 0.7 : 1,
+          cursor: isLoading ? "not-allowed" : "pointer",
         }}
       >
         {isLoading ? "Menyimpan..." : "Simpan perubahan"}
