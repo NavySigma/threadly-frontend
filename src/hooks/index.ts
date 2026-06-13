@@ -39,8 +39,28 @@ export function usePosts(filter: PostFilter, token?: string) {
         { search: debouncedSearch || undefined, category_id: filter.category_id || undefined, page },
         token
       );
-      setRawPosts(res.data);
-      setMeta(res.meta);
+      setRawPosts(res.data ?? []);
+      // Backend Laravel returns flat pagination (current_page, last_page, etc.)
+      // but our type wraps it under `meta`. Map it safely.
+      const flatRes = res as unknown as {
+        data: Post[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number | null;
+        to: number | null;
+      };
+      setMeta(
+        res.meta ?? {
+          current_page: flatRes.current_page ?? 1,
+          last_page: flatRes.last_page ?? 1,
+          per_page: flatRes.per_page ?? 15,
+          total: flatRes.total ?? 0,
+          from: flatRes.from ?? null,
+          to: flatRes.to ?? null,
+        }
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat postingan.");
     } finally {

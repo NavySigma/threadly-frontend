@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { usePostFilter } from "../../contexts/PostFilterContext";
 import { usePosts } from "../../hooks";
 import { PostFilterBar } from "../../components/post/PostFilterBar";
@@ -8,10 +8,7 @@ import type { Post } from "../../types";
 export function PostsPage() {
   const { filter } = usePostFilter();
   const { posts, meta, isLoading, error, page, setPage } = usePosts(filter);
-
-  function handleClick(post: Post) {
-    console.log("Navigate to:", post.id); // ganti dengan navigate(`/posts/${post.id}`)
-  }
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-4">
@@ -65,7 +62,7 @@ export function PostsPage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              onClick={() => handleClick(post)}
+              onClick={() => navigate(`/posts/${post.id}`)}
               className="p-5 flex gap-5 hover:bg-gray-50/50 cursor-pointer transition"
             >
               {/* Kiri: Stats (Votes, Answers, Views) */}
@@ -88,7 +85,7 @@ export function PostsPage() {
                 </p>
 
                 {/* FIX: RENDER TAGS SECARA LANGSUNG DI SINI */}
-                {post.tags && post.tags.length > 0 && (
+                {Array.isArray(post.tags) && post.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 my-1" onClick={(e) => e.stopPropagation()}>
                     {post.tags.map((tag: any) => (
                       <span
