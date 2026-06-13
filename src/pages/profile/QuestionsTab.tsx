@@ -1,5 +1,6 @@
 import type { Post } from "../../types";
 import { Link, useNavigate } from "react-router-dom";
+import { PostActionMenu } from "../post/PostActionMenu";
 
 function EmptyState({ message }: { message: string }) {
   return (
@@ -31,7 +32,13 @@ function PostCard({ post }: { post: Post }) {
   const navigate = useNavigate();
 
   return (
-    <div className="post-item">
+    <div className="post-item relative">
+      <div
+        style={{ position: "absolute", top: 16, right: 16, zIndex: 1 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <PostActionMenu postId={post.id} postStatus={post.status} />
+      </div>
       <div className="post-votes">
         <span className="vote-count">{post.vote_score}</span>
         <span className="vote-label">votes</span>
@@ -104,14 +111,20 @@ interface QuestionsTabProps {
   postsError: string | null;
 }
 
-export function QuestionsTab({ posts, loadingPosts, postsError }: QuestionsTabProps) {
+export function QuestionsTab({
+  posts,
+  loadingPosts,
+  postsError,
+}: QuestionsTabProps) {
   return (
     <div>
       <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
         Questions
       </p>
       {loadingPosts ? (
-        <div style={{ color: "#6b7280", fontSize: 14 }}>Memuat postingan...</div>
+        <div style={{ color: "#6b7280", fontSize: 14 }}>
+          Memuat postingan...
+        </div>
       ) : postsError ? (
         <div style={{ color: "#ef4444", fontSize: 14 }}>{postsError}</div>
       ) : posts.length === 0 ? (

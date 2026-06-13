@@ -104,20 +104,13 @@ export function PostActionMenu({
             setIsOpen((prev) => !prev);
           }}
           type="button"
-          className="inline-flex justify-center items-center rounded-full p-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm focus:outline-none"
+          className="inline-flex justify-center items-center rounded-full h-10 w-10 bg-white/95 text-gray-800 border border-gray-300 shadow-sm hover:bg-gray-100 focus:outline-none"
           id="menu-button"
           aria-expanded={isOpen}
           aria-haspopup="true"
         >
           <span className="sr-only">Open post actions</span>
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6-2a2 2 0 100 4 2 2 0 000-4zm6 2a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
+          <span className="text-base font-black leading-none">⋮</span>
         </button>
       </div>
 
@@ -166,7 +159,7 @@ export function PostActionMenu({
                     className="text-gray-400 block px-4 py-2 text-xs text-left w-full cursor-not-allowed"
                     role="menuitem"
                   >
-                    🔒 Sudah permanent
+                    🔒 Sudah lewat 24 jam
                   </button>
                 )}
               </>

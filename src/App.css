@@ -310,6 +310,7 @@
 
 /* ── Post Item ── */
 .post-item {
+  position: relative;
   display: flex;
   gap: 16px;
   padding: 16px 0;
@@ -1191,7 +1192,7 @@
     flex-direction: column;
     text-align: center;
   }
-  
+
   .so-register-left {
     display: none; /* Sembunyikan daftar fitur di mobile agar ringkas */
   }
