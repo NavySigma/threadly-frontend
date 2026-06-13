@@ -6,9 +6,9 @@ import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./pages/Home";
 import Register from "./pages/user/Register";
 import Login from "./pages/user/Login";
-import EditPostPage from "./pages/user/post/EditPostPage"
-import EditProfilePage from "./pages/user/EditProfilePage";
-import ProfilePage from "./pages/user/ProfilePage";
+import EditPostPage from "./pages/user/post/EditPostPage";
+import EditProfilePage from "./pages/user/profile/EditProfilePage";
+import ProfilePage from "./pages/user/profile/ProfilePage";
 import PointsHistoryPage from "./pages/user/PointsHistoryPage";
 import PostDetailPage from "./pages/user/post/PostDetailPage";
 import AuthCallback from "./pages/AuthCallback";
@@ -20,7 +20,6 @@ import SearchPage from "./pages/user/SearchPages";
 import CreatePostPage from "./pages/user/post/CreatePostPage";
 import { PostsPage } from "./pages/user/post/PostPage";
 // import SearchPage from "./pages/user/SearchPages";
-
 
 function App() {
   return (
