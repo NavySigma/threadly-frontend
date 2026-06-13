@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
-import { apiFetch } from "../../api/client";
-import type { Post } from "../../types";
 import { QuestionsTab } from "./QuestionsTab";
 
 import type { MainTab, ActivityTab } from "../../types/profile.type";
@@ -211,15 +209,11 @@ function ProfileContent({
 function ActivityContent({
   activeSubTab,
   setActiveSubTab,
-  posts,
-  loadingPosts,
-  postsError,
+  userId,
 }: {
   activeSubTab: ActivityTab;
   setActiveSubTab: (t: ActivityTab) => void;
-  posts: Post[];
-  loadingPosts: boolean;
-  postsError: string | null;
+  userId: string;
 }) {
   const subTabs: { key: ActivityTab; label: string }[] = [
     { key: "summary", label: "Summary" },
@@ -267,11 +261,7 @@ function ActivityContent({
           </div>
         )}
         {activeSubTab === "questions" && (
-          <QuestionsTab
-            posts={posts}
-            loadingPosts={loadingPosts}
-            postsError={postsError}
-          />
+          <QuestionsTab userId={userId} />
         )}
         {activeSubTab === "tags" && (
           <div>
@@ -335,10 +325,6 @@ export default function ProfilePage() {
   const [mainTab, setMainTab] = useState<MainTab>("activity");
   const [activityTab, setActivityTab] = useState<ActivityTab>("questions");
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loadingPosts, setLoadingPosts] = useState(false);
-  const [postsError, setPostsError] = useState<string | null>(null);
-
   useEffect(() => {
     if (isOwnProfile || !id) return;
 
@@ -356,26 +342,6 @@ export default function ProfilePage() {
 
     loadProfile();
   }, [id, isOwnProfile]);
-
-  useEffect(() => {
-    if (!targetUserId) return;
-
-    async function loadUserPosts() {
-      setLoadingPosts(true);
-      setPostsError(null);
-      try {
-        const res = await apiFetch<{ data: Post[] }>(`/users/${targetUserId}/posts`);
-        setPosts(res.data);
-      } catch (err) {
-        console.error(err);
-        setPostsError("Gagal memuat postingan.");
-      } finally {
-        setLoadingPosts(false);
-      }
-    }
-
-    loadUserPosts();
-  }, [targetUserId]);
 
   if (!user) {
     return (
@@ -422,14 +388,7 @@ export default function ProfilePage() {
     : (profileUser?.created_at ?? "");
   const displayEmail = isOwnProfile ? user.email : null;
 
-  const postsWithUser = posts.map((p) => ({
-    ...p,
-    user: p.user || ({
-      id: targetUserId,
-      username: displayUsername,
-      avatar_url: displayAvatarUrl,
-    } as any),
-  })) as Post[];
+
 
   const mainTabs: { key: MainTab; label: string }[] = [
     { key: "profile", label: "Profile" },
@@ -588,9 +547,7 @@ export default function ProfilePage() {
         <ActivityContent
           activeSubTab={activityTab}
           setActiveSubTab={setActivityTab}
-          posts={postsWithUser}
-          loadingPosts={loadingPosts}
-          postsError={postsError}
+          userId={targetUserId ?? ""}
         />
       )}
       {mainTab === "likes" && <LikesContent />}

@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { usePostFilter } from "../../contexts/PostFilterContext";
-import { usePosts } from "../../hooks";
-import { PostFilterBar } from "../../components/post/PostFilterBar";
-import { Pagination } from "../../components/post/Pagination";
-import { getTagColor } from "../../lib/tagColor";
-import type { Post } from "../../types";
+import { usePostFilter } from "../../../contexts/PostFilterContext";
+import { usePosts } from "../../../hooks";
+import { PostFilterBar } from "../../../components/post/PostFilterBar";
+import { Pagination } from "../../../components/post/Pagination";
+import { getTagColor } from "../../../lib/tagColor";
+import type { Post } from "../../../types";
 
 export function PostsPage() {
   const { filter } = usePostFilter();
