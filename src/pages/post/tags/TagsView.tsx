@@ -1,10 +1,21 @@
-// src/pages/Tags/TagsPage.tsx
 import { useNavigate } from "react-router-dom";
-import { useTags }     from "../../../../hooks/useTags";
-import type { Tag }    from "../../../../api/tags";
-import type { TagsParams } from "../../../../api/tags";
+import type { CSSProperties } from "react";
+import type { Tag, TagsParams } from "../../../api/tags";
 
-/* ─── Tag Card ──────────────────────────────────────────────── */
+type TagsViewProps = {
+  tags: Tag[];
+  currentPage: number;
+  lastPage: number;
+  total: number;
+  isLoading: boolean;
+  error: unknown;
+  search: string;
+  sort: TagsParams["sort"];
+  onSearch: (value: string) => void;
+  onSort: (sort: TagsParams["sort"]) => void;
+  onPage: (page: number) => void;
+};
+
 function TagCard({ tag }: { tag: Tag }) {
   const navigate = useNavigate();
 
@@ -24,14 +35,11 @@ function TagCard({ tag }: { tag: Tag }) {
       onMouseEnter={(e) =>
         (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,.1)")
       }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.boxShadow = "none")
-      }
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
     >
-      {/* Tag badge — klik → filter posts */}
       <div>
         <button
-          onClick={() => navigate(`/posts?tag=${encodeURIComponent(tag.name)}`)}
+          onClick={() => navigate(`/tags/${tag.id}`)}
           style={{
             background: tag.color ?? "#e1ecf4",
             color: tag.color ? "#fff" : "#39739d",
@@ -47,27 +55,9 @@ function TagCard({ tag }: { tag: Tag }) {
         </button>
       </div>
 
-      {/* Description */}
-      <p
-        style={{
-          fontSize: 12,
-          color: "#3b4045",
-          lineHeight: 1.5,
-          flex: 1,
-          margin: 0,
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: "vertical",
-        }}
-      >
-        {tag.description ?? "Tidak ada deskripsi untuk tag ini."}
-      </p>
-
-      {/* Stats */}
       <div style={{ fontSize: 12, color: "#6a737c" }}>
         <strong style={{ color: "#3b4045" }}>
-          {(tag.posts_count ?? 0).toLocaleString()}
+          {(tag.usage_count ?? tag.posts_count ?? 0).toLocaleString()}
         </strong>{" "}
         pertanyaan
       </div>
@@ -75,7 +65,6 @@ function TagCard({ tag }: { tag: Tag }) {
   );
 }
 
-/* ─── Skeleton ───────────────────────────────────────────────── */
 function TagSkeleton() {
   const box = (w: string, h: number, mb = 0) => (
     <div
@@ -88,6 +77,7 @@ function TagSkeleton() {
       }}
     />
   );
+
   return (
     <div
       style={{
@@ -102,14 +92,13 @@ function TagSkeleton() {
     >
       {box("35%", 24, 4)}
       {box("100%", 12)}
-      {box("80%",  12)}
-      {box("60%",  12, 8)}
-      {box("40%",  12)}
+      {box("80%", 12)}
+      {box("60%", 12, 8)}
+      {box("40%", 12)}
     </div>
   );
 }
 
-/* ─── Pagination ─────────────────────────────────────────────── */
 function Pagination({
   current,
   last,
@@ -122,10 +111,10 @@ function Pagination({
   if (last <= 1) return null;
 
   const pages = Array.from({ length: last }, (_, i) => i + 1).filter(
-    (p) => p === 1 || p === last || Math.abs(p - current) <= 2
+    (p) => p === 1 || p === last || Math.abs(p - current) <= 2,
   );
 
-  const btnStyle = (active: boolean): React.CSSProperties => ({
+  const btnStyle = (active: boolean): CSSProperties => ({
     padding: "5px 10px",
     border: "1px solid #d1d5db",
     borderRadius: 4,
@@ -137,7 +126,15 @@ function Pagination({
   });
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: 4, marginTop: 32, flexWrap: "wrap" }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: 4,
+        marginTop: 32,
+        flexWrap: "wrap",
+      }}
+    >
       <button
         style={btnStyle(false)}
         disabled={current === 1}
@@ -149,9 +146,17 @@ function Pagination({
       {pages.map((p, idx, arr) => {
         const gap = idx > 0 && arr[idx - 1] !== p - 1;
         return (
-          <span key={p} style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
-            {gap && <span style={{ padding: "5px 4px", color: "#6a737c" }}>…</span>}
-            <button style={btnStyle(p === current)} onClick={() => p !== current && onPage(p)}>
+          <span
+            key={p}
+            style={{ display: "inline-flex", gap: 4, alignItems: "center" }}
+          >
+            {gap && (
+              <span style={{ padding: "5px 4px", color: "#6a737c" }}>…</span>
+            )}
+            <button
+              style={btnStyle(p === current)}
+              onClick={() => p !== current && onPage(p)}
+            >
               {p}
             </button>
           </span>
@@ -169,26 +174,35 @@ function Pagination({
   );
 }
 
-/* ─── Main Page ──────────────────────────────────────────────── */
-export default function TagsPage() {
-  const {
-    tags, currentPage, lastPage, total,
-    isLoading, error,
-    search, setSearch,
-    sort,   setSort,
-    goToPage,
-  } = useTags();
-
+export default function TagsView({
+  tags,
+  currentPage,
+  lastPage,
+  total,
+  isLoading,
+  error,
+  search,
+  sort,
+  onSearch,
+  onSort,
+  onPage,
+}: TagsViewProps) {
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px" }}>
-      {/* Header */}
       <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Tags</h1>
-      <p style={{ fontSize: 14, color: "#3b4045", marginBottom: 20, lineHeight: 1.6 }}>
-        Tag adalah kata kunci atau label yang mengkategorikan pertanyaan Anda dengan pertanyaan
-        serupa. Menggunakan tag yang tepat membuat pertanyaan lebih mudah ditemukan.
+      <p
+        style={{
+          fontSize: 14,
+          color: "#3b4045",
+          marginBottom: 20,
+          lineHeight: 1.6,
+        }}
+      >
+        Tag adalah kata kunci atau label yang mengkategorikan pertanyaan Anda
+        dengan pertanyaan serupa. Menggunakan tag yang tepat membuat pertanyaan
+        lebih mudah ditemukan.
       </p>
 
-      {/* Controls */}
       <div
         style={{
           display: "flex",
@@ -199,7 +213,6 @@ export default function TagsPage() {
           marginBottom: 24,
         }}
       >
-        {/* Search */}
         <div style={{ position: "relative" }}>
           <span
             style={{
@@ -217,7 +230,7 @@ export default function TagsPage() {
             type="text"
             placeholder="Filter by tag name"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => onSearch(e.target.value)}
             style={{
               paddingLeft: 34,
               paddingRight: 12,
@@ -231,16 +244,23 @@ export default function TagsPage() {
               transition: "border-color .15s",
             }}
             onFocus={(e) => (e.target.style.borderColor = "#4f46e5")}
-            onBlur={(e)  => (e.target.style.borderColor = "#9fa6ad")}
+            onBlur={(e) => (e.target.style.borderColor = "#9fa6ad")}
           />
         </div>
 
-        {/* Sort */}
-        <div style={{ display: "flex", gap: 0, border: "1px solid #d1d5db", borderRadius: 4, overflow: "hidden" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 0,
+            border: "1px solid #d1d5db",
+            borderRadius: 4,
+            overflow: "hidden",
+          }}
+        >
           {(["popular", "name", "new"] as TagsParams["sort"][]).map((s) => (
             <button
               key={s}
-              onClick={() => setSort(s)}
+              onClick={() => onSort(s)}
               style={{
                 padding: "6px 14px",
                 border: "none",
@@ -258,42 +278,53 @@ export default function TagsPage() {
         </div>
       </div>
 
-      {/* Total */}
-      {!isLoading && (
-        <p style={{ fontSize: 13, color: "#6a737c", marginBottom: 16 }}>
-          {total.toLocaleString()} tags
-        </p>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div style={{ padding: "12px 16px", background: "#fee", border: "1px solid #f99", borderRadius: 4, color: "#c0392b", fontSize: 13, marginBottom: 16 }}>
-          {error}
+      {error ? (
+        <div
+          style={{
+            padding: 24,
+            border: "1px solid #f5c6cb",
+            borderRadius: 6,
+            background: "#f8d7da",
+            color: "#842029",
+          }}
+        >
+          Terjadi kesalahan saat memuat tag. Silakan coba lagi.
         </div>
-      )}
+      ) : (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gap: 16,
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            }}
+          >
+            {isLoading
+              ? Array.from({ length: 8 }, (_, idx) => <TagSkeleton key={idx} />)
+              : tags.map((tag) => <TagCard key={tag.id} tag={tag} />)}
+          </div>
 
-      {/* Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: 12,
-        }}
-      >
-        {isLoading
-          ? Array.from({ length: 36 }).map((_, i) => <TagSkeleton key={i} />)
-          : tags.length === 0
-          ? (
-            <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "48px 0", color: "#6a737c", fontSize: 14 }}>
-              Tidak ada tag yang cocok dengan "{search}".
+          {!isLoading && tags.length === 0 && (
+            <div style={{ padding: 24, textAlign: "center", color: "#6a737c" }}>
+              Tidak ada tag yang sesuai dengan filter Anda.
             </div>
-          )
-          : tags.map((tag) => <TagCard key={tag.id} tag={tag} />)
-        }
-      </div>
+          )}
 
-      {/* Pagination */}
-      <Pagination current={currentPage} last={lastPage} onPage={goToPage} />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 24,
+            }}
+          >
+            <div style={{ fontSize: 13, color: "#6a737c" }}>
+              Menampilkan {tags.length} dari {total.toLocaleString()} tag
+            </div>
+            <Pagination current={currentPage} last={lastPage} onPage={onPage} />
+          </div>
+        </>
+      )}
     </div>
   );
 }

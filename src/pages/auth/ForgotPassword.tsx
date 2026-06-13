@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../lib/axios';
-import type { ApiError } from '../types/auth';
+import api from "../../lib/axios";
+import type { ApiError } from "../../types/auth";
 import { AxiosError } from 'axios';
 
 const ForgotPassword = () => {

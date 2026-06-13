@@ -1,11 +1,13 @@
 // src/api/tags.ts
 
 export interface Tag {
-  id: number;
+  id: string;
   name: string;
+  slug?: string;
   color: string | null;
   description?: string | null;
   posts_count?: number;
+  usage_count?: number;
 }
 
 export interface TagsResponse {
@@ -39,8 +41,27 @@ export async function fetchTags(params: TagsParams = {}): Promise<TagsResponse> 
   return res.json();
 }
 
-export async function fetchTag(id: number | string): Promise<Tag> {
+export interface TagDetailPost {
+  id: string;
+  title: string;
+  body: string;
+  status: string;
+  view_count: number;
+  vote_score: number;
+  is_answered: boolean;
+  created_at: string;
+  updated_at: string;
+  user: { id: string; username: string; avatar_url: string | null };
+  category: { id: string; name: string; slug: string };
+}
+
+export interface TagDetail extends Tag {
+  posts: TagDetailPost[];
+}
+
+export async function fetchTag(id: number | string): Promise<TagDetail> {
   const res = await fetch(`${API_BASE}/tags/${id}`);
   if (!res.ok) throw new Error("Tag tidak ditemukan");
-  return res.json();
+  const json = await res.json();
+  return json.data ?? json;
 }

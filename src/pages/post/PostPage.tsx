@@ -1,17 +1,14 @@
-import { Link } from "react-router-dom";
-import { usePostFilter } from "../../../contexts/PostFilterContext";
-import { usePosts } from "../../../hooks";
-import { PostFilterBar } from "../../../components/post/PostFilterBar";
-import { Pagination } from "../../../components/post/Pagination";
-import type { Post } from "../../../types";
+import { Link, useNavigate } from "react-router-dom";
+import { usePostFilter } from "../../contexts/PostFilterContext";
+import { usePosts } from "../../hooks";
+import { PostFilterBar } from "../../components/post/PostFilterBar";
+import { Pagination } from "../../components/post/Pagination";
+import type { Post } from "../../types";
 
 export function PostsPage() {
   const { filter } = usePostFilter();
   const { posts, meta, isLoading, error, page, setPage } = usePosts(filter);
-
-  function handleClick(post: Post) {
-    console.log("Navigate to:", post.id); // ganti dengan navigate(`/posts/${post.id}`)
-  }
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-4">
@@ -65,14 +62,14 @@ export function PostsPage() {
           {posts.map((post) => (
             <div
               key={post.id}
-              onClick={() => handleClick(post)}
+              onClick={() => navigate(`/posts/${post.id}`)}
               className="p-5 flex gap-5 hover:bg-gray-50/50 cursor-pointer transition"
             >
               {/* Kiri: Stats (Votes, Answers, Views) */}
               <div className="flex flex-col items-end gap-1.5 text-right min-w-[70px] text-gray-500 text-xs">
-                <div><span className="font-semibold text-gray-700">{post.votes_count ?? 0}</span> votes</div>
-                <div><span className="font-semibold text-gray-700">{post.answers_count ?? 0}</span> answers</div>
-                <div className="text-gray-400">{post.views_count ?? 0} views</div>
+                <div><span className="font-semibold text-gray-700">{post.vote_score ?? 0}</span> votes</div>
+                <div><span className="font-semibold text-gray-700">{(post as any).answers_count ?? 0}</span> answers</div>
+                <div className="text-gray-400">{post.view_count ?? 0} views</div>
               </div>
 
               {/* Kanan: Content Details */}
@@ -88,7 +85,7 @@ export function PostsPage() {
                 </p>
 
                 {/* FIX: RENDER TAGS SECARA LANGSUNG DI SINI */}
-                {post.tags && post.tags.length > 0 && (
+                {Array.isArray(post.tags) && post.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 my-1" onClick={(e) => e.stopPropagation()}>
                     {post.tags.map((tag: any) => (
                       <span
@@ -104,9 +101,9 @@ export function PostsPage() {
 
                 {/* Meta User Info */}
                 <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
-                  <span className="font-medium text-gray-600">{post.user?.name ?? "anonymous"}</span>
+                  <span className="font-medium text-gray-600">{post.user?.username ?? "anonymous"}</span>
                   <span>•</span>
-                  <span>{post.created_at_human ?? "baru saja"}</span>
+                  <span>{(post as any).created_at_human ?? new Date(post.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
 

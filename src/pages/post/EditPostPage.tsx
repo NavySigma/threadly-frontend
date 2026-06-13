@@ -1,10 +1,10 @@
 // src/pages/posts/EditPostPage.tsx
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
-import { useEditPost } from "../../../hooks/useEditPost";
-import { useAuth } from "../../../hooks/useAuth";
-import type { Tag, UpdatePostPayload, InitialValueEditPost } from "../../../types/posts";
+import { useEditPost } from "../../hooks/useEditPost";
+import { useAuth } from "../../hooks/useAuth";
+import type { Tag, UpdatePostPayload, InitialValueEditPost } from "../../types/posts";
 import { EditPostSchema } from "./editpostpage.validation";
 
 function FieldError({ message }: { message?: string }) {

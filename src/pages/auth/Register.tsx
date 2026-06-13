@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
-import threadlyLogo from "../../assets/logo-threadly.png";
+import threadlyLogo from "../../assets/threadly-removebg-preview.png";
 
 export default function Register() {
   const { register } = useAuth();
