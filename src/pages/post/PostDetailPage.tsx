@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import CommentSection from "../../components/post/CommentSection";
 import PostVote from "../post/vote/PostVote";
 import PostLike from "../post/like/PostLike";
+import { PostActionMenu } from "../profile/PostActionMenu";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -18,7 +19,7 @@ export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { post, isLoading, error } = usePostDetail(id!);
+  const { post, isLoading, error, refetch } = usePostDetail(id!);
 
   if (isLoading) {
     return (
@@ -40,32 +41,93 @@ export default function PostDetailPage() {
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 16px" }}>
-      <button
-        onClick={() => navigate(-1)}
+      <div
         style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          color: "#6a737c",
-          fontSize: 14,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
           marginBottom: 20,
-          padding: 0,
         }}
       >
-        ← Kembali
-      </button>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "#6a737c",
+            fontSize: 14,
+            padding: 0,
+          }}
+        >
+          ← Kembali
+        </button>
 
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, lineHeight: 1.4 }}>
+        {isOwner && (
+          <PostActionMenu
+            postId={post.id}
+            postStatus={post.status}
+            closedAt={post.closed_at}
+            onUpdated={refetch}
+            onDeleted={() => navigate("/")}
+          />
+        )}
+      </div>
+
+      <h1
+        style={{
+          fontSize: 22,
+          fontWeight: 700,
+          marginBottom: 8,
+          lineHeight: 1.4,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        {post.status === "closed" && (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "2px 8px",
+              borderRadius: 4,
+              fontSize: 11,
+              fontWeight: 700,
+              backgroundColor: "#f3f4f6",
+              color: "#6b7280",
+              border: "1px solid #e5e7eb",
+            }}
+          >
+            PRIVATE
+          </span>
+        )}
         {post.title}
       </h1>
 
-      <div style={{ display: "flex", gap: 16, fontSize: 13, color: "#6a737c", marginBottom: 20, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          fontSize: 13,
+          color: "#6a737c",
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
         <span>Ditanya {timeAgo(post.created_at)}</span>
         <span>Dilihat {post.view_count}×</span>
-        <span style={{ color: post.status === "open" ? "#2e7d32" : "#c62828", fontWeight: 600 }}>
-          {post.status.toUpperCase()}
+        <span
+          style={{
+            color: post.status === "open" ? "#2e7d32" : "#c62828",
+            fontWeight: 600,
+          }}
+        >
+          {post.status === "closed" ? "PRIVATE" : post.status.toUpperCase()}
         </span>
-        {post.is_answered && <span style={{ color: "#2e7d32", fontWeight: 600 }}>✓ Terjawab</span>}
+        {post.is_answered && (
+          <span style={{ color: "#2e7d32", fontWeight: 600 }}>✓ Terjawab</span>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
@@ -74,12 +136,26 @@ export default function PostDetailPage() {
 
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          <div
+            style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
             {post.body}
           </div>
 
           {Array.isArray(post.tags) && post.tags.length > 0 && (
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 20 }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                flexWrap: "wrap",
+                marginTop: 20,
+              }}
+            >
               {post.tags.map((tag) => (
                 <span
                   key={tag.id}
@@ -138,33 +214,25 @@ export default function PostDetailPage() {
                   <img
                     src={post.user.avatar_url}
                     alt={post.user.username}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : (
                   (post.user.username?.[0] ?? "?").toUpperCase()
                 )}
               </div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>{post.user.username}</div>
-                <div style={{ fontSize: 12, color: "#6a737c" }}>{timeAgo(post.created_at)}</div>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>
+                  {post.user.username}
+                </div>
+                <div style={{ fontSize: 12, color: "#6a737c" }}>
+                  {timeAgo(post.created_at)}
+                </div>
               </div>
             </div>
-
-            {isOwner && (
-              <Link
-                to={`/posts/${post.id}/edit`}
-                style={{
-                  fontSize: 13,
-                  color: "#4f46e5",
-                  textDecoration: "none",
-                  padding: "6px 14px",
-                  border: "1px solid #4f46e5",
-                  borderRadius: 6,
-                }}
-              >
-                Edit
-              </Link>
-            )}
 
             {/* Like */}
             <PostLike postId={post.id} />
@@ -182,7 +250,8 @@ export default function PostDetailPage() {
           color: "#6a737c",
         }}
       >
-        Kategori: <strong style={{ color: "#111827" }}>{post.category.name}</strong>
+        Kategori:{" "}
+        <strong style={{ color: "#111827" }}>{post.category.name}</strong>
       </div>
 
       {/* Comment Section */}
