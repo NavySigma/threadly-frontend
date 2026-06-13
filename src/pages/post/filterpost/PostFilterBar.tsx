@@ -16,7 +16,7 @@ export default function PostFilterBar() {
           placeholder="Cari pertanyaan..."
           value={filter.search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
 
         <input
@@ -24,12 +24,12 @@ export default function PostFilterBar() {
           placeholder="Category ID"
           value={filter.category_id}
           onChange={(e) => setCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
 
         <button
           onClick={resetFilter}
-          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition"
+          className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium transition"
         >
           Reset
         </button>
@@ -37,13 +37,13 @@ export default function PostFilterBar() {
 
       <div className="flex flex-wrap gap-2">
         {filter.search && (
-          <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs">
+          <span className="px-3 py-1 bg-teal-100 text-teal-600 rounded-full text-xs">
             Search: {filter.search}
           </span>
         )}
 
         {filter.category_id && (
-          <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs">
+          <span className="px-3 py-1 bg-teal-100 text-teal-600 rounded-full text-xs">
             Category: {filter.category_id}
           </span>
         )}

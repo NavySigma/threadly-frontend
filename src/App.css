@@ -30,7 +30,7 @@
   z-index: 100;
   height: var(--navbar-height);
   background: var(--white);
-  border-top: 3px solid #1abc9c;
+  border-top: 3px solid #0d9488;
   border-bottom: 1px solid var(--black-100);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   display: flex;
@@ -62,7 +62,7 @@
 
 .navbar-logo:hover {
   background: var(--black-075);
-  color: #1abc9c;
+  color: #0d9488;
 }
 
 .navbar-logo-icon {
@@ -147,7 +147,7 @@
 }
 
 .navbar-auth-link:hover {
-  background: var(--powder);
+  background: #f0fdfa;
 }
 
 /* ── Sidebar ── */
@@ -190,15 +190,15 @@
 }
 
 .sidebar-link:hover {
-  color: var(--black);
-  background: var(--black-050);
+  color: #0d9488;
+  background: #f0fdfa;
 }
 
 .sidebar-link.active {
   font-weight: 600;
-  color: var(--black);
-  background: var(--black-050);
-  border-right-color: var(--orange);
+  color: #0d9488;
+  background: #f0fdfa;
+  border-right-color: #0d9488;
 }
 
 .sidebar-link-icon {
@@ -254,23 +254,23 @@
 }
 
 .btn-orange {
-  background: var(--orange);
+  background: #0d9488;
   color: white;
 }
 
 .btn-orange:hover {
-  background: var(--orange-hover);
+  background: #0f766e;
 }
 
 .btn-tosca-outline {
   background: white;
-  color: #1abc9c;
-  border: 1px solid #1abc9c;
+  color: #0d9488;
+  border: 1px solid #0d9488;
 }
 
 .btn-tosca-outline:hover {
-  background: rgba(26, 188, 156, 0.1);
-  color: #1abc9c;
+  background: #f0fdfa;
+  color: #0d9488;
 }
 
 .filter-bar {
@@ -416,7 +416,7 @@
   width: 20px;
   height: 20px;
   border-radius: 3px;
-  background: var(--orange);
+  background: #0d9488;
   color: white;
   display: flex;
   align-items: center;
@@ -489,14 +489,14 @@
 }
 
 .form-group input:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 4px var(--powder);
+  border-color: #0d9488;
+  box-shadow: 0 0 0 4px #f0fdfa;
 }
 
 .form-submit {
   width: 100%;
   padding: 10px;
-  background: var(--blue);
+  background: #0d9488;
   color: white;
   border: none;
   border-radius: 4px;
@@ -507,7 +507,7 @@
 }
 
 .form-submit:hover {
-  background: var(--blue-hover);
+  background: #0f766e;
 }
 
 .form-footer {
