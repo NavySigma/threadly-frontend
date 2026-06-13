@@ -1,23 +1,7 @@
-import type { Post } from "../../types";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useMyPosts } from "../../hooks/useMyPosts";
 import { PostActionMenu } from "../post/PostActionMenu";
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div
-      style={{
-        background: "#f9fafb",
-        borderRadius: 8,
-        padding: "32px 20px",
-        textAlign: "center",
-        color: "#9ca3af",
-        fontSize: 14,
-      }}
-    >
-      {message}
-    </div>
-  );
-}
+import type { UserPost } from "../../types/userPost.type";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -28,111 +12,117 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-function PostCard({ post }: { post: Post }) {
+interface QuestionsTabProps {
+  userId: string;
+}
+
+export function QuestionsTab({ userId }: QuestionsTabProps) {
+  const { posts, isLoading, error, refetch } = useMyPosts(userId);
   const navigate = useNavigate();
 
   return (
-    <div className="post-item relative">
-      <div
-        style={{ position: "absolute", top: 16, right: 16, zIndex: 1 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <PostActionMenu postId={post.id} postStatus={post.status} />
-      </div>
-      <div className="post-votes">
-        <span className="vote-count">{post.vote_score}</span>
-        <span className="vote-label">votes</span>
-        <span className={`vote-count${post.is_answered ? " green" : ""}`}>
-          {post.is_answered ? "✓" : "0"}
-        </span>
-        <span className="vote-label">answers</span>
-        <span>{post.view_count}</span>
-        <span className="vote-label">views</span>
-      </div>
-
-      <div className="post-body">
-        <div className="post-title">
-          <Link to={`/posts/${post.id}`}>{post.title}</Link>
+    <div className="flex flex-col gap-4">
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 bg-white border border-gray-200 rounded-xl">
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-orange-500 rounded-full animate-spin" />
+          <p className="text-sm text-gray-400">Memuat pertanyaan...</p>
         </div>
+      )}
 
-        <div className="post-excerpt">
-          {post.body.length > 180 ? post.body.slice(0, 180) + "..." : post.body}
+      {!isLoading && error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+          ⚠️ {error}
         </div>
+      )}
 
-        <div className="post-tags">
-          {post.tags.map((tag) => (
-            <button
-              key={tag.id}
-              onClick={() =>
-                navigate(`/posts?tag=${encodeURIComponent(tag.name)}`)
-              }
-              className="tag"
-              style={{
-                backgroundColor: tag.color ?? undefined,
-                cursor: "pointer",
-                border: "none",
-              }}
+      {!isLoading && !error && posts.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white border border-gray-200 rounded-xl">
+          <p className="text-3xl">🔍</p>
+          <p className="text-sm font-semibold text-gray-600">
+            Tidak ada pertanyaan ditemukan
+          </p>
+        </div>
+      )}
+
+      {!isLoading && !error && posts.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+          {posts.map((post: UserPost) => (
+            <div
+              key={post.id}
+              onClick={() => navigate(`/posts/${post.id}`)}
+              className="p-5 flex gap-5 hover:bg-gray-50/50 cursor-pointer transition relative"
             >
-              {tag.name}
-            </button>
-          ))}
-        </div>
+              {/* Kiri: Stats (Votes, Answers, Views) */}
+              <div className="flex flex-col items-end gap-1.5 text-right min-w-[70px] text-gray-500 text-xs">
+                <div>
+                  <span className="font-semibold text-gray-700">
+                    {post.vote_score}
+                  </span>{" "}
+                  votes
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">
+                    {post.is_answered ? "✓" : "0"}
+                  </span>{" "}
+                  answers
+                </div>
+                <div className="text-gray-400">{post.view_count} views</div>
+              </div>
 
-        <div className="post-meta">
-          <div className="post-author">
-            <div className="post-author-avatar">
-              {post.user?.avatar_url ? (
-                <img
-                  src={post.user.avatar_url}
-                  alt={post.user.username}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                  }}
+              {/* Kanan: Content Details */}
+              <div className="flex-1 flex flex-col gap-1 pr-8">
+                {/* Title */}
+                <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-800 line-clamp-2">
+                  {post.title}
+                </h3>
+
+                {/* Body Preview */}
+                <p className="text-xs text-gray-500 line-clamp-2 mb-1">
+                  {post.body}
+                </p>
+
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                  <div
+                    className="flex flex-wrap gap-1.5 my-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="px-2 py-0.5 rounded text-[11px] font-medium text-white transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: tag.color ?? "#4a5568" }}
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Meta User Info */}
+                <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
+                  <span className="font-medium text-gray-600">
+                    {post.user?.username ?? "anonymous"}
+                  </span>
+                  <span>•</span>
+                  <span>{timeAgo(post.created_at)}</span>
+                </div>
+              </div>
+
+              {/* Action Menu (Edit/Private/Reopen/Delete) */}
+              <div
+                className="absolute left-4 top-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <PostActionMenu
+                  postId={post.id}
+                  postStatus={post.status}
+                  closedAt={post.closed_at}
+                  onDeleted={refetch}
+                  onUpdated={refetch}
                 />
-              ) : (
-                (post.user?.username ?? "?")[0].toUpperCase()
-              )}
+              </div>
             </div>
-            <Link to={`/users/${post.user?.id}`}>{post.user?.username}</Link>
-            <span className="post-date">{timeAgo(post.created_at)}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface QuestionsTabProps {
-  posts: Post[];
-  loadingPosts: boolean;
-  postsError: string | null;
-}
-
-export function QuestionsTab({
-  posts,
-  loadingPosts,
-  postsError,
-}: QuestionsTabProps) {
-  return (
-    <div>
-      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-        Questions
-      </p>
-      {loadingPosts ? (
-        <div style={{ color: "#6b7280", fontSize: 14 }}>
-          Memuat postingan...
-        </div>
-      ) : postsError ? (
-        <div style={{ color: "#ef4444", fontSize: 14 }}>{postsError}</div>
-      ) : posts.length === 0 ? (
-        <EmptyState message="Belum ada pertanyaan." />
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
           ))}
         </div>
       )}

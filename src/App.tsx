@@ -18,7 +18,7 @@ import TagsPage from "./pages/post/tags/TagsPage";
 import TagDetailPage from "./pages/post/tags/tagDetailPage";
 import SearchPage from "./pages/search/SearchPages";
 import CreatePostPage from "./pages/post/CreatePostPage";
-import { PostsPage } from "./pages/post/PostPage";
+import { PostsPage } from "./pages/post/vote/PostPage";
 
 
 function App() {

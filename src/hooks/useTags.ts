@@ -20,13 +20,10 @@ export function useTags() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Handle both structures:
-  // 1. Laravel default: { data: [], meta: { current_page, last_page, total } }
-  // 2. Custom:          { data: [], current_page, last_page, total }
-  const tags        = data?.data                           ?? [];
-  const currentPage = data?.meta?.current_page ?? data?.current_page ?? 1;
-  const lastPage    = data?.meta?.last_page    ?? data?.last_page    ?? 1;
-  const total       = data?.meta?.total        ?? data?.total        ?? 0;
+  const tags        = data?.data               ?? [];
+  const currentPage = data?.meta?.current_page ?? 1;
+  const lastPage    = data?.meta?.last_page    ?? 1;
+  const total       = data?.meta?.total        ?? 0;
 
   return {
     tags,
