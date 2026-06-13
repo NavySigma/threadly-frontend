@@ -70,7 +70,8 @@ export function usePosts(filter: PostFilter, token?: string) {
 
   useEffect(() => { load(); }, [load]);
 
-  const posts = filterByAnswer(sortPosts(rawPosts, filter.sort), filter.answer);
+  const posts = filterByAnswer(sortPosts(rawPosts, filter.sort), filter.answer)
+    .filter(p => p.status === "open");
 
   return { posts, meta, isLoading, error, page, setPage, refetch: load };
 }
