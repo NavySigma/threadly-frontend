@@ -22,6 +22,7 @@ import { PostsPage
 
  } from "./pages/post/vote/PostPage";
 import NotificationsPage from "./pages/notification/NotificationsPage";
+import CategoriesPage from "./pages/category/CategoriesPage";
 
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/tags/:id" element={<TagDetailPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
           </Route>

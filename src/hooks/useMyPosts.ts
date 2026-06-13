@@ -14,6 +14,7 @@ export function useMyPosts(userId?: string) {
     try {
       const res = await apiFetch<any>(`/users/${userId}/posts`);
       // Laravel pagination returns the paginated posts object
+      console.log("My Posts response:", res.data);
       setPosts(res.data || []);
     } catch (err: any) {
       setError(err?.message || "Gagal memuat postingan.");

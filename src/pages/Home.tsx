@@ -34,7 +34,21 @@ function PostCard({ post }: { post: Post }) {
       </div>
 
       <div className="post-body">
-        <div className="post-title">
+        <div className="post-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {post.status === "closed" && (
+            <span style={{ 
+              fontSize: 10, 
+              fontWeight: 700, 
+              padding: "2px 6px", 
+              borderRadius: 4, 
+              backgroundColor: "#f3f4f6", 
+              color: "#6b7280", 
+              border: "1px solid #e5e7eb",
+              textTransform: "uppercase"
+            }}>
+              Private
+            </span>
+          )}
           <Link to={`/posts/${post.id}`}>{post.title}</Link>
         </div>
 
