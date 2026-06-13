@@ -1,4 +1,4 @@
-import type { Post } from "../../../types";
+import type { Post } from "../../types";
 import { Link, useNavigate } from "react-router-dom";
 
 function EmptyState({ message }: { message: string }) {

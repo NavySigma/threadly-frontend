@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
 import { apiFetch } from "../../api/client";
 import type { Post } from "../../types";
-import { QuestionsTab } from "./profile/QuestionsTab";
+import { QuestionsTab } from "./QuestionsTab";
 
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
@@ -424,12 +424,12 @@ export default function ProfilePage() {
 
   const postsWithUser = posts.map((p) => ({
     ...p,
-    user: p.user || {
+    user: p.user || ({
       id: targetUserId,
       username: displayUsername,
       avatar_url: displayAvatarUrl,
-    },
-  }));
+    } as any),
+  })) as Post[];
 
   const mainTabs: { key: MainTab; label: string }[] = [
     { key: "profile", label: "Profile" },
@@ -514,7 +514,7 @@ export default function ProfilePage() {
               </button>
             ) : (
               <button
-                onClick={() => toggle(targetUserId)}
+                onClick={() => targetUserId && toggle(targetUserId)}
                 disabled={followLoading}
                 style={{
                   display: "flex",

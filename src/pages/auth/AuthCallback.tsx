@@ -1,7 +1,7 @@
 // src/pages/AuthCallback.tsx
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../contexts/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
