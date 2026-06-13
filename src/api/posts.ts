@@ -28,11 +28,12 @@ export const postsApi = {
     if (params?.search) query.set("search", params.search);
     if (params?.category_id) query.set("category_id", params.category_id);
     if (params?.page) query.set("page", String(params.page));
-    return apiFetch<PaginatedPosts>(`/posts${query.toString() ? `?${query}` : ""}`);
+    return apiFetch<PaginatedPosts>(
+      `/posts${query.toString() ? `?${query}` : ""}`,
+    );
   },
 
-  getById: (id: string) =>
-    apiFetch<{ data: Post }>(`/posts/${id}`),
+  getById: (id: string) => apiFetch<{ data: Post }>(`/posts/${id}`),
 
   create: (payload: CreatePostPayload) =>
     apiFetch<{ message: string; data: Post }>("/posts", {
@@ -59,6 +60,13 @@ export const tagsApi = {
     const query = new URLSearchParams();
     if (params?.search) query.set("search", params.search);
     if (params?.page) query.set("page", String(params.page));
-    return apiFetch<{ data: Tag[] }>(`/tags${query.toString() ? `?${query}` : ""}`);
+    return apiFetch<{ data: Tag[] }>(
+      `/tags${query.toString() ? `?${query}` : ""}`,
+    );
   },
+  create: (payload: { name: string; color?: string | null }) =>
+    apiFetch<{ data: Tag }>("/tags", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };

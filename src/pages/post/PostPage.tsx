@@ -3,6 +3,7 @@ import { usePostFilter } from "../../contexts/PostFilterContext";
 import { usePosts } from "../../hooks";
 import { PostFilterBar } from "../../components/post/PostFilterBar";
 import { Pagination } from "../../components/post/Pagination";
+import { getTagColor } from "../../lib/tagColor";
 import type { Post } from "../../types";
 
 export function PostsPage() {
@@ -15,7 +16,6 @@ export function PostsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col gap-4">
-
       {/* Header */}
       <div className="flex justify-between items-center gap-3">
         <h1 className="text-xl font-bold text-gray-800">Semua Pertanyaan</h1>
@@ -32,7 +32,9 @@ export function PostsPage() {
 
       {/* Result count */}
       {!isLoading && meta && (
-        <p className="text-xs text-gray-400">{meta.total} pertanyaan ditemukan</p>
+        <p className="text-xs text-gray-400">
+          {meta.total} pertanyaan ditemukan
+        </p>
       )}
 
       {/* Loading */}
@@ -54,8 +56,12 @@ export function PostsPage() {
       {!isLoading && !error && posts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white border border-gray-200 rounded-xl">
           <p className="text-3xl">🔍</p>
-          <p className="text-sm font-semibold text-gray-600">Tidak ada pertanyaan ditemukan</p>
-          <p className="text-xs text-gray-400">Coba ubah filter atau kata kunci pencarian kamu.</p>
+          <p className="text-sm font-semibold text-gray-600">
+            Tidak ada pertanyaan ditemukan
+          </p>
+          <p className="text-xs text-gray-400">
+            Coba ubah filter atau kata kunci pencarian kamu.
+          </p>
         </div>
       )}
 
@@ -70,9 +76,21 @@ export function PostsPage() {
             >
               {/* Kiri: Stats (Votes, Answers, Views) */}
               <div className="flex flex-col items-end gap-1.5 text-right min-w-[70px] text-gray-500 text-xs">
-                <div><span className="font-semibold text-gray-700">{post.vote_score ?? 0}</span> votes</div>
-                <div><span className="font-semibold text-gray-700">{(post as any).answers_count ?? 0}</span> answers</div>
-                <div className="text-gray-400">{post.view_count ?? 0} views</div>
+                <div>
+                  <span className="font-semibold text-gray-700">
+                    {post.vote_score ?? 0}
+                  </span>{" "}
+                  votes
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">
+                    {(post as any).answers_count ?? 0}
+                  </span>{" "}
+                  answers
+                </div>
+                <div className="text-gray-400">
+                  {post.view_count ?? 0} views
+                </div>
               </div>
 
               {/* Kanan: Content Details */}
@@ -89,12 +107,15 @@ export function PostsPage() {
 
                 {/* FIX: RENDER TAGS SECARA LANGSUNG DI SINI */}
                 {post.tags && post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 my-1" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="flex flex-wrap gap-1.5 my-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {post.tags.map((tag: any) => (
                       <span
                         key={tag.id}
                         className="px-2 py-0.5 rounded text-[11px] font-medium text-white transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: tag.color ?? "#4a5568" }}
+                        style={{ backgroundColor: getTagColor(tag) }}
                       >
                         {tag.name}
                       </span>
@@ -104,12 +125,16 @@ export function PostsPage() {
 
                 {/* Meta User Info */}
                 <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
-                  <span className="font-medium text-gray-600">{post.user?.username ?? "anonymous"}</span>
+                  <span className="font-medium text-gray-600">
+                    {post.user?.username ?? "anonymous"}
+                  </span>
                   <span>•</span>
-                  <span>{(post as any).created_at_human ?? new Date(post.created_at).toLocaleDateString()}</span>
+                  <span>
+                    {(post as any).created_at_human ??
+                      new Date(post.created_at).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
-
             </div>
           ))}
         </div>
