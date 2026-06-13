@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { useFormik } from "formik";
+import { Upload, X } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useEditProfile } from "../../hooks/useEditProfile";
 import type { ProfileFormValues } from "../../types/profile.type";
@@ -132,13 +133,13 @@ function Alert({
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: 18,
           color: "inherit",
           opacity: 0.6,
-          lineHeight: 1,
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        ×
+        <X size={18} />
       </button>
     </div>
   );
@@ -235,7 +236,11 @@ export function ProfileFormik() {
         >
           <label style={fieldLabel}>Foto profil</label>
           <label style={fileBtnStyle}>
-            {isLoading ? "Memproses..." : "📁 Pilih file"}
+            {isLoading ? "Memproses..." : (
+              <>
+                <Upload size={14} /> Pilih file
+              </>
+            )}
             <input
               type="file"
               accept="image/*"

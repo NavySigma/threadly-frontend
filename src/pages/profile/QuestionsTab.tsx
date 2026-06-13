@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 import { useMyPosts } from "../../hooks/useMyPosts";
 import { PostActionMenu } from "./PostActionMenu";
 import type { UserPost } from "../../types/userPost.type";
@@ -23,8 +24,8 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
   return (
     <div className="flex flex-col gap-4">
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 bg-white border border-gray-200 rounded-xl">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-orange-500 rounded-full animate-spin" />
+        <div className="flex flex-col items-center justify-center py-16 gap-3 bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="w-8 h-8 border-2 border-gray-200 border-t-teal-600 rounded-full animate-spin" />
           <p className="text-sm text-gray-400">Memuat pertanyaan...</p>
         </div>
       )}
@@ -36,8 +37,8 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
       )}
 
       {!isLoading && !error && posts.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white border border-gray-200 rounded-xl">
-          <p className="text-3xl">🔍</p>
+        <div className="flex flex-col items-center justify-center py-16 gap-2 bg-gray-50 border border-gray-200 rounded-xl">
+          <Search size={32} className="text-gray-300" />
           <p className="text-sm font-semibold text-gray-600">
             Tidak ada pertanyaan ditemukan
           </p>
@@ -45,7 +46,7 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
       )}
 
       {!isLoading && !error && posts.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl divide-y divide-gray-100">
           {posts.map((post: UserPost) => (
             <div
               key={post.id}

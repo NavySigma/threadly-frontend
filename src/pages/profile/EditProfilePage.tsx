@@ -1,5 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ChevronLeft,
+  Save,
+  Sparkles,
+  X,
+} from "lucide-react";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useChangePassword } from "../../hooks/useChangePassword";
@@ -91,13 +101,13 @@ function Alert({
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: 18,
           color: "inherit",
           opacity: 0.6,
-          lineHeight: 1,
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        ×
+        <X size={18} />
       </button>
     </div>
   );
@@ -203,9 +213,11 @@ function PasswordField({
             fontSize: 15,
             color: "#9ca3af",
             lineHeight: 1,
+            display: "flex",
+            alignItems: "center",
           }}
         >
-          {show ? "/" : "👁"}
+          {show ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
     </div>
@@ -340,6 +352,7 @@ function PasswordTab() {
         disabled={isLoading}
         style={{
           ...saveBtnStyle,
+          background: "#0d9488",
           opacity: isLoading ? 0.7 : 1,
           cursor: isLoading ? "not-allowed" : "pointer",
         }}
@@ -418,13 +431,16 @@ export default function EditProfilePage() {
           <span
             style={{
               fontSize: 12,
-              background: "#ede9fe",
-              color: "#6d28d9",
+              background: "#f0fdfa",
+              color: "#0d9488",
               borderRadius: 20,
               padding: "3px 12px",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
             }}
           >
-            ⭐ {user.reputation_points.toLocaleString()} poin
+            <Sparkles size={12} /> {user.reputation_points.toLocaleString()} poin
           </span>
           {user.bio && (
             <p
@@ -453,18 +469,8 @@ export default function EditProfilePage() {
                   fontSize: 11,
                   padding: "2px 10px",
                   borderRadius: 20,
-                  background:
-                    r.name === "admin"
-                      ? "#fee2e2"
-                      : r.name === "moderator"
-                      ? "#fef3c7"
-                      : "#ede9fe",
-                  color:
-                    r.name === "admin"
-                      ? "#dc2626"
-                      : r.name === "moderator"
-                      ? "#d97706"
-                      : "#6d28d9",
+                  background: "#f0fdfa",
+                  color: "#0d9488",
                 }}
               >
                 {r.name}
@@ -484,9 +490,13 @@ export default function EditProfilePage() {
               fontSize: 13,
               color: "#6b7280",
               cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
             }}
           >
-            ← Kembali
+            <ChevronLeft size={16} /> Kembali
           </button>
         </div>
       </aside>
@@ -528,9 +538,20 @@ export default function EditProfilePage() {
                 color: activeTab === tab ? "#111827" : "#6b7280",
                 cursor: "pointer",
                 transition: "all .15s",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              {tab === "profile" ? "👤 Edit profil" : "🔒 Ganti password"}
+              {tab === "profile" ? (
+                <>
+                  <User size={14} /> Edit profil
+                </>
+              ) : (
+                <>
+                  <Lock size={14} /> Ganti password
+                </>
+              )}
             </button>
           ))}
         </div>
