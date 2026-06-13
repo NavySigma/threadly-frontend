@@ -1,9 +1,9 @@
 export interface Tag {
   id: string;
   name: string;
-  slug: string;
-  color: string;
-  usage_count: number;
+  slug?: string;
+  color: string | null;
+  usage_count?: number;
 }
 
 export interface Category {

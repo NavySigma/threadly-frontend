@@ -431,9 +431,15 @@ export default function SearchBar() {
                   >
                     {tag.name}
                   </span>
-                  {tag.posts_count !== undefined && (
+                  {(tag.posts_count !== undefined ||
+                    (tag as any).usage_count !== undefined) && (
                     <span style={{ fontSize: 12, color: "#6a737c" }}>
-                      {tag.posts_count.toLocaleString()} pertanyaan
+                      {(
+                        tag.posts_count ??
+                        (tag as any).usage_count ??
+                        0
+                      ).toLocaleString()}{" "}
+                      pertanyaan
                     </span>
                   )}
                   {tag.description && (
