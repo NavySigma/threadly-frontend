@@ -262,6 +262,17 @@
   background: var(--orange-hover);
 }
 
+.btn-tosca-outline {
+  background: white;
+  color: #1abc9c;
+  border: 1px solid #1abc9c;
+}
+
+.btn-tosca-outline:hover {
+  background: rgba(26, 188, 156, 0.1);
+  color: #1abc9c;
+}
+
 .filter-bar {
   display: flex;
   gap: 0;
@@ -289,8 +300,8 @@
 }
 
 .filter-btn.active {
-  background: var(--orange);
-  color: white;
+  background: #e3e6e8;
+  color: #3b4045;
 }
 
 .post-stats {
