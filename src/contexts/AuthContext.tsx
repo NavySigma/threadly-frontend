@@ -11,22 +11,39 @@ import { getToken } from "../api/client";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(() => !!getToken());
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const token = getToken();
-    if (!token) return;
-
     let cancelled = false;
 
     (async () => {
       try {
+        // kalau tidak ada token, langsung selesai tanpa setState di awal effect
+        if (!token) {
+          if (!cancelled) {
+            setUser(null);
+            setLoading(false);
+          }
+          return;
+        }
+
         const u = await getMe();
-        if (!cancelled) setUser(u);
-      } catch {
-        if (!cancelled) localStorage.removeItem("token");
+
+        if (!cancelled) {
+          setUser(u);
+        }
+      } catch (err) {
+        console.warn("getMe failed:", err);
+
+        if (!cancelled) {
+          // jangan langsung hapus token biar tidak logout tiba-tiba
+          setUser(null);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
 
@@ -58,10 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithToken = async (token: string) => {
     localStorage.setItem("token", token);
+
     try {
       const u = await getMe();
       setUser(u);
-    } catch {
+    } catch (err) {
+      console.warn("loginWithToken getMe failed:", err);
+      setUser(null);
       localStorage.removeItem("token");
     }
   };
