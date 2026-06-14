@@ -34,6 +34,7 @@ import CategoriesPage from "./pages/category/CategoriesPage";
 import AdminCategoryPage from "./pages/admin/AdminCategoryPage";
 
 import ReportPage from "./pages/admin/ReportPage";
+import RecalculateReputationPage from "./pages/admin/RecalculateReputationPage";
 
 
 function App() {
@@ -73,6 +74,7 @@ function App() {
             <Route path="/admin/categories" element={<AdminCategoryPage/>} />
             <Route path="/admin/reports" element={<ReportPage />} />
             <Route path="/admin/reports/:id" element={<ReportPage />} />
+            <Route path="/admin/recalculate" element={<RecalculateReputationPage />} />
 
       
           

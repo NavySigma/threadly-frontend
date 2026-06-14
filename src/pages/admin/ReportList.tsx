@@ -114,12 +114,22 @@ export default function ReportList() {
                   >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#0d9488] to-[#0f766e] text-xs font-bold text-white">
-                          {report.reporter_id.slice(0, 2).toUpperCase()}
-                        </div>
+                        {report.reporter?.avatar_url ? (
+                          <img
+                            src={report.reporter.avatar_url}
+                            alt=""
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#0d9488] to-[#0f766e] text-xs font-bold text-white">
+                            {(report.reporter?.username ?? report.reporter_id).slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
                         <div>
-                          <p className="text-sm font-medium text-zinc-800">User #{report.reporter_id.slice(0, 8)}</p>
-                          <p className="text-xs text-zinc-400">{report.reporter_id.slice(0, 14)}...</p>
+                          <p className="text-sm font-medium text-zinc-800">
+                            {report.reporter?.username ?? `User #${report.reporter_id.slice(0, 8)}`}
+                          </p>
+                          <p className="text-xs text-zinc-400">{report.reporter_id}</p>
                         </div>
                       </div>
                     </td>

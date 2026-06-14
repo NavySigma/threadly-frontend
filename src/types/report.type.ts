@@ -9,6 +9,16 @@ export interface Report {
   resolved_by: string | null;
   created_at: string;
   resolved_at: string | null;
+  reporter?: {
+    id: string;
+    username: string;
+    avatar_url: string | null;
+  };
+  resolver?: {
+    id: string;
+    username: string;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface CreateReportPayload {

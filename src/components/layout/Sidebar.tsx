@@ -9,7 +9,8 @@ import {
   Shield,
   Rocket,
   ShieldAlert,
-  Settings
+  Settings,
+  RotateCw
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -29,6 +30,7 @@ const moderatorLinks = [
 
 const adminLinks = [
   { to: "/admin/categories", icon: <Settings size={20} />, label: "Admin Categories" },
+  { to: "/admin/recalculate", icon: <RotateCw size={20} />, label: "Rekalkulasi Reputasi" },
 ];
 
 export default function Sidebar() {

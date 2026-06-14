@@ -28,7 +28,7 @@ export const reportAdminApi = {
     payload: { status: string }
   ): Promise<{ message: string }> => {
     const response = await axiosInstance.patch<{ message: string }>(
-      `${BASE_URL}/${id}`,
+      `${BASE_URL}/${id}/resolve`,
       payload
     );
     return response.data;
