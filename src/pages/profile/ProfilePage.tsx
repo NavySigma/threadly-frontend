@@ -13,6 +13,7 @@ import {
   Award,
   TrendingUp,
   LogOut,
+  Bookmark,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
@@ -106,8 +107,6 @@ function EmptyState({ message }: { message: string }) {
     </div>
   );
 }
-
-
 
 function ProfileContent({
   profileUser,
@@ -211,7 +210,6 @@ function ProfileContent({
           </div>
         )}
 
-        {/* Rank Section */}
         <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>
           Rank
         </p>
@@ -307,7 +305,7 @@ function ActivityContent({
   isOwnProfile: boolean;
 }) {
   const { logout } = useAuth();
-  
+
   const handleLogout = async () => {
     if (window.confirm("Apakah kamu yakin ingin logout?")) {
       await logout();
@@ -350,8 +348,8 @@ function ActivityContent({
                 fontSize: 14,
                 cursor: "pointer",
                 fontWeight: activeSubTab === t.key ? 500 : 400,
-                background: t.key === "logout" 
-                  ? "transparent" 
+                background: t.key === "logout"
+                  ? "transparent"
                   : (activeSubTab === t.key ? "#f3f4f6" : "transparent"),
                 color: t.key === "logout" ? "#dc2626" : (activeSubTab === t.key ? "#111827" : "#6b7280"),
                 transition: "all .15s",
@@ -378,42 +376,30 @@ function ActivityContent({
       <div style={{ flex: 1, minWidth: 0 }}>
         {activeSubTab === "summary" && (
           <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-              Summary
-            </p>
+            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Summary</p>
             <EmptyState message="Belum ada aktivitas." />
           </div>
         )}
-        {activeSubTab === "questions" && (
-          <QuestionsTab userId={userId} />
-        )}
+        {activeSubTab === "questions" && <QuestionsTab userId={userId} />}
         {activeSubTab === "tags" && (
           <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-              Tags
-            </p>
+            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Tags</p>
             <EmptyState message="Belum menggunakan tag apapun." />
           </div>
         )}
         {activeSubTab === "answers" && (
           <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-              Answers
-            </p>
+            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Answers</p>
             <EmptyState message="Belum ada jawaban." />
           </div>
         )}
         {activeSubTab === "badges" && (
           <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-              Rank
-            </p>
+            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Rank</p>
             <EmptyState message="Belum punya rank." />
           </div>
         )}
-        {activeSubTab === "reputation" && (
-          <PointsHistoryView />
-        )}
+        {activeSubTab === "reputation" && <PointsHistoryView />}
       </div>
     </div>
   );
@@ -424,6 +410,16 @@ function LikesContent() {
     <div>
       <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Likes</p>
       <EmptyState message="Belum ada konten yang disukai." />
+    </div>
+  );
+}
+
+// ── Tambahan: Bookmarks content ────────────────────────────────────────
+function BookmarksContent() {
+  return (
+    <div>
+      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
+      <EmptyState message="Belum ada konten yang di-bookmark." />
     </div>
   );
 }
@@ -507,12 +503,12 @@ export default function ProfilePage() {
     : (profileUser?.created_at ?? "");
   const displayEmail = isOwnProfile ? user.email : null;
 
-
-
+  // ── Tambahan tab Bookmarks di samping Likes ──
   const mainTabs: { key: MainTab; label: string; icon: React.ReactNode }[] = [
-    { key: "profile", label: "Profile", icon: <User size={16} /> },
-    { key: "activity", label: "Activity", icon: <Activity size={16} /> },
-    { key: "likes", label: "Likes", icon: <Heart size={16} /> },
+    { key: "profile",    label: "Profile",    icon: <User size={16} /> },
+    { key: "activity",   label: "Activity",   icon: <Activity size={16} /> },
+    { key: "likes",      label: "Likes",      icon: <Heart size={16} /> },
+    { key: "bookmarks",  label: "Bookmarks",  icon: <Bookmark size={16} /> },
   ];
 
   return (
@@ -610,11 +606,7 @@ export default function ProfilePage() {
                   transition: "all .15s",
                 }}
               >
-                {followLoading
-                  ? "..."
-                  : isFollowing
-                    ? "✓ Following"
-                    : "+ Follow"}
+                {followLoading ? "..." : isFollowing ? "✓ Following" : "+ Follow"}
               </button>
             )}
           </div>
@@ -675,6 +667,7 @@ export default function ProfilePage() {
         />
       )}
       {mainTab === "likes" && <LikesContent />}
+      {mainTab === "bookmarks" && <BookmarksContent />}
     </div>
   );
 }
