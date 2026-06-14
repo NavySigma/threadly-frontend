@@ -21,12 +21,12 @@ export default defineConfig({
           {
             src: "/src/assets/192x192.png",
             sizes: "192x192",
-            type: "image/jpeg",
+            type: "image/png",
           },
           {
             src: "/src/assets/192x192.png",
             sizes: "512x512",
-            type: "image/jpeg",
+            type: "image/png",
           },
         ],
         shortcuts: [
