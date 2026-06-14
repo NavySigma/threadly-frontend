@@ -1,6 +1,7 @@
 import React from "react";
 import type { NotificationItem } from "../../../types/notification";
 import NotificationItemComponent from "./NotificationItem";
+import { Clock, Inbox } from "lucide-react";
 
 interface NotificationListProps {
   notifications: NotificationItem[];
@@ -18,7 +19,9 @@ const NotificationList: React.FC<NotificationListProps> = ({
   if (isLoading) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">⏳</div>
+        <div className="empty-icon">
+          <Clock size={32} />
+        </div>
         <h3>Memuat notifikasi...</h3>
       </div>
     );
@@ -27,7 +30,9 @@ const NotificationList: React.FC<NotificationListProps> = ({
   if (!notifications || !Array.isArray(notifications) || notifications.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon">📭</div>
+        <div className="empty-icon">
+          <Inbox size={32} />
+        </div>
         <h3>Tidak ada notifikasi</h3>
         <p>Kamu sudah membaca semua notifikasi di kategori ini.</p>
       </div>

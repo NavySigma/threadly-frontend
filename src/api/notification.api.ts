@@ -30,6 +30,12 @@ export const notificationApi = {
     });
   },
 
+  markAsUndone: async (id: string) => {
+    return await apiFetch(`/notifications/${id}/undone`, {
+      method: "PATCH",
+    });
+  },
+
   /**
    * Menandai semua notifikasi sebagai sudah dibaca
    */

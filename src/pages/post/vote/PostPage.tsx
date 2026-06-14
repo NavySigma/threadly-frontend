@@ -34,7 +34,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function PostsPage() {
-  const { filter, setTag } = usePostFilter();
+  const { filter, setTag, setCategory } = usePostFilter();
   const { posts, meta, isLoading, error, page, setPage } = usePosts(filter);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,6 +45,13 @@ export function PostsPage() {
       setTag(tagIdParam);
     }
   }, [tagIdParam, setTag]);
+
+  const categoryIdParam = searchParams.get("category_id");
+  useEffect(() => {
+    if (categoryIdParam) {
+      setCategory(categoryIdParam);
+    }
+  }, [categoryIdParam, setCategory]);
 
   const { data: popularTagsData, isLoading: popularTagsLoading } = useQuery({
     queryKey: ["popular-tags"],

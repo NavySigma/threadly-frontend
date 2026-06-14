@@ -4,10 +4,13 @@ export type NotificationType =
   | "upvote_post"
   | "like_post"
   | "reply_comment"
+  | "reply_on_post"
   | "comment_post"
   | "accepted_answer"
   | "follow_user"
   | "complete_profile"
+  | "report_confirmed"
+  | "report_penalized"
   | "new_badge";
 
 export type NotificationCategory = "users" | "posts" | "comments" | "system";
@@ -22,7 +25,8 @@ export interface NotificationItem {
   target_id?: string;
   target_type?: string;
   target_title?: string;
-  message?: string;
+  post_id?: string;
+  message?: string | null;
   created_at: string;
   read_at?: string | null;
 }
