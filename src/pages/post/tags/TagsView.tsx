@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { Tag, TagsParams } from "../../../api/tags";
 import { getTagColor } from "../../../lib/tagColor";
 
+
 type TagsViewProps = {
   tags: Tag[];
   currentPage: number;
@@ -19,6 +20,7 @@ type TagsViewProps = {
 
 function TagCard({ tag }: { tag: Tag }) {
   const navigate = useNavigate();
+  const color = getTagColor(tag as any);
 
   return (
     <div
@@ -42,8 +44,8 @@ function TagCard({ tag }: { tag: Tag }) {
         <button
           onClick={() => navigate(`/tags/${tag.id}`)}
           style={{
-            background: tag.color ?? "#e1ecf4",
-            color: tag.color ? "#fff" : "#39739d",
+            background: color,
+            color: "#fff",
             border: "none",
             borderRadius: 4,
             padding: "4px 10px",
@@ -116,15 +118,15 @@ function Pagination({
   );
 
   const btnStyle = (active: boolean): CSSProperties => ({
-    padding: "5px 10px",
-    border: "1px solid #d1d5db",
-    borderRadius: 4,
-    background: active ? "#f48024" : "#fff",
-    color: active ? "#fff" : "#3b4045",
-    cursor: active ? "default" : "pointer",
-    fontWeight: active ? 700 : 400,
-    fontSize: 13,
-  });
+  padding: "5px 10px",
+  border: active ? "1px solid #14b8a6" : "1px solid #99f6e4",
+  borderRadius: 4,
+  background: active ? "#14b8a6" : "#ffffff",
+  color: active ? "#ffffff" : "#0f766e",
+  cursor: active ? "default" : "pointer",
+  fontWeight: active ? 700 : 400,
+  fontSize: 13,
+});
 
   return (
     <div

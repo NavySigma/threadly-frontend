@@ -301,7 +301,7 @@ export default function CreatePostPage() {
   }
 
   return (
-    <main className="create-post-page max-w-2xl mx-auto px-4 py-8">
+    <main className="create-post-page w-full px-4 py-8">
       {/* Tombol Back & Header Halaman */}
       <div className="create-post-header mb-8">
         <div className="create-post-header-top mb-4">
@@ -404,6 +404,9 @@ export default function CreatePostPage() {
               Title <span className="text-red-500">*</span>
             </span>
           </label>
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[10px] text-gray-400">Minimal 2 karakter</span>
+          </div>
           <div className="form-field-counter flex justify-between items-start mt-1">
             <FieldError
               message={
@@ -444,6 +447,9 @@ export default function CreatePostPage() {
               Content <span className="text-red-500">*</span>
             </span>
           </label>
+          <div className="flex justify-between items-center px-1">
+            <span className="text-[10px] text-gray-400">Minimal 10 karakter</span>
+          </div>
           <div className="form-field-counter flex justify-between items-start mt-1">
             <FieldError
               message={
@@ -580,7 +586,7 @@ export default function CreatePostPage() {
               formik.resetForm();
               navigate(-1);
             }}
-            className="inline-flex items-center gap-2 rounded-full border border-indigo-600 px-6 py-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50 focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:outline-none dark:hover:bg-indigo-950/20"
+            className="inline-flex items-center gap-2 rounded-full border border-[#0d9488] px-6 py-3 text-sm font-semibold text-[#0d9488] transition-colors hover:bg-teal-50 focus-visible:ring-4 focus-visible:ring-teal-200 focus-visible:outline-none"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -603,7 +609,7 @@ export default function CreatePostPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:ring-4 focus-visible:ring-indigo-200 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-full border border-[#0d9488] bg-[#0d9488] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0f766e] focus-visible:ring-4 focus-visible:ring-teal-200 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>Create Post</span>
             {isSubmitting ? (

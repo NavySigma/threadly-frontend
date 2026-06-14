@@ -19,6 +19,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
 import { QuestionsTab } from "./QuestionsTab";
+import { TagsTab } from "./TagsTab";
 import { PointsHistoryView } from "./history/PointsHistoryPage";
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { PostCard } from "../../components/post/PostCard";
@@ -31,7 +32,7 @@ function getInitial(name: string) {
 
 const AVATAR_BASE: React.CSSProperties = {
   borderRadius: 6,
-  background: "#c084fc",
+  background: "#0d9488",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -383,12 +384,7 @@ function ActivityContent({
           </div>
         )}
         {activeSubTab === "questions" && <QuestionsTab userId={userId} />}
-        {activeSubTab === "tags" && (
-          <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Tags</p>
-            <EmptyState message="Belum menggunakan tag apapun." />
-          </div>
-        )}
+        {activeSubTab === "tags" && <TagsTab userId={userId} />}
         {activeSubTab === "answers" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Answers</p>
@@ -540,8 +536,11 @@ export default function ProfilePage() {
     { key: "profile",    label: "Profile",    icon: <User size={16} /> },
     { key: "activity",   label: "Activity",   icon: <Activity size={16} /> },
     { key: "likes",      label: "Likes",      icon: <Heart size={16} /> },
-    { key: "bookmarks",  label: "Bookmarks",  icon: <Bookmark size={16} /> },
   ];
+
+  if (isOwnProfile) {
+    mainTabs.push({ key: "bookmarks", label: "Bookmarks", icon: <Bookmark size={16} /> });
+  }
 
   return (
     <div

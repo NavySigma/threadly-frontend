@@ -380,26 +380,6 @@ function SingleComment({
                 Edit
               </button>
             )}
-
-            {!isReply &&
-              currentUserId === postOwnerId &&
-              currentUserId !== comment.user.id &&
-              onAccept && (
-                <button
-                  onClick={onAccept}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    color: isAccepted ? "#16a34a" : "#6b7280",
-                    padding: 0,
-                    fontWeight: isAccepted ? 600 : 400,
-                  }}
-                >
-                  {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
-                </button>
-              )}
           </div>
         )}
       </div>
