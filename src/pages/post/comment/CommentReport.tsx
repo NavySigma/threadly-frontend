@@ -53,6 +53,7 @@ export default function CommentReport({ commentId }: CommentReportProps) {
         type="button"
         onClick={() => !reported && setIsModalOpen(true)}
         disabled={reported || reportMutation.isPending}
+        data-cy="comment-report-btn"
         style={{
           background: "none",
           border: "none",
@@ -141,6 +142,7 @@ export default function CommentReport({ commentId }: CommentReportProps) {
                 </label>
                 <input
                   autoFocus
+                  data-cy="report-reason-input"
                   type="text"
                   placeholder="Ketik alasan (misal: Spam, Sara, dll.)"
                   value={reason}
@@ -183,6 +185,7 @@ export default function CommentReport({ commentId }: CommentReportProps) {
                 <button
                   type="submit"
                   disabled={isInvalid}
+                  data-cy="report-submit-btn"
                   style={{
                     flex: 1,
                     padding: "10px",
