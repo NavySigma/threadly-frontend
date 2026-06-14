@@ -23,7 +23,7 @@ export function usePosts(filter: PostFilter, token?: string) {
   const prevFilter = useRef(filter);
   useEffect(() => {
     const prev = prevFilter.current;
-    if (prev.search !== filter.search || prev.tag_id !== filter.tag_id) {
+    if (prev.search !== filter.search || prev.tag_id !== filter.tag_id || prev.category_id !== filter.category_id) {
       setPage(1);
     }
     prevFilter.current = filter;
@@ -36,7 +36,7 @@ export function usePosts(filter: PostFilter, token?: string) {
     setError(null);
     try {
       const res = await fetchPosts(
-        { search: debouncedSearch || undefined, tag_id: filter.tag_id || undefined, page },
+        { search: debouncedSearch || undefined, tag_id: filter.tag_id || undefined, category_id: filter.category_id || undefined, page },
         token
       );
       setRawPosts(res.data ?? []);
@@ -66,7 +66,7 @@ export function usePosts(filter: PostFilter, token?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearch, filter.tag_id, page, token]);
+  }, [debouncedSearch, filter.tag_id, filter.category_id, page, token]);
 
   useEffect(() => { load(); }, [load]);
 

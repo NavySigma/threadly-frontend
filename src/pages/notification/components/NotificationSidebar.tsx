@@ -1,5 +1,6 @@
 import React from "react";
 import type { NotificationCategory } from "../../../types/notification";
+import { Inbox, CheckCheck, Users, FileText, MessageSquare } from "lucide-react";
 
 interface NotificationSidebarProps {
   activeBox: "inbox" | "done";
@@ -24,14 +25,20 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({
           className={`sidebar-nav-btn ${activeBox === "inbox" ? "active" : ""}`}
           onClick={() => setActiveBox("inbox")}
         >
-          <span>📥 Inbox</span>
+          <span className="sidebar-nav-icon">
+            <Inbox size={16} />
+          </span>
+          <span>Inbox</span>
           {unreadCount > 0 && <span className="badge-count">{unreadCount}</span>}
         </button>
         <button
           className={`sidebar-nav-btn ${activeBox === "done" ? "active" : ""}`}
           onClick={() => setActiveBox("done")}
         >
-          <span>✅ Done</span>
+          <span className="sidebar-nav-icon">
+            <CheckCheck size={16} />
+          </span>
+          <span>Done</span>
         </button>
       </div>
 
@@ -47,19 +54,28 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({
           className={`sidebar-nav-btn ${activeFilter === "users" ? "active" : ""}`}
           onClick={() => setActiveFilter("users")}
         >
-          <span>👥 Users</span>
+          <span className="sidebar-nav-icon">
+            <Users size={16} />
+          </span>
+          <span>Users</span>
         </button>
         <button
           className={`sidebar-nav-btn ${activeFilter === "posts" ? "active" : ""}`}
           onClick={() => setActiveFilter("posts")}
         >
-          <span>📝 Posts</span>
+          <span className="sidebar-nav-icon">
+            <FileText size={16} />
+          </span>
+          <span>Posts</span>
         </button>
         <button
           className={`sidebar-nav-btn ${activeFilter === "comments" ? "active" : ""}`}
           onClick={() => setActiveFilter("comments")}
         >
-          <span>💬 Comments</span>
+          <span className="sidebar-nav-icon">
+            <MessageSquare size={16} />
+          </span>
+          <span>Comments</span>
         </button>
       </div>
     </div>

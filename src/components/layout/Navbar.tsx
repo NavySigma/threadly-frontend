@@ -3,9 +3,24 @@ import { useAuth } from "../../hooks/useAuth";
 import threadlyLogo from "../../assets/threadly-removebg-preview.png";
 import SearchBar from "../ui/SeacrhBar";
 import { Bell, Shield } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { notificationApi } from "../../api/notification.api";
 
 export default function Navbar() {
   const { user } = useAuth();
+
+  const { data: notifData } = useQuery({
+    queryKey: ["navbar-unread-count"],
+    queryFn: async () => {
+      const res = await notificationApi.getNotifications({ is_done: false });
+      // Handle both old and new backend format
+      if (res?.meta?.unread_count !== undefined) return res.meta.unread_count;
+      return (res as any)?.unread_count ?? 0;
+    },
+    staleTime: 60 * 1000,
+    enabled: !!user,
+  });
+  const unreadCount = typeof notifData === "number" ? notifData : 0;
 
   return (
     <nav className="navbar">
@@ -49,8 +64,28 @@ export default function Navbar() {
                   <Shield size={18} />
                 </Link>
               )}
-              <Link to="/notifications" className="navbar-btn" title="Notifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Link to="/notifications" className="navbar-btn" title="Notifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                 <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -2,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    backgroundColor: '#ef4444',
+                    color: '#fff',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                  }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Link>
             </div>
           ) : (

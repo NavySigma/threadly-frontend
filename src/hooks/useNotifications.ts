@@ -16,11 +16,21 @@ export const useNotifications = (activeBox: "inbox" | "done", activeFilter: "all
       });
       console.log("Notification API Response:", response);
       
-      // Ensure we return a consistent structure even if API fails/returns different format
-      return {
-        notifications: Array.isArray(response?.data) ? response.data : [],
-        unreadCount: response?.meta?.unread_count ?? 0,
-      };
+      // Handle both old backend (Laravel paginator in .data) and new format
+      let notifications: any[] = [];
+      let unreadCount = 0;
+
+      if (Array.isArray(response?.data)) {
+        // New backend format: { data: [...], meta: { unread_count } }
+        notifications = response.data;
+        unreadCount = response?.meta?.unread_count ?? 0;
+      } else if ((response as any)?.data?.data && Array.isArray((response as any).data.data)) {
+        // Old backend format: { data: { current_page, data: [...], ... }, unread_count: N }
+        notifications = (response as any).data.data;
+        unreadCount = (response as any)?.unread_count ?? 0;
+      }
+
+      return { notifications, unreadCount };
     },
     staleTime: 60 * 1000, // Cache valid for 1 minute
   });
@@ -42,13 +52,19 @@ export const useNotifications = (activeBox: "inbox" | "done", activeFilter: "all
     },
   });
 
+  const markAsUndoneMutation = useMutation({
+    mutationFn: (id: string) => notificationApi.markAsUndone(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
   const markAsDone = async (id: string) => {
     await markAsReadMutation.mutateAsync(id);
   };
 
   const markAsUndone = async (id: string) => {
-    // Logic for mark as undone if API supports it
-    console.log("Mark as undone not implemented in backend yet", id);
+    await markAsUndoneMutation.mutateAsync(id);
   };
 
   return {
