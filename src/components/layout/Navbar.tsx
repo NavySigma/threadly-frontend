@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import threadlyLogo from "../../assets/threadly-removebg-preview.png";
 import SearchBar from "../ui/SeacrhBar";
-import { Bell } from "lucide-react";
+import { Bell, Shield } from "lucide-react";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -39,6 +39,16 @@ export default function Navbar() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </Link>
+              {user.roles?.some((r) => ["admin", "moderator"].includes(r.name)) && (
+                <Link
+                  to="/admin/edit-history"
+                  className="navbar-btn"
+                  title="Edit History"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  <Shield size={18} />
+                </Link>
+              )}
               <Link to="/notifications" className="navbar-btn" title="Notifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Bell size={20} />
               </Link>

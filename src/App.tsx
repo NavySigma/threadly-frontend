@@ -22,6 +22,7 @@ import { PostsPage
 
  } from "./pages/post/vote/PostPage";
 import NotificationsPage from "./pages/notification/NotificationsPage";
+import EditHistoryPage from "./pages/admin/EditHistoryPage";
 import CategoriesPage from "./pages/category/CategoriesPage";
 
 
@@ -54,6 +55,7 @@ function App() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/admin/edit-history" element={<EditHistoryPage />} />
           </Route>
         </Routes>
       </AuthProvider>
