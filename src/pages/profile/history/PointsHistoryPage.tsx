@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type PointHistory = {
   id: number;
@@ -68,6 +69,19 @@ function PointsHistoryContent() {
     }
   }, [histories, filter]);
 
+  const perPage = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filteredHistory.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const paginatedHistory = filteredHistory.slice(
+    (safePage - 1) * perPage,
+    safePage * perPage
+  );
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [totalPages, page]);
+
   return (
     <>
       {/* Summary */}
@@ -116,39 +130,80 @@ function PointsHistoryContent() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-500" />
             <span className="text-gray-500">Memuat riwayat poin...</span>
           </div>
-        ) : filteredHistory.length === 0 ? (
+        ) : paginatedHistory.length === 0 ? (
           <div className="p-12 text-center">
             <div className="mb-3 text-5xl">🔭</div>
             <p className="font-medium text-gray-700">Belum ada riwayat poin</p>
             <p className="mt-1 text-sm text-gray-500">Aktivitas reputasi akan muncul di sini.</p>
           </div>
         ) : (
-          filteredHistory.map((item) => (
-            <div
-              key={item.id}
-              className="grid grid-cols-12 items-center border-b px-6 py-4 transition hover:bg-teal-50"
-            >
-              <div className="col-span-2 text-sm text-gray-500">
-                {new Date(item.created_at).toLocaleDateString("id-ID")}
-              </div>
-              <div className="col-span-8">
-                <p className="font-medium text-gray-800">{item.description}</p>
-                <p className="text-sm text-gray-500">{item.action_type}</p>
-              </div>
+          <>
+            {paginatedHistory.map((item) => (
               <div
-                className={`col-span-2 text-right text-lg font-bold ${
-                  Number(item.points) > 0
-                    ? "text-green-600"
-                    : Number(item.points) < 0
-                    ? "text-red-500"
-                    : "text-gray-500"
-                }`}
+                key={item.id}
+                className="grid grid-cols-12 items-center border-b px-6 py-4 transition hover:bg-teal-50"
               >
-                {Number(item.points) > 0 ? `+${item.points}` : item.points}
+                <div className="col-span-2 text-sm text-gray-500">
+                  {new Date(item.created_at).toLocaleDateString("id-ID")}
+                </div>
+                <div className="col-span-8">
+                  <p className="font-medium text-gray-800">{item.description}</p>
+                  <p className="text-sm text-gray-500">{item.action_type}</p>
+                </div>
+                <div
+                  className={`col-span-2 text-right text-lg font-bold ${
+                    Number(item.points) > 0
+                      ? "text-green-600"
+                      : Number(item.points) < 0
+                      ? "text-red-500"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {Number(item.points) > 0 ? `+${item.points}` : item.points}
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t px-6 py-4">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-teal-50"
+                >
+                  <ChevronLeft size={16} /> Previous
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition ${
+                          p === safePage
+                            ? "bg-teal-500 text-white shadow-sm"
+                            : "hover:bg-teal-50"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage >= totalPages}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-teal-50"
+                >
+                  Next <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </>
+      )}
       </div>
     </>
   );

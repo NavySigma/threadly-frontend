@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { usePostFilter } from "../../contexts/PostFilterContext";
 import { fetchTags } from "../../api/tags";
+import { categoryApi } from "../../api/category.api";
 import type { SortOption, AnswerFilter } from "../../types";
 
 const SORT_OPTIONS = [
@@ -19,7 +20,7 @@ const ANSWER_OPTIONS = [
 ];
 
 export function PostFilterBar() {
-  const { filter, setSearch, setTag, setSort, setAnswer, resetFilter, hasActiveFilter } = usePostFilter();
+  const { filter, setSearch, setTag, setCategory, setSort, setAnswer, resetFilter, hasActiveFilter } = usePostFilter();
 
   const { data: tagsData, isLoading: loadingTags } = useQuery({
     queryKey: ["filter-tags"],
@@ -27,6 +28,12 @@ export function PostFilterBar() {
     staleTime: 1000 * 60 * 5,
   });
   const tags = tagsData?.data ?? [];
+
+  const { data: categories, isLoading: loadingCategories } = useQuery({
+    queryKey: ["filter-categories"],
+    queryFn: () => categoryApi.getAll(),
+    staleTime: 1000 * 60 * 5,
+  });
 
   return (
     <div className="flex flex-col gap-3 bg-white border border-gray-200 rounded-xl p-4">
@@ -51,6 +58,26 @@ export function PostFilterBar() {
 
       {/* Controls */}
       <div className="flex flex-wrap gap-2 items-end">
+        {/* Category */}
+        <div className="flex flex-col gap-1 min-w-40 flex-1">
+          <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+            Kategori
+          </label>
+          <select
+            value={filter.category_id}
+            onChange={(e) => setCategory(e.target.value)}
+            disabled={loadingCategories}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 cursor-pointer disabled:opacity-50"
+          >
+            <option value="">Semua Kategori</option>
+            {(categories ?? []).map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Tag */}
         <div className="flex flex-col gap-1 min-w-40 flex-1">
           <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
@@ -118,6 +145,12 @@ export function PostFilterBar() {
         <div className="flex flex-wrap gap-1.5">
           {filter.search && (
             <Badge label={`"${filter.search}"`} onRemove={() => setSearch("")} />
+          )}
+          {filter.category_id && (
+            <Badge
+              label={categories?.find((c) => c.id === filter.category_id)?.name ?? "Kategori"}
+              onRemove={() => setCategory("")}
+            />
           )}
           {filter.tag_id && (
             <Badge
