@@ -3,14 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
- "scripts": {
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "lint": "eslint .",
-  "preview": "vite preview",
-  "cypress:open": "cypress open",
-  "cypress:run": "cypress run"
-},
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
+  },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query": "^5.101.0",
