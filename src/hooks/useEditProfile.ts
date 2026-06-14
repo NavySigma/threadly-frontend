@@ -3,7 +3,7 @@ import {
   updateProfile,
   type UpdateProfilePayload,
   type User,
-} from "../api/UserApi";
+} from "../api/userApi";
 
 interface UseEditProfileReturn {
   isLoading: boolean;

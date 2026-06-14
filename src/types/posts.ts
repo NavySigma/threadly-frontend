@@ -1,9 +1,9 @@
 export interface Tag {
   id: string;
   name: string;
-  slug: string;
-  color: string;
-  usage_count: number;
+  slug?: string;
+  color: string | null;
+  usage_count?: number;
 }
 
 export interface Category {
@@ -27,11 +27,12 @@ export interface Post {
   id: string;
   title: string;
   body: string;
-  status: "open" | "closed" | "deleted";
+  status: "open" | "closed";
   view_count: number;
   vote_score: number;
   is_answered: boolean;
   accepted_answer_id: string | null;
+  closed_at?: string | null;
   created_at: string;
   updated_at: string;
   user: PostUser;
@@ -41,6 +42,9 @@ export interface Post {
   answers_count?: number;
   views_count?: number;
   created_at_human?: string;
+  user_vote?: "upvote" | "downvote" | null;
+  is_liked?: boolean;
+  likes_count?: number;
 }
 
 export interface CreatePostPayload {
@@ -69,6 +73,8 @@ export interface PostsParams {
   search?: string;
   category_id?: string;
   page?: number;
+  sort?: string;
+  is_answered?: boolean;
 }
 
 export interface InitialValueCreatePost {
@@ -84,4 +90,3 @@ export interface InitialValueEditPost {
   body: string;
   selectedTags: Tag[];
 }
-

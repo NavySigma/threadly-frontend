@@ -3,6 +3,8 @@ import { usePostDetail } from "../../../hooks/usePostDetail";
 import { useAuth } from "../../../contexts/useAuth";
 import CommentSection from "../../../components/post/CommentSection";
 
+
+
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
   if (diff < 60) return `${diff}s ago`;

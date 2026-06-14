@@ -1,24 +1,39 @@
 import "./App.css";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
 import AuthLayout from "./components/layout/AuthLayout";
 import Home from "./pages/Home";
-import Register from "./pages/user/Register";
-import Login from "./pages/user/Login";
-import EditPostPage from "./pages/user/post/EditPostPage"
-import EditProfilePage from "./pages/user/EditProfilePage";
-import ProfilePage from "./pages/user/ProfilePage";
-import PointsHistoryPage from "./pages/user/PointsHistoryPage";
-import PostDetailPage from "./pages/user/post/PostDetailPage";
-import AuthCallback from "./pages/AuthCallback";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import TagsPage from "./pages/user/post/tags/TagsPage";
-import SearchPage from "./pages/user/SearchPages";
-import CreatePostPage from "./pages/user/post/CreatePostPage";
-import { PostsPage } from "./pages/user/post/PostPage";
-// import SearchPage from "./pages/user/SearchPages";
+
+// ── FOLDER AUTH ──
+import Register from "./pages/auth/Register";
+import Login from "./pages/auth/Login";
+import AuthCallback from "./pages/auth/AuthCallback";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+
+// ── FOLDER POST ──
+import { PostsPage } from "./pages/post/vote/PostPage";
+import CreatePostPage from "./pages/post/CreatePostPage";
+import PostDetailPage from "./pages/post/PostDetailPage";
+import EditPostPage from "./pages/post/EditPostPage";
+import TagsPage from "./pages/post/tags/TagsPage";
+import TagDetailPage from "./pages/post/tags/tagDetailPage";
+
+// ── FOLDER PROFILE ──
+import ProfilePage from "./pages/profile/ProfilePage";
+import EditProfilePage from "./pages/profile/EditProfilePage";
+import PointsHistoryPage from "./pages/profile/history/PointsHistoryPage";
+
+// ── FOLDER LAINNYA ──
+import SearchPage from "./pages/search/SearchPages";
+import NotificationsPage from "./pages/notification/NotificationsPage";
+import UsersPage from "./pages/users";
+import EditHistoryPage from "./pages/admin/EditHistoryPage";
+import CategoriesPage from "./pages/category/CategoriesPage";
+import AdminCategoryPage from "./pages/admin/AdminCategoryPage";
+
+import ReportPage from "./pages/admin/ReportPage";
 
 
 function App() {
@@ -26,7 +41,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Auth pages — navbar only, no sidebar */}
+          {/* ── AUTH LAYOUT (Tanpa Sidebar) ── */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -35,19 +50,41 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
-          {/* Main app — navbar + sidebar */}
+          {/* ── MAIN APP LAYOUT (Navbar + Sidebar) ── */}
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/posts" element={<PostsPage />} />
-            <Route path="/posts/create" element={<Home />} />
+            <Route path="/posts/create" element={<CreatePostPage />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id/edit" element={<EditPostPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/profile/:id" element={<ProfilePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/users" element={<UsersPage />} />
+            <Route path="/admin/edit-history" element={<EditHistoryPage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
-            <Route path="/search" element={<Home />} />
+            <Route path="/tags/:id" element={<TagDetailPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/category" element={<Navigate to="/tags" replace />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/admin/categories" element={<AdminCategoryPage/>} />
+            <Route path="/admin/reports" element={<ReportPage />} />
+            <Route path="/admin/reports/:id" element={<ReportPage />} />
+
+      
+          
           </Route>
+          
+          <Route
+            path="*"
+            element={
+              <div className="p-12 text-center font-semibold text-gray-500">
+                ⚠️ 404 | Halaman tidak ditemukan atau route salah, bro!
+              </div>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

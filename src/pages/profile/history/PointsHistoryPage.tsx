@@ -1,0 +1,245 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+type PointHistory = {
+  id: number;
+  action_type: string;
+  description: string;
+  points: number;
+  created_at: string;
+};
+
+type Summary = {
+  current_points: number;
+  total_earned: number;
+  total_deducted: number;
+};
+
+type ApiResponse = {
+  summary?: Summary;
+  data?: PointHistory[] | { data: PointHistory[] };
+};
+
+// ── Inner content — dipakai di dalam ProfilePage maupun standalone ────
+function PointsHistoryContent() {
+  const [token] = useState<string | null>(() => localStorage.getItem("token"));
+  const [filter, setFilter] = useState<"all" | "earned" | "deducted">("all");
+
+  const { data: result, isLoading } = useQuery<ApiResponse>({
+    queryKey: ["pointsHistory", token],
+    queryFn: async () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/me/points`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch points history");
+      return response.json();
+    },
+    enabled: !!token,
+  });
+
+  const summary: Summary = {
+    current_points: result?.summary?.current_points ?? 0,
+    total_earned: result?.summary?.total_earned ?? 0,
+    total_deducted: result?.summary?.total_deducted ?? 0,
+  };
+
+  const histories = useMemo(() => {
+    if (!result) return [];
+    if (Array.isArray(result.data)) return result.data;
+    if (Array.isArray(result.data?.data)) return result.data.data;
+    return [];
+  }, [result]);
+
+  const filteredHistory = useMemo(() => {
+    switch (filter) {
+      case "earned":
+        return histories.filter((item) => Number(item.points) > 0);
+      case "deducted":
+        return histories.filter((item) => Number(item.points) < 0);
+      default:
+        return histories;
+    }
+  }, [histories, filter]);
+
+  const perPage = 10;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filteredHistory.length / perPage));
+  const safePage = Math.min(page, totalPages);
+  const paginatedHistory = filteredHistory.slice(
+    (safePage - 1) * perPage,
+    safePage * perPage
+  );
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [totalPages, page]);
+
+  return (
+    <>
+      {/* Summary */}
+      <div className="mb-8 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl bg-gradient-to-r from-teal-500 to-teal-400 p-6 text-white shadow">
+          <p className="text-sm opacity-80">Current Reputation</p>
+          <h2 className="mt-2 text-4xl font-bold">{summary.current_points}</h2>
+        </div>
+        <div className="rounded-2xl bg-green-50 p-6 shadow">
+          <p className="text-sm text-gray-500">Total Earned</p>
+          <h2 className="mt-2 text-4xl font-bold text-green-600">+{summary.total_earned}</h2>
+        </div>
+        <div className="rounded-2xl bg-red-50 p-6 shadow">
+          <p className="text-sm text-gray-500">Total Deducted</p>
+          <h2 className="mt-2 text-4xl font-bold text-red-500">{summary.total_deducted}</h2>
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className="mb-6 flex gap-2">
+        {(["all", "earned", "deducted"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-lg px-4 py-2 text-sm font-medium ${
+              filter === f
+                ? "bg-teal-500 text-white"
+                : "border bg-white hover:bg-teal-50"
+            }`}
+          >
+            {f === "all" ? "All" : f === "earned" ? "Earned" : "Deducted"}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="overflow-hidden rounded-2xl border bg-white shadow">
+        <div className="grid grid-cols-12 border-b bg-teal-50 px-6 py-4 text-sm font-semibold text-gray-700">
+          <div className="col-span-2">Tanggal</div>
+          <div className="col-span-8">Aktivitas</div>
+          <div className="col-span-2 text-right">Poin</div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-3 p-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-200 border-t-teal-500" />
+            <span className="text-gray-500">Memuat riwayat poin...</span>
+          </div>
+        ) : paginatedHistory.length === 0 ? (
+          <div className="p-12 text-center">
+            <div className="mb-3 text-5xl">🔭</div>
+            <p className="font-medium text-gray-700">Belum ada riwayat poin</p>
+            <p className="mt-1 text-sm text-gray-500">Aktivitas reputasi akan muncul di sini.</p>
+          </div>
+        ) : (
+          <>
+            {paginatedHistory.map((item) => (
+              <div
+                key={item.id}
+                className="grid grid-cols-12 items-center border-b px-6 py-4 transition hover:bg-teal-50"
+              >
+                <div className="col-span-2 text-sm text-gray-500">
+                  {new Date(item.created_at).toLocaleDateString("id-ID")}
+                </div>
+                <div className="col-span-8">
+                  <p className="font-medium text-gray-800">{item.description}</p>
+                  <p className="text-sm text-gray-500">{item.action_type}</p>
+                </div>
+                <div
+                  className={`col-span-2 text-right text-lg font-bold ${
+                    Number(item.points) > 0
+                      ? "text-green-600"
+                      : Number(item.points) < 0
+                      ? "text-red-500"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {Number(item.points) > 0 ? `+${item.points}` : item.points}
+                </div>
+              </div>
+            ))}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t px-6 py-4">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={safePage <= 1}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-teal-50"
+                >
+                  <ChevronLeft size={16} /> Previous
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (p) => (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p)}
+                        className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition ${
+                          p === safePage
+                            ? "bg-teal-500 text-white shadow-sm"
+                            : "hover:bg-teal-50"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safePage >= totalPages}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-teal-50"
+                >
+                  Next <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </>
+      )}
+      </div>
+    </>
+  );
+}
+
+// ── Komponen reusable untuk digunakan di ProfilePage (tab Reputation) ─
+export function PointsHistoryView() {
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
+        Reputation
+      </p>
+      <PointsHistoryContent />
+    </div>
+  );
+}
+
+// ── Halaman standalone (dengan redirect jika tidak login) ──────────────
+export default function PointsHistoryPage() {
+  const [token] = useState<string | null>(() => localStorage.getItem("token"));
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) navigate("/login", { replace: true });
+  }, [token, navigate]);
+
+  if (!token) return null;
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      {/* Header */}
+      <div className="mb-8 rounded-3xl bg-gradient-to-r from-teal-500 to-teal-400 p-8 text-white shadow-lg">
+        <h1 className="text-3xl font-bold">Reputation History</h1>
+        <p className="mt-2 text-teal-100">Riwayat perubahan reputasi akun kamu.</p>
+      </div>
+      <PointsHistoryContent />
+    </div>
+  );
+}

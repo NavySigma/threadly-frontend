@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
-
+import { QuestionsTab } from "./post/QuestionsTab";
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
 function getInitial(name: string) {
@@ -193,7 +193,6 @@ function ProfileContent({
           </div>
         )}
 
-        {/* Rank (sebelumnya Badges) */}
         <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>
           Rank
         </p>
@@ -203,12 +202,15 @@ function ProfileContent({
   );
 }
 
+// ← isOwnProfile ditambahkan sebagai prop
 function ActivityContent({
   activeSubTab,
   setActiveSubTab,
+  isOwnProfile,
 }: {
   activeSubTab: ActivityTab;
   setActiveSubTab: (t: ActivityTab) => void;
+  isOwnProfile: boolean;
 }) {
   const subTabs: { key: ActivityTab; label: string }[] = [
     { key: "summary", label: "Summary" },
@@ -255,14 +257,21 @@ function ActivityContent({
             <EmptyState message="Belum ada aktivitas." />
           </div>
         )}
+
         {activeSubTab === "questions" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
               Questions
             </p>
-            <EmptyState message="Belum ada pertanyaan." />
+            {/* ← QuestionsTab hanya untuk profil sendiri */}
+            {isOwnProfile ? (
+              <QuestionsTab />
+            ) : (
+              <EmptyState message="Belum ada pertanyaan." />
+            )}
           </div>
         )}
+
         {activeSubTab === "tags" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
@@ -271,6 +280,7 @@ function ActivityContent({
             <EmptyState message="Belum menggunakan tag apapun." />
           </div>
         )}
+
         {activeSubTab === "answers" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
@@ -279,6 +289,7 @@ function ActivityContent({
             <EmptyState message="Belum ada jawaban." />
           </div>
         )}
+
         {activeSubTab === "badges" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
@@ -287,6 +298,7 @@ function ActivityContent({
             <EmptyState message="Belum punya rank." />
           </div>
         )}
+
         {activeSubTab === "reputation" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
@@ -545,6 +557,7 @@ export default function ProfilePage() {
         <ActivityContent
           activeSubTab={activityTab}
           setActiveSubTab={setActivityTab}
+          isOwnProfile={isOwnProfile} // ← tambahan
         />
       )}
       {mainTab === "likes" && <LikesContent />}

@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 /* Tailwind v4 — utilities only, skip Preflight so our existing styles are preserved */
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 *,
 *::before,
@@ -10,10 +10,10 @@
 }
 
 :root {
-  --orange: #f48024;
-  --orange-hover: #da6e1a;
-  --blue: #0a95ff;
-  --blue-hover: #0976cf;
+  --orange: #0d9488;
+  --orange-hover: #0f766e;
+  --blue: #0d9488;
+  --blue-hover: #0f766e;
   --powder: #e1ecf4;
   --powder-hover: #c8dce8;
   --green: #2e6b39;
@@ -32,7 +32,7 @@
   --yellow-hover: #f5e9b8;
 
   --sidebar-width: 164px;
-  --navbar-height: 50px;
+  --navbar-height: 56px;
 
   --sans: "Poppins", sans-serif;
   --mono: ui-monospace, "Cascadia Code", Consolas, monospace;

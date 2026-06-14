@@ -12,6 +12,6 @@ export const CreatePostSchema = y.object({
     .string()
     .trim()
     .required("Konten tidak boleh kosong.")
-    .min(20, "Konten minimal 20 karakter."),
-  selectedTags: y.array().max(5, "Maksimal 5 tag."),
+    .min(5, "Konten minimal 5 karakter."),
+  selectedTags: y.array().max(10, "Maksimal 10 tag."),
 });

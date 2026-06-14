@@ -1,11 +1,11 @@
 // ── Auth re-exports ────────────────────────────────────────────────────
-export type {
-  RegisterPayload,
-  LoginPayload,
-  LoginResponse,
-  RegisterResponse,
-  ApiError,
-  User,
+export {
+  type RegisterPayload,
+  type LoginPayload,
+  type LoginResponse,
+  type RegisterResponse,
+  type ApiError,
+  type User,
 } from "./auth";
 
 // ── Local import for use within this file ─────────────────────────────
@@ -32,13 +32,16 @@ export interface Post {
   id: string;
   title: string;
   body: string;
-  status: "open" | "closed" | "deleted";
+  status: "open" | "closed";
   view_count: number;
   vote_score: number;
   is_answered: boolean;
   accepted_answer_id: string | null;
+  answers_count?: number;
   created_at: string;
+  created_at_human?: string;
   updated_at: string;
+  closed_at?: string | null;
   user: User;
   category: Category;
   tags: Tag[];
@@ -50,6 +53,7 @@ export type AnswerFilter = "all" | "answered" | "unanswered";
 
 export interface PostFilter {
   search: string;
+  tag_id: string;
   category_id: string;
   sort: SortOption;
   answer: AnswerFilter;
@@ -75,3 +79,6 @@ export interface PaginatedResponse<T> {
     next: string | null;
   };
 }
+
+// ── Report Types ───────────────────────────────────────────────────────
+export * from "./report.type";

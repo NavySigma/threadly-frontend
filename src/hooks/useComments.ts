@@ -26,14 +26,18 @@ export function useComments(postId: string) {
   }, [postId, fetchComments]);
 
   const addComment = useCallback(
-    async (body: string): Promise<boolean> => {
+    async (body: string): Promise<{ success: boolean; error?: string }> => {
       try {
         setIsSubmitting(true);
         const res = await commentsApi.create(postId, { body });
         setComments((prev) => [...prev, { ...res.data, replies: [] }]);
-        return true;
-      } catch {
-        return false;
+        return { success: true };
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Gagal menambahkan komentar";
+        return { success: false, error: msg };
       } finally {
         setIsSubmitting(false);
       }
@@ -42,7 +46,7 @@ export function useComments(postId: string) {
   );
 
   const addReply = useCallback(
-    async (parentId: string, body: string): Promise<boolean> => {
+    async (parentId: string, body: string): Promise<{ success: boolean; error?: string }> => {
       try {
         setIsSubmitting(true);
         const res = await commentsApi.create(postId, {
@@ -56,9 +60,13 @@ export function useComments(postId: string) {
               : c,
           ),
         );
-        return true;
-      } catch {
-        return false;
+        return { success: true };
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Gagal menambahkan balasan";
+        return { success: false, error: msg };
       } finally {
         setIsSubmitting(false);
       }
@@ -72,7 +80,7 @@ export function useComments(postId: string) {
       body: string,
       isReply = false,
       parentId?: string,
-    ): Promise<boolean> => {
+    ): Promise<{ success: boolean; error?: string }> => {
       try {
         const res = await commentsApi.update(commentId, { body });
         if (isReply && parentId) {
@@ -95,9 +103,13 @@ export function useComments(postId: string) {
             ),
           );
         }
-        return true;
-      } catch {
-        return false;
+        return { success: true };
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Gagal mengedit komentar";
+        return { success: false, error: msg };
       }
     },
     [],
