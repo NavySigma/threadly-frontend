@@ -32,7 +32,7 @@ export interface Post {
   id: string;
   title: string;
   body: string;
-  status: "open" | "closed" | "deleted";
+  status: "open" | "closed";
   view_count: number;
   vote_score: number;
   is_answered: boolean;

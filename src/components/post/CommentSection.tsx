@@ -474,7 +474,7 @@ interface CommentSectionProps {
   postId: string;
   postOwnerId: string;
   acceptedAnswerId: string | null;
-  postStatus: "open" | "closed" | "deleted";
+  postStatus: "open" | "closed";
 }
 
 export default function CommentSection({
