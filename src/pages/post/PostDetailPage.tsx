@@ -64,7 +64,7 @@ export default function PostDetailPage() {
 
       {/* Title */}
       <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug flex items-center gap-2 flex-wrap">
-        {post.status === "closed" && (
+        {post.status?.toLowerCase() !== "open" && (
           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
             PRIVATE
           </span>
@@ -76,8 +76,8 @@ export default function PostDetailPage() {
       <div className="flex items-center gap-4 text-xs text-gray-500 mb-5 flex-wrap">
         <span>Ditanya {timeAgo(post.created_at)}</span>
         <span>Dilihat {post.view_count}x</span>
-        <span className={`font-semibold ${post.status === "open" ? "text-green-600" : "text-red-500"}`}>
-          {post.status === "closed" ? "PRIVATE" : post.status.toUpperCase()}
+        <span className={`font-semibold ${post.status?.toLowerCase() === "open" ? "text-green-600" : "text-red-500"}`}>
+          {post.status?.toLowerCase() !== "open" ? "PRIVATE" : "OPEN"}
         </span>
         {post.is_answered && (
           <span className="text-green-600 font-semibold">Terjawab</span>

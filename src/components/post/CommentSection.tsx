@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
@@ -148,6 +148,7 @@ function SingleComment({
   isAccepted,
   canVote,
   editCount,
+  isAcceptLoading,
   onReply,
   onEdit,
   onAccept,
@@ -160,6 +161,7 @@ function SingleComment({
   isAccepted: boolean;
   canVote: boolean;
   editCount: number;
+  isAcceptLoading?: boolean;
   onReply?: () => void;
   onEdit: (
     commentId: string,
@@ -306,7 +308,6 @@ function SingleComment({
               flexWrap: "wrap",
             }}
           >
-            {/* Vote — hanya top-level, bukan milik sendiri */}
             {!isReply && canVote && (
               <CommentVote
                 commentId={comment.id}
@@ -315,7 +316,6 @@ function SingleComment({
               />
             )}
 
-            {/* Like — hanya top-level, bukan milik sendiri */}
             {!isReply && canVote && (
               <CommentLike
                 commentId={comment.id}
@@ -339,6 +339,31 @@ function SingleComment({
                 Balas
               </button>
             )}
+
+            {currentUserId === postOwnerId &&
+              currentUserId !== comment.user.id &&
+              onAccept && (
+                <button
+                  onClick={onAccept}
+                  disabled={isAcceptLoading}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: isAcceptLoading ? "not-allowed" : "pointer",
+                    fontSize: 12,
+                    color: isAccepted ? "#16a34a" : "#6b7280",
+                    padding: 0,
+                    fontWeight: isAccepted ? 600 : 400,
+                    opacity: isAcceptLoading ? 0.6 : 1,
+                  }}
+                >
+                  {isAcceptLoading
+                    ? "..."
+                    : isAccepted
+                      ? "✓ Diterima"
+                      : "Terima sebagai jawaban"}
+                </button>
+              )}
 
             {isOwner && !editLimitReached && (
               <button
@@ -369,26 +394,6 @@ function SingleComment({
                 Batas edit tercapai (maks. {MAX_EDITS_PER_COMMENT}×)
               </span>
             )}
-
-            {!isReply &&
-              currentUserId === postOwnerId &&
-              currentUserId !== comment.user.id &&
-              onAccept && (
-                <button
-                  onClick={onAccept}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    color: isAccepted ? "#16a34a" : "#6b7280",
-                    padding: 0,
-                    fontWeight: isAccepted ? 600 : 400,
-                  }}
-                >
-                  {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
-                </button>
-              )}
           </div>
         )}
       </div>
@@ -402,6 +407,7 @@ function CommentThread({
   postOwnerId,
   acceptedAnswerId,
   isSubmitting,
+  isAcceptLoading,
   editCounts,
   onReply,
   onEdit,
@@ -412,6 +418,7 @@ function CommentThread({
   postOwnerId: string;
   acceptedAnswerId: string | null;
   isSubmitting: boolean;
+  isAcceptLoading?: boolean;
   editCounts: Record<string, number>;
   onReply: (parentId: string, body: string) => Promise<boolean>;
   onEdit: (
@@ -441,6 +448,7 @@ function CommentThread({
         isAccepted={isAccepted}
         canVote={canVote}
         editCount={editCounts[comment.id] ?? 0}
+        isAcceptLoading={isAcceptLoading}
         onReply={() => setReplyOpen((p) => !p)}
         onEdit={onEdit}
         onAccept={() => onAccept(comment.id)}
@@ -462,10 +470,12 @@ function CommentThread({
               postOwnerId={postOwnerId}
               isReply
               parentId={comment.id}
-              isAccepted={false}
+              isAccepted={acceptedAnswerId === reply.id}
               canVote={false}
               editCount={editCounts[reply.id] ?? 0}
+              isAcceptLoading={isAcceptLoading}
               onEdit={onEdit}
+              onAccept={() => onAccept(reply.id)}
             />
           ))}
         </div>
@@ -515,19 +525,27 @@ export default function CommentSection({
     initialAcceptedAnswerId,
   );
   const [editCounts, setEditCounts] = useState<Record<string, number>>({});
+  const [isAcceptLoading, setIsAcceptLoading] = useState(false);
 
   const isPostOpen = postStatus === "open";
   const myCommentCount = user ? countUserComments(user.id) : 0;
   const canAddComment =
     !!user && isPostOpen && myCommentCount < MAX_COMMENTS_PER_USER;
 
-  const handleAccept = (commentId: string) => {
+  const handleAccept = async (commentId: string) => {
     const newAccepted = acceptedAnswerId === commentId ? null : commentId;
-    setAcceptedAnswerId(newAccepted);
-    if (newAccepted) {
-      commentsApi.accept(postId, commentId).catch(() => {});
-    } else {
-      commentsApi.unaccept(postId).catch(() => {});
+    setIsAcceptLoading(true);
+    try {
+      if (newAccepted) {
+        await commentsApi.accept(postId, commentId);
+      } else {
+        await commentsApi.unaccept(postId);
+      }
+      setAcceptedAnswerId(newAccepted);
+    } catch {
+      // gagal — state acceptedAnswerId tidak diubah
+    } finally {
+      setIsAcceptLoading(false);
     }
   };
 
@@ -620,6 +638,7 @@ export default function CommentSection({
                   postOwnerId={postOwnerId}
                   acceptedAnswerId={acceptedAnswerId}
                   isSubmitting={isSubmitting}
+                  isAcceptLoading={isAcceptLoading}
                   editCounts={editCounts}
                   onReply={addReply}
                   onEdit={handleEdit}

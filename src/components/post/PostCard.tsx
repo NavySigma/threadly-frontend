@@ -63,7 +63,7 @@ export function PostCard({ post, onClick }: { post: Post; onClick?: (p: Post) =>
       {/* Content */}
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
         <h3 className={`text-sm font-semibold text-blue-600 leading-snug ${onClick ? "group-hover:underline" : ""}`}>
-          {post.status === "closed" && (
+          {post.status?.toLowerCase() !== "open" && (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 mr-2 border border-gray-200">
               PRIVATE
             </span>
