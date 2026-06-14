@@ -15,7 +15,7 @@ const links = [
   { to: "/tags", icon: <Tag size={20} />, label: "Tags" },
   { to: "/users", icon: <Users size={20} />, label: "Users" },
   { to: "/categories", icon: <Folder size={20} />, label: "Categories" },
-  { to: "/history", icon: <Coins size={20} />, label: "History Points" },
+  { to: "/profile?tab=activity&subtab=reputation", icon: <Coins size={20} />, label: "History Points" },
 ];
 
 export default function Sidebar() {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   User,
   Mail,
@@ -403,8 +403,11 @@ export default function ProfilePage() {
   const [profileUser, setProfileUser] = useState<PublicUser | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [modal, setModal] = useState<ModalMode>(null);
-  const [mainTab, setMainTab] = useState<MainTab>("profile");
-  const [activityTab, setActivityTab] = useState<ActivityTab>("questions");
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as MainTab) || "profile";
+  const initialSubTab = (searchParams.get("subtab") as ActivityTab) || "questions";
+  const [mainTab, setMainTab] = useState<MainTab>(initialTab);
+  const [activityTab, setActivityTab] = useState<ActivityTab>(initialSubTab);
 
   useEffect(() => {
     if (isOwnProfile || !id) return;
