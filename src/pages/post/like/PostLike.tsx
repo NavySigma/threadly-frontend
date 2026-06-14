@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { postLikeApi } from "../../../api/postLike.api";
+import { usePostBookmark } from "../../../hooks/usePostBookmark";
 
 interface PostLikeProps {
   postId: string;
@@ -16,7 +17,6 @@ export default function PostLike({
   const [liked, setLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialCount);
 
-  // Ref agar callback mutation selalu membaca nilai liked terbaru
   const likedRef = useRef(initialLiked);
 
   const mutation = useMutation({
@@ -44,26 +44,51 @@ export default function PostLike({
     },
   });
 
+  const { bookmarked, toggleBookmark, isToggling } = usePostBookmark(postId);
+
   return (
-    <button
-      type="button"
-      onClick={() => mutation.mutate()}
-      disabled={mutation.isPending}
-      style={{
-        border: `1px solid ${liked ? "#e67c00" : "#d1d5db"}`,
-        borderRadius: "6px",
-        padding: "6px 12px",
-        cursor: mutation.isPending ? "not-allowed" : "pointer",
-        background: "none",
-        color: liked ? "#e67c00" : undefined,
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: 14,
-      }}
-    >
-      <span>{liked ? "❤️" : "🤍"}</span>
-      <span>{likeCount > 0 ? likeCount : "Like"}</span>
-    </button>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <button
+        type="button"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending}
+        style={{
+          border: `1px solid ${liked ? "#e67c00" : "#d1d5db"}`,
+          borderRadius: "6px",
+          padding: "6px 12px",
+          cursor: mutation.isPending ? "not-allowed" : "pointer",
+          background: "none",
+          color: liked ? "#e67c00" : undefined,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 14,
+        }}
+      >
+        <span>{liked ? "❤️" : "🤍"}</span>
+        <span>{likeCount > 0 ? likeCount : "Like"}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => toggleBookmark()}
+        disabled={isToggling}
+        style={{
+          border: `1px solid ${bookmarked ? "#4f46e5" : "#d1d5db"}`,
+          borderRadius: "6px",
+          padding: "6px 12px",
+          cursor: isToggling ? "not-allowed" : "pointer",
+          background: "none",
+          color: bookmarked ? "#4f46e5" : undefined,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 14,
+        }}
+      >
+        <span>{bookmarked ? "🔖" : "📑"}</span>
+        <span>{bookmarked ? "Disimpan" : "Simpan"}</span>
+      </button>
+    </div>
   );
 }

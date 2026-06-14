@@ -20,6 +20,8 @@ import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
 import { QuestionsTab } from "./QuestionsTab";
 import { PointsHistoryView } from "./history/PointsHistoryPage";
+import { useBookmarks } from "../../hooks/useBookmarks";
+import { PostCard } from "../../components/post/PostCard";
 
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
@@ -416,10 +418,40 @@ function LikesContent() {
 
 // ── Tambahan: Bookmarks content ────────────────────────────────────────
 function BookmarksContent() {
+  const { bookmarks, isLoading, error } = useBookmarks();
+  const navigate = useNavigate();
+
+  if (isLoading) {
+    return <div style={{ padding: "20px 0", color: "#6b7280", fontSize: 14 }}>Memuat bookmark...</div>;
+  }
+
+  if (error) {
+    return <div style={{ padding: "20px 0", color: "#dc2626", fontSize: 14 }}>{error}</div>;
+  }
+
+  if (bookmarks.length === 0) {
+    return (
+      <div>
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
+        <EmptyState message="Belum ada konten yang di-bookmark." />
+      </div>
+    );
+  }
+
   return (
     <div>
       <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
-      <EmptyState message="Belum ada konten yang di-bookmark." />
+      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        {bookmarks.map((b) => (
+          b.post ? (
+            <PostCard
+              key={b.id}
+              post={b.post}
+              onClick={() => navigate(`/posts/${b.post_id}`)}
+            />
+          ) : null
+        ))}
+      </div>
     </div>
   );
 }
