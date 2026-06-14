@@ -12,7 +12,7 @@ export interface Report {
 }
 
 export interface CreateReportPayload {
-  target_type: "post";
+  target_type: "post" | "comment";
   target_id: string;
   reason: string;
   description?: string;

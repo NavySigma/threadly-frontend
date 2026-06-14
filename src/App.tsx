@@ -61,6 +61,7 @@ function App() {
             <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/:id" element={<ProfilePage />} />
             <Route path="/admin/edit-history" element={<EditHistoryPage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
