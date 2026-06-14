@@ -5,7 +5,7 @@ import {
   useSearchParams,
   useLocation,
 } from "react-router-dom";
-import { useEffect } from "react";
+
 import { useAuth } from "../contexts/useAuth";
 import { usePosts } from "../hooks/usePostsQuery";
 import { parseSearchQuery } from "../api/search";
@@ -16,11 +16,17 @@ import CreatePostPage from "./post/CreatePostPage";
 import {
   ChevronLeft,
   ChevronRight,
-  MessageSquare,
-  MessageCircle,
   Flame,
-  ChevronUp,
 } from "lucide-react";
+import { apiFetch } from "../api/client";
+import { postsApi } from "../api/posts";
+
+interface CommunityStats {
+  users_online: number;
+  questions: number;
+  answers: number;
+  upvotes: number;
+}
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -123,8 +129,8 @@ function PostCard({ post }: { post: Post }) {
               <span className="text-[11px] text-black font-medium">
                 asked {timeAgo(post.created_at)}
               </span>
-            </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -213,36 +219,28 @@ export default function Home() {
     goToPage,
   } = usePosts(effectiveSearch);
 
-  const { data: popularTagsData } = useQuery({
-    queryKey: ["popular-tags-home"],
+  const { data: popularTagsData, isLoading: popularTagsLoading } = useQuery({
+    queryKey: ["popular-tags"],
     queryFn: () => fetchTags({ sort: "popular", per_page: 20 }),
     staleTime: 5 * 60 * 1000,
   });
   // Ambil max 6 tag terpopuler
   const popularTags = (popularTagsData?.data || []).slice(0, 6);
 
-  // Hitung stats dari data posts yang sudah di-fetch (tidak butuh endpoint baru)
-  const totalAnswers = posts.reduce(
-    (acc, p) => acc + ((p as any).comments_count ?? 0),
-    0,
-  );
-  const totalUpvotes = posts.reduce(
-    (acc, p) => acc + Math.max(0, p.vote_score),
-    0,
-  );
-  const totalViews = posts.reduce((acc, p) => acc + p.view_count, 0);
+  const { data: topPostsData, isLoading: topPostsLoading } = useQuery({
+    queryKey: ["top-posts"],
+    queryFn: () => postsApi.getAll({ sort: "popular" }),
+    staleTime: 10 * 60 * 1000,
+  });
+  const topPosts = (topPostsData?.data ?? []).slice(0, 5);
 
-  const communityStats = {
-    users_online: user ? 1 : 0, // minimal diri sendiri kalau sedang login
-    questions: total,
-    answers: totalAnswers,
-    upvotes: totalUpvotes,
-    views: totalViews,
-  };
-
-  const topPosts = [...posts]
-    .sort((a, b) => b.view_count - a.view_count)
-    .slice(0, 5);
+  const { data: communityData } = useQuery({
+    queryKey: ["community-stats"],
+    queryFn: () =>
+      apiFetch<{ data: CommunityStats }>("/stats/community"),
+    staleTime: 5 * 60 * 1000,
+  });
+  const s = communityData?.data;
 
   if (isCreating) {
     return <CreatePostPage />;
@@ -411,62 +409,41 @@ export default function Home() {
 
       {/* Kanan: Sidebar */}
       <div className="hidden lg:flex flex-col gap-6 w-[300px] shrink-0 sticky top-24 self-start">
-        {/* Community Activity Widget */}
         <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
           <div className="p-4 flex items-center justify-between border-b border-gray-100">
             <h3 className="font-bold text-gray-800 text-[15px]">
               Community activity
             </h3>
-            <span className="text-xs text-orange-500 font-medium">
-              All time
-            </span>
+            <span className="text-xs text-orange-500 font-medium">All time</span>
           </div>
           <div className="p-4 flex flex-col gap-3.5">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#2e9154] ring-4 ring-[#e3f4e9] ml-1"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-[#2e9154] ring-4 ring-[#e3f4e9] ml-1" />
               <span className="text-sm text-gray-800 ml-1.5">
-                {communityStats?.users_online ?? 0} users online
+                {Math.max(1, s?.users_online ?? 1)} users online
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <MessageSquare
-                size={16}
-                className="text-gray-800"
-                fill="currentColor"
-              />
+              <span className="text-sm text-gray-800">❓</span>
               <span className="text-sm text-gray-800">
-                {communityStats?.questions ?? 0} questions
+                {s?.questions ?? 0} questions
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="bg-gray-800 text-white rounded text-[10px] font-bold px-1.5 py-0.5 leading-none tracking-wider">
-                A
-              </div>
+              <span className="text-sm text-gray-800">💬</span>
               <span className="text-sm text-gray-800">
-                {communityStats?.answers ?? 0} answers
+                {s?.answers ?? 0} answers
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <MessageCircle
-                size={16}
-                className="text-gray-800"
-                strokeWidth={2.5}
-              />
+              <span className="text-sm text-gray-800">👍</span>
               <span className="text-sm text-gray-800">
-                {communityStats?.answers ?? 0} comments
-              </span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <ChevronUp
-                size={22}
-                className="text-gray-800 -ml-0.5"
-                strokeWidth={3}
-              />
-              <span className="text-sm text-gray-800">
-                {communityStats?.upvotes ?? 0} upvotes
+                {s?.upvotes ?? 0} upvotes
               </span>
             </div>
           </div>
+        </div>
+        <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
           <div className="border-t border-gray-100 p-4">
             <div className="flex items-center gap-1.5 mb-3">
               <Flame
@@ -496,8 +473,11 @@ export default function Home() {
                   </span>
                 </Link>
               ))}
-              {popularTags.length === 0 && (
+              {popularTagsLoading && (
                 <span className="text-xs text-gray-400">Loading tags...</span>
+              )}
+              {!popularTagsLoading && popularTags.length === 0 && (
+                <span className="text-xs text-gray-400">Tidak ada tag</span>
               )}
             </div>
           </div>
@@ -511,7 +491,9 @@ export default function Home() {
             </h3>
           </div>
           <div className="flex flex-col divide-y divide-gray-100">
-            {topPosts.length > 0 ? (
+            {topPostsLoading ? (
+              <div className="p-4 text-xs text-gray-500 text-center">Loading...</div>
+            ) : topPosts.length > 0 ? (
               topPosts.map((p) => (
                 <div
                   key={p.id}

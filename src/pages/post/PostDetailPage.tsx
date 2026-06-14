@@ -1,10 +1,11 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { usePostDetail } from "../../hooks/usePostDetail";
 import { useAuth } from "../../hooks/useAuth";
 import CommentSection from "../../components/post/CommentSection";
 import PostVote from "../post/vote/PostVote";
 import PostLike from "../post/like/PostLike";
 import { PostActionMenu } from "../profile/PostActionMenu";
+import { ArrowLeft } from "lucide-react";
 
 function timeAgo(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -23,16 +24,17 @@ export default function PostDetailPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "40px 0", textAlign: "center", color: "#6a737c" }}>
-        Memuat postingan...
+      <div className="py-16 flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-gray-200 border-t-teal-500 rounded-full animate-spin" />
+        <p className="text-sm text-gray-400">Memuat postingan...</p>
       </div>
     );
   }
 
   if (error || !post) {
     return (
-      <div style={{ padding: "40px 0", textAlign: "center", color: "#c0392b" }}>
-        {error ?? "Postingan tidak ditemukan."}
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <p className="text-sm text-red-500">{error ?? "Postingan tidak ditemukan."}</p>
       </div>
     );
   }
@@ -40,27 +42,14 @@ export default function PostDetailPage() {
   const isOwner = user?.id === post.user.id;
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 16px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 20,
-        }}
-      >
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      {/* Back + Actions */}
+      <div className="flex items-center justify-between mb-5">
         <button
           onClick={() => navigate(-1)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "#6a737c",
-            fontSize: 14,
-            padding: 0,
-          }}
+          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
         >
-          ← Kembali
+          <ArrowLeft size={16} /> Kembali
         </button>
 
         {isOwner && (
@@ -74,193 +63,107 @@ export default function PostDetailPage() {
         )}
       </div>
 
-      <h1
-        style={{
-          fontSize: 22,
-          fontWeight: 700,
-          marginBottom: 8,
-          lineHeight: 1.4,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
+      {/* Title */}
+      <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug flex items-center gap-2 flex-wrap">
         {post.status === "closed" && (
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "2px 8px",
-              borderRadius: 4,
-              fontSize: 11,
-              fontWeight: 700,
-              backgroundColor: "#f3f4f6",
-              color: "#6b7280",
-              border: "1px solid #e5e7eb",
-            }}
-          >
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
             PRIVATE
           </span>
         )}
         {post.title}
       </h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          fontSize: 13,
-          color: "#6a737c",
-          marginBottom: 20,
-          flexWrap: "wrap",
-        }}
-      >
+      {/* Meta */}
+      <div className="flex items-center gap-4 text-xs text-gray-500 mb-5 flex-wrap">
         <span>Ditanya {timeAgo(post.created_at)}</span>
-        <span>Dilihat {post.view_count}×</span>
-        <span
-          style={{
-            color: post.status === "open" ? "#2e7d32" : "#c62828",
-            fontWeight: 600,
-          }}
-        >
+        <span>Dilihat {post.view_count}x</span>
+        <span className={`font-semibold ${post.status === "open" ? "text-green-600" : "text-red-500"}`}>
           {post.status === "closed" ? "PRIVATE" : post.status.toUpperCase()}
         </span>
         {post.is_answered && (
-          <span style={{ color: "#2e7d32", fontWeight: 600 }}>✓ Terjawab</span>
+          <span className="text-green-600 font-semibold">Terjawab</span>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-        {/* Vote */}
-        <PostVote postId={post.id} score={post.vote_score} />
+      {/* Body */}
+      <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+        <div className="p-5">
+          <div className="flex gap-5 items-start">
+            {/* Vote */}
+            <PostVote postId={post.id} score={post.vote_score} />
 
-        {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 15,
-              lineHeight: 1.7,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-            }}
-          >
-            {post.body}
-          </div>
-
-          {Array.isArray(post.tags) && post.tags.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                flexWrap: "wrap",
-                marginTop: 20,
-              }}
-            >
-              {post.tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  style={{
-                    background: tag.color ?? "#e1ecf4",
-                    color: "#fff",
-                    padding: "3px 10px",
-                    borderRadius: 4,
-                    fontSize: 12,
-                    fontWeight: 500,
-                  }}
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
-          )}
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              marginTop: 20,
-              flexWrap: "wrap",
-              gap: 12,
-            }}
-          >
-            {/* Author */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                background: "#f0f4ff",
-                padding: "10px 14px",
-                borderRadius: 8,
-              }}
-            >
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "50%",
-                  background: "#818cf8",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  overflow: "hidden",
-                }}
-              >
-                {post.user.avatar_url ? (
-                  <img
-                    src={post.user.avatar_url}
-                    alt={post.user.username}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  (post.user.username?.[0] ?? "?").toUpperCase()
-                )}
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] leading-relaxed whitespace-pre-wrap break-words text-gray-800">
+                {post.body}
               </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>
-                  {post.user.username}
+
+              {/* Tags */}
+              {Array.isArray(post.tags) && post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-5">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="px-2.5 py-1 text-xs font-bold rounded-md"
+                      style={{
+                        backgroundColor: tag.color ? `${tag.color}22` : "#ccfbf1",
+                        color: tag.color ? tag.color : "#0d9488",
+                        border: `1px solid ${tag.color ? tag.color : "#0d9488"}`,
+                      }}
+                    >
+                      <span style={{ filter: "brightness(0.45) saturate(1.8)" }}>
+                        {tag.name}
+                      </span>
+                    </span>
+                  ))}
                 </div>
-                <div style={{ fontSize: 12, color: "#6a737c" }}>
-                  {timeAgo(post.created_at)}
+              )}
+
+              {/* Author + Like */}
+              <div className="flex items-center justify-between flex-wrap gap-3 mt-5">
+                <div className="flex items-center gap-2.5 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">
+                  <div className="w-8 h-8 rounded-full bg-indigo-400 flex items-center justify-center text-white font-bold text-sm overflow-hidden shrink-0">
+                    {post.user.avatar_url ? (
+                      <img
+                        src={post.user.avatar_url}
+                        alt={post.user.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      (post.user.username?.[0] ?? "?").toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-800">
+                      {post.user.username}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {timeAgo(post.created_at)}
+                    </div>
+                  </div>
                 </div>
+
+                <PostLike postId={post.id} />
               </div>
             </div>
-
-            {/* Like */}
-            <PostLike postId={post.id} />
           </div>
         </div>
       </div>
 
-      <div
-        style={{
-          marginTop: 24,
-          padding: "12px 16px",
-          background: "#f9fafb",
-          borderRadius: 8,
-          fontSize: 13,
-          color: "#6a737c",
-        }}
-      >
-        Kategori:{" "}
-        <strong style={{ color: "#111827" }}>{post.category.name}</strong>
+      {/* Category */}
+      <div className="mt-4 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500">
+        Kategori: <strong className="text-gray-800">{post.category.name}</strong>
       </div>
 
       {/* Comment Section */}
-      <CommentSection
-        postId={post.id}
-        postOwnerId={post.user.id}
-        acceptedAnswerId={post.accepted_answer_id}
-        postStatus={post.status}
-      />
+      <div className="mt-6">
+        <CommentSection
+          postId={post.id}
+          postOwnerId={post.user.id}
+          acceptedAnswerId={post.accepted_answer_id}
+          postStatus={post.status}
+        />
+      </div>
     </div>
   );
 }

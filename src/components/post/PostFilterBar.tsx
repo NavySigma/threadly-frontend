@@ -27,7 +27,7 @@ export function PostFilterBar() {
 
       {/* Search */}
       <div className="relative flex items-center">
-        <span className="absolute left-3 text-gray-400 text-sm">🔍</span>
+        <span className="absolute left-3 text-gray-400">🔍</span>
         <input
           type="text"
           placeholder="Cari pertanyaan..."
@@ -38,8 +38,8 @@ export function PostFilterBar() {
         {filter.search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 text-gray-400 hover:text-gray-600 text-xs"
-          >✕</button>
+            className="absolute right-3 text-gray-400 hover:text-gray-600"
+          ><span className="text-gray-400">❌</span></button>
         )}
       </div>
 
@@ -141,7 +141,9 @@ function Badge({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-teal-50 border border-teal-200 text-teal-700 rounded-full text-xs font-medium">
       {label}
-      <button onClick={onRemove} className="text-teal-400 hover:text-teal-700 text-[10px] leading-none">✕</button>
+      <button onClick={onRemove} className="text-teal-400 hover:text-teal-700">
+        <span className="text-teal-400">❌</span>
+      </button>
     </span>
   );
 }
