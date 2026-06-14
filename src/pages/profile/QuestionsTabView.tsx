@@ -46,7 +46,7 @@ function QuestionsTabItem({
 
         <div className="flex-1 flex flex-col gap-1 min-w-0">
           <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-800 line-clamp-2 flex items-center gap-2">
-            {post.status === "closed" && (
+            {post.status?.toLowerCase() !== "open" && (
               <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
                 Private
               </span>

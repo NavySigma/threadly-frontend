@@ -1,4 +1,8 @@
-import { useState } from "react";
+<<<<<<< HEAD
+import { useState, useEffect, useRef } from "react";
+=======
+import { useState, useEffect } from "react";
+>>>>>>> asya
 import { useNavigate } from "react-router-dom";
 import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
@@ -148,6 +152,7 @@ function SingleComment({
   isAccepted,
   canVote,
   editCount,
+  isAcceptLoading,
   onReply,
   onEdit,
   onAccept,
@@ -160,6 +165,7 @@ function SingleComment({
   isAccepted: boolean;
   canVote: boolean;
   editCount: number;
+  isAcceptLoading?: boolean;
   onReply?: () => void;
   onEdit: (
     commentId: string,
@@ -306,7 +312,6 @@ function SingleComment({
               flexWrap: "wrap",
             }}
           >
-            {/* Vote — hanya top-level, bukan milik sendiri */}
             {!isReply && canVote && (
               <CommentVote
                 commentId={comment.id}
@@ -315,7 +320,6 @@ function SingleComment({
               />
             )}
 
-            {/* Like — hanya top-level, bukan milik sendiri */}
             {!isReply && canVote && (
               <CommentLike
                 commentId={comment.id}
@@ -340,6 +344,31 @@ function SingleComment({
               </button>
             )}
 
+            {currentUserId === postOwnerId &&
+              currentUserId !== comment.user.id &&
+              onAccept && (
+                <button
+                  onClick={onAccept}
+                  disabled={isAcceptLoading}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: isAcceptLoading ? "not-allowed" : "pointer",
+                    fontSize: 12,
+                    color: isAccepted ? "#16a34a" : "#6b7280",
+                    padding: 0,
+                    fontWeight: isAccepted ? 600 : 400,
+                    opacity: isAcceptLoading ? 0.6 : 1,
+                  }}
+                >
+                  {isAcceptLoading
+                    ? "..."
+                    : isAccepted
+                      ? "✓ Diterima"
+                      : "Terima sebagai jawaban"}
+                </button>
+              )}
+
             {isOwner && !editLimitReached && (
               <button
                 onClick={() => setEditing(true)}
@@ -356,20 +385,7 @@ function SingleComment({
               </button>
             )}
 
-            {isOwner && editLimitReached && (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#ef4444",
-                  background: "#fef2f2",
-                  padding: "2px 8px",
-                  borderRadius: 12,
-                }}
-              >
-                Batas edit tercapai (maks. {MAX_EDITS_PER_COMMENT}×)
-              </span>
-            )}
-
+<<<<<<< HEAD
             {!isReply &&
               currentUserId === postOwnerId &&
               currentUserId !== comment.user.id &&
@@ -389,6 +405,21 @@ function SingleComment({
                   {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
                 </button>
               )}
+=======
+            {isOwner && editLimitReached && (
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "#ef4444",
+                  background: "#fef2f2",
+                  padding: "2px 8px",
+                  borderRadius: 12,
+                }}
+              >
+                Batas edit tercapai (maks. {MAX_EDITS_PER_COMMENT}×)
+              </span>
+            )}
+>>>>>>> asya
           </div>
         )}
       </div>
@@ -402,18 +433,22 @@ function CommentThread({
   postOwnerId,
   acceptedAnswerId,
   isSubmitting,
+  isAcceptLoading,
   editCounts,
   onReply,
   onEdit,
   onAccept,
+  replyError,
+  onReplyErrorClear,
 }: {
   comment: Comment;
   currentUserId?: string;
   postOwnerId: string;
   acceptedAnswerId: string | null;
   isSubmitting: boolean;
+  isAcceptLoading?: boolean;
   editCounts: Record<string, number>;
-  onReply: (parentId: string, body: string) => Promise<boolean>;
+  onReply: (parentId: string, body: string) => Promise<{ success: boolean; error?: string }>;
   onEdit: (
     commentId: string,
     body: string,
@@ -421,6 +456,8 @@ function CommentThread({
     parentId?: string,
   ) => Promise<{ success: boolean; error?: string }>;
   onAccept: (commentId: string) => void;
+  replyError?: string | null;
+  onReplyErrorClear?: () => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
   const isAccepted = acceptedAnswerId === comment.id;
@@ -428,8 +465,10 @@ function CommentThread({
     !!currentUserId && currentUserId.trim() !== comment.user.id.trim();
 
   const handleReplySubmit = async (body: string) => {
-    const ok = await onReply(comment.id, body);
-    if (ok) setReplyOpen(false);
+    const result = await onReply(comment.id, body);
+    if (result.success) {
+      setReplyOpen(false);
+    }
   };
 
   return (
@@ -441,6 +480,7 @@ function CommentThread({
         isAccepted={isAccepted}
         canVote={canVote}
         editCount={editCounts[comment.id] ?? 0}
+        isAcceptLoading={isAcceptLoading}
         onReply={() => setReplyOpen((p) => !p)}
         onEdit={onEdit}
         onAccept={() => onAccept(comment.id)}
@@ -462,10 +502,12 @@ function CommentThread({
               postOwnerId={postOwnerId}
               isReply
               parentId={comment.id}
-              isAccepted={false}
+              isAccepted={acceptedAnswerId === reply.id}
               canVote={false}
               editCount={editCounts[reply.id] ?? 0}
+              isAcceptLoading={isAcceptLoading}
               onEdit={onEdit}
+              onAccept={() => onAccept(reply.id)}
             />
           ))}
         </div>
@@ -476,10 +518,18 @@ function CommentThread({
           <CommentBox
             placeholder="Tulis balasan..."
             onSubmit={handleReplySubmit}
-            onCancel={() => setReplyOpen(false)}
+            onCancel={() => {
+              onReplyErrorClear?.();
+              setReplyOpen(false);
+            }}
             submitLabel="Balas"
             isSubmitting={isSubmitting}
           />
+          {replyError && (
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "#dc2626" }}>
+              ⚠️ {replyError}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -515,19 +565,71 @@ export default function CommentSection({
     initialAcceptedAnswerId,
   );
   const [editCounts, setEditCounts] = useState<Record<string, number>>({});
+<<<<<<< HEAD
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [replyError, setReplyError] = useState<string | null>(null);
+  const editCountsInitialized = useRef(false);
+
+  useEffect(() => {
+    if (comments && !editCountsInitialized.current) {
+      const initial: Record<string, number> = {};
+      comments.forEach((c: any) => {
+        initial[c.id] = c.edits_count ?? 0;
+        if (c.replies) {
+          c.replies.forEach((r: any) => {
+            initial[r.id] = r.edits_count ?? 0;
+          });
+        }
+      });
+      setEditCounts(initial);
+      editCountsInitialized.current = true;
+    }
+  }, [comments]);
+=======
+  const [isAcceptLoading, setIsAcceptLoading] = useState(false);
+>>>>>>> asya
 
   const isPostOpen = postStatus === "open";
   const myCommentCount = user ? countUserComments(user.id) : 0;
   const canAddComment =
     !!user && isPostOpen && myCommentCount < MAX_COMMENTS_PER_USER;
 
+<<<<<<< HEAD
+  const handleAddComment = async (body: string) => {
+    setCommentError(null);
+    const result = await addComment(body);
+    if (!result.success && result.error) {
+      setCommentError(result.error);
+    }
+    return result;
+  };
+
+  const handleAddReply = async (parentId: string, body: string) => {
+    setReplyError(null);
+    const result = await addReply(parentId, body);
+    if (!result.success && result.error) {
+      setReplyError(result.error);
+    }
+    return result;
+  };
+
   const handleAccept = (commentId: string) => {
+=======
+  const handleAccept = async (commentId: string) => {
+>>>>>>> asya
     const newAccepted = acceptedAnswerId === commentId ? null : commentId;
-    setAcceptedAnswerId(newAccepted);
-    if (newAccepted) {
-      commentsApi.accept(postId, commentId).catch(() => {});
-    } else {
-      commentsApi.unaccept(postId).catch(() => {});
+    setIsAcceptLoading(true);
+    try {
+      if (newAccepted) {
+        await commentsApi.accept(postId, commentId);
+      } else {
+        await commentsApi.unaccept(postId);
+      }
+      setAcceptedAnswerId(newAccepted);
+    } catch {
+      // gagal — state acceptedAnswerId tidak diubah
+    } finally {
+      setIsAcceptLoading(false);
     }
   };
 
@@ -542,6 +644,11 @@ export default function CommentSection({
       setEditCounts((prev) => ({
         ...prev,
         [commentId]: (prev[commentId] ?? 0) + 1,
+      }));
+    } else if (result.error?.includes("maksimal 2 kali")) {
+      setEditCounts((prev) => ({
+        ...prev,
+        [commentId]: MAX_EDITS_PER_COMMENT,
       }));
     }
     return result;
@@ -620,10 +727,13 @@ export default function CommentSection({
                   postOwnerId={postOwnerId}
                   acceptedAnswerId={acceptedAnswerId}
                   isSubmitting={isSubmitting}
+                  isAcceptLoading={isAcceptLoading}
                   editCounts={editCounts}
-                  onReply={addReply}
+                  onReply={handleAddReply}
                   onEdit={handleEdit}
                   onAccept={handleAccept}
+                  replyError={replyError}
+                  onReplyErrorClear={() => setReplyError(null)}
                 />
               ))}
             </div>
@@ -672,11 +782,18 @@ export default function CommentSection({
                 )}
               </div>
               {canAddComment && (
-                <CommentBox
-                  placeholder="Tulis komentar kamu di sini..."
-                  onSubmit={addComment}
-                  isSubmitting={isSubmitting}
-                />
+                <>
+                  <CommentBox
+                    placeholder="Tulis komentar kamu di sini..."
+                    onSubmit={handleAddComment}
+                    isSubmitting={isSubmitting}
+                  />
+                  {commentError && (
+                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "#dc2626" }}>
+                      ⚠️ {commentError}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
