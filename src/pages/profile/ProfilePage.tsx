@@ -17,6 +17,7 @@ import {
   Bookmark,
   CheckCircle,
   Users,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
@@ -27,7 +28,8 @@ import { TagsTab } from "./TagsTab";
 import { AnswersTab } from "./AnswersTab";
 import { PointsHistoryView } from "./history/PointsHistoryPage";
 import { useBookmarks } from "../../hooks/useBookmarks";
-import { PostCard } from "../../components/post/PostCard";
+import { apiFetch } from "../../api/client";
+import type { Post } from "../../types/posts";
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
 type ModalMode = "followers" | "following" | null;
@@ -459,11 +461,173 @@ function ActivityContent({
   );
 }
 
-function LikesContent() {
+interface LikedComment {
+  id: string;
+  target: {
+    id: string;
+    body: string;
+    created_at: string;
+    post: { id: string; title: string };
+  };
+}
+
+function LikeCard({ post, onClick }: { post: Post; onClick: () => void }) {
   return (
-    <div>
-      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Likes</p>
-      <EmptyState message="Belum ada konten yang disukai." />
+    <div
+      onClick={onClick}
+      style={{
+        padding: "14px 16px",
+        border: "1px solid #e5e7eb",
+        borderRadius: 8,
+        background: "#fff",
+        cursor: "pointer",
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "#0d9488";
+        e.currentTarget.style.background = "#f0fdfa";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "#e5e7eb";
+        e.currentTarget.style.background = "#fff";
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          color: "#0d9488",
+          marginBottom: 6,
+        }}
+      >
+        <FileText size={14} /> Postingan
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", marginBottom: 4 }}>
+        {post.title}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 12, color: "#9ca3af" }}>
+        <span style={{ fontWeight: 600, color: "#374151" }}>{post.vote_score} votes</span>
+        <span>•</span>
+        <span>{post.view_count} dilihat</span>
+        <span>•</span>
+        <span style={{ color: "#6b7280", fontWeight: 500 }}>{post.user?.username}</span>
+      </div>
+    </div>
+  );
+}
+
+function LikedCommentCard({ comment, onClick }: { comment: LikedComment["target"]; onClick: () => void }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: "14px 16px",
+        border: "1px solid #e5e7eb",
+        borderRadius: 8,
+        background: "#fff",
+        cursor: "pointer",
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "#0d9488";
+        e.currentTarget.style.background = "#f0fdfa";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "#e5e7eb";
+        e.currentTarget.style.background = "#fff";
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontSize: 11,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          color: "#8b5cf6",
+          marginBottom: 6,
+        }}
+      >
+        <MessageSquare size={14} /> Jawaban
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 500, color: "#0d9488", marginBottom: 4 }}>
+        {comment.post?.title}
+      </div>
+      <div
+        style={{
+          fontSize: 13,
+          color: "#6b7280",
+          lineHeight: 1.5,
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}
+      >
+        {comment.body}
+      </div>
+    </div>
+  );
+}
+
+function LikesContent() {
+  const navigate = useNavigate();
+  const postsQuery = useQuery({
+    queryKey: ["liked-posts"],
+    queryFn: () => apiFetch<{ data: { id: string; target: Post }[] }>("/me/bookmarks/posts"),
+  });
+  const commentsQuery = useQuery({
+    queryKey: ["liked-comments"],
+    queryFn: () => apiFetch<{ data: LikedComment[] }>("/me/bookmarks/comments"),
+  });
+
+  if (postsQuery.isLoading || commentsQuery.isLoading)
+    return <div style={{ padding: "20px 0", color: "#6b7280", fontSize: 14 }}>Memuat...</div>;
+
+  const posts = postsQuery.data?.data?.map((l) => l.target).filter(Boolean) ?? [];
+  const comments = commentsQuery.data?.data?.map((l) => l.target).filter(Boolean) ?? [];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>
+          Postingan ({posts.length})
+        </p>
+        {posts.length === 0 ? (
+          <EmptyState message="Belum ada postingan yang disukai." />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {posts.map((p) => (
+              <LikeCard key={p.id} post={p} onClick={() => navigate(`/posts/${p.id}`)} />
+            ))}
+          </div>
+        )}
+      </div>
+      <div>
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>
+          Jawaban ({comments.length})
+        </p>
+        {comments.length === 0 ? (
+          <EmptyState message="Belum ada jawaban yang disukai." />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {comments.map((c) => (
+              <LikedCommentCard
+                key={c.id}
+                comment={c}
+                onClick={() => navigate(`/posts/${c.post.id}#comment-${c.id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -474,21 +638,23 @@ function BookmarksContent() {
 
   if (isLoading) return <div style={{ padding: "20px 0", color: "#6b7280", fontSize: 14 }}>Memuat bookmark...</div>;
   if (error) return <div style={{ padding: "20px 0", color: "#dc2626", fontSize: 14 }}>{error}</div>;
-  if (bookmarks.length === 0) return (
-    <div>
-      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
-      <EmptyState message="Belum ada konten yang di-bookmark." />
-    </div>
-  );
+
+  const posts = bookmarks.filter((b) => b.post).map((b) => b.post!);
 
   return (
     <div>
-      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {bookmarks.map((b) =>
-          b.post ? <PostCard key={b.id} post={b.post} onClick={() => navigate(`/posts/${b.post_id}`)} /> : null
-        )}
-      </div>
+      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
+        Bookmarks ({posts.length})
+      </p>
+      {posts.length === 0 ? (
+        <EmptyState message="Belum ada konten yang di-bookmark." />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {posts.map((p) => (
+            <LikeCard key={p.id} post={p} onClick={() => navigate(`/posts/${p.id}`)} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -506,7 +672,7 @@ export default function ProfilePage() {
   const [modal, setModal] = useState<ModalMode>(null);
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get("tab") as MainTab) || "profile";
-  const initialSubTab = (searchParams.get("subtab") as ActivityTab) || "questions";
+  const initialSubTab = (searchParams.get("subtab") as ActivityTab) || "summary";
   const [mainTab, setMainTab] = useState<MainTab>(initialTab);
   const [activityTab, setActivityTab] = useState<ActivityTab>(initialSubTab);
 

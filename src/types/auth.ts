@@ -23,6 +23,11 @@ export interface User {
   created_at: string;
   updated_at: string;
   roles?: { id: string; name: string }[];
+  followers_count?: number;
+  following_count?: number;
+  posts_count?: number;
+  comments_count?: number;
+  accepted_count?: number;
 }
 
 export interface LoginResponse {
