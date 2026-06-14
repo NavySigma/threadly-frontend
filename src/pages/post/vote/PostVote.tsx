@@ -93,6 +93,7 @@ export default function PostVote({
     >
       {/* UPVOTE — aktif: hijau */}
       <button
+        data-cy="post-upvote"
         type="button"
         disabled={voteMutation.isPending}
         onClick={() => voteMutation.mutate("upvote")}
@@ -120,6 +121,7 @@ export default function PostVote({
 
       {/* DOWNVOTE — aktif: oranye */}
       <button
+        data-cy="post-downvote"
         type="button"
         disabled={voteMutation.isPending}
         onClick={() => voteMutation.mutate("downvote")}

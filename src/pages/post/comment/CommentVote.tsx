@@ -64,6 +64,7 @@ export default function CommentVote({
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
       {/* UPVOTE — aktif: hijau */}
       <button
+        data-cy="comment-upvote"
         type="button"
         onClick={() => mutation.mutate("upvote")}
         disabled={mutation.isPending}
@@ -100,6 +101,7 @@ export default function CommentVote({
 
       {/* DOWNVOTE — aktif: oranye */}
       <button
+        data-cy="comment-downvote"
         type="button"
         onClick={() => mutation.mutate("downvote")}
         disabled={mutation.isPending}
