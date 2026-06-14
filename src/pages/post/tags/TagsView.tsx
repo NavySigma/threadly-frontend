@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import type { CSSProperties } from "react";
 import type { Tag, TagsParams } from "../../../api/tags";
+import { getTagColor } from "../../../lib/tagColor";
 
 type TagsViewProps = {
   tags: Tag[];

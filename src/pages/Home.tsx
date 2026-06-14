@@ -19,7 +19,7 @@ import {
   Flame,
 } from "lucide-react";
 import { apiFetch } from "../api/client";
-import { postsApi } from "../api/posts";
+import { getTagColor } from "../lib/tagColor";
 
 interface CommunityStats {
   users_online: number;
@@ -85,25 +85,28 @@ function PostCard({ post }: { post: Post }) {
         <div className="mt-auto flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           {/* Tags */}
           <div className="flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <button
-                key={tag.id}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(`/posts?tag=${encodeURIComponent(tag.name)}`);
-                }}
-                className="px-2.5 py-1 text-xs font-bold rounded-md transition-colors"
-                style={{
-                  backgroundColor: tag.color ? `${tag.color}22` : "#ccfbf1",
-                  color: tag.color ? tag.color : "#0d9488",
-                  border: `1px solid ${tag.color ? tag.color : "#0d9488"}`,
-                }}
-              >
-                <span style={{ filter: "brightness(0.45) saturate(1.8)" }}>
-                  {tag.name}
-                </span>
-              </button>
-            ))}
+            {post.tags.map((tag) => {
+              const color = getTagColor(tag);
+              return (
+                <button
+                  key={tag.id}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/posts?tag=${encodeURIComponent(tag.name)}`);
+                  }}
+                  className="px-2.5 py-1 text-xs font-bold rounded-md transition-colors"
+                  style={{
+                    backgroundColor: `${color}22`,
+                    color: color,
+                    border: `1px solid ${color}`,
+                  }}
+                >
+                  <span style={{ filter: "brightness(0.45) saturate(1.8)" }}>
+                    {tag.name}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* User Info (Kanan Bawah) */}
@@ -457,22 +460,25 @@ export default function Home() {
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {popularTags.map((t) => (
-                <Link
-                  key={t.id}
-                  to={`/posts?tag=${encodeURIComponent(t.name)}`}
-                  className="px-2.5 py-1 text-xs font-bold rounded-md transition-opacity hover:opacity-80"
-                  style={{
-                    backgroundColor: t.color ? `${t.color}22` : "#ccfbf1",
-                    color: t.color ? t.color : "#0d9488",
-                    border: `1px solid ${t.color ? t.color : "#0d9488"}`,
-                  }}
-                >
-                  <span style={{ filter: "brightness(0.45) saturate(1.8)" }}>
-                    {t.name}
-                  </span>
-                </Link>
-              ))}
+              {popularTags.map((t) => {
+                const color = getTagColor(t);
+                return (
+                  <Link
+                    key={t.id}
+                    to={`/posts?tag=${encodeURIComponent(t.name)}`}
+                    className="px-2.5 py-1 text-xs font-bold rounded-md transition-opacity hover:opacity-80"
+                    style={{
+                      backgroundColor: `${color}22`,
+                      color: color,
+                      border: `1px solid ${color}`,
+                    }}
+                  >
+                    <span style={{ filter: "brightness(0.45) saturate(1.8)" }}>
+                      {t.name}
+                    </span>
+                  </Link>
+                );
+              })}
               {popularTagsLoading && (
                 <span className="text-xs text-gray-400">Loading tags...</span>
               )}
