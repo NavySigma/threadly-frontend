@@ -21,8 +21,8 @@ type ApiResponse = {
   data?: PointHistory[] | { data: PointHistory[] };
 };
 
-// ── Komponen reusable — bisa dipanggil dari mana saja ─────────────────
-export function PointsHistoryView() {
+// ── Inner content — dipakai di dalam ProfilePage maupun standalone ────
+function PointsHistoryContent() {
   const [token] = useState<string | null>(() => localStorage.getItem("token"));
   const [filter, setFilter] = useState<"all" | "earned" | "deducted">("all");
 
@@ -69,13 +69,7 @@ export function PointsHistoryView() {
   }, [histories, filter]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 rounded-3xl bg-gradient-to-r from-teal-500 to-teal-400 p-8 text-white shadow-lg">
-        <h1 className="text-3xl font-bold">Reputation History</h1>
-        <p className="mt-2 text-teal-100">Riwayat perubahan reputasi akun kamu.</p>
-      </div>
-
+    <>
       {/* Summary */}
       <div className="mb-8 grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl bg-gradient-to-r from-teal-500 to-teal-400 p-6 text-white shadow">
@@ -156,6 +150,18 @@ export function PointsHistoryView() {
           ))
         )}
       </div>
+    </>
+  );
+}
+
+// ── Komponen reusable untuk digunakan di ProfilePage (tab Reputation) ─
+export function PointsHistoryView() {
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
+        Reputation
+      </p>
+      <PointsHistoryContent />
     </div>
   );
 }
@@ -171,5 +177,14 @@ export default function PointsHistoryPage() {
 
   if (!token) return null;
 
-  return <PointsHistoryView />;
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      {/* Header */}
+      <div className="mb-8 rounded-3xl bg-gradient-to-r from-teal-500 to-teal-400 p-8 text-white shadow-lg">
+        <h1 className="text-3xl font-bold">Reputation History</h1>
+        <p className="mt-2 text-teal-100">Riwayat perubahan reputasi akun kamu.</p>
+      </div>
+      <PointsHistoryContent />
+    </div>
+  );
 }
