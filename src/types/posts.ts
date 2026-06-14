@@ -43,6 +43,8 @@ export interface Post {
   views_count?: number;
   created_at_human?: string;
   user_vote?: "upvote" | "downvote" | null;
+  is_liked?: boolean;
+  likes_count?: number;
 }
 
 export interface CreatePostPayload {
