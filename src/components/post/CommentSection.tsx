@@ -502,7 +502,8 @@ export default function CommentSection({
 
   const isPostOpen = postStatus === "open";
   const myCommentCount = user ? countUserComments(user.id) : 0;
-  const canAddComment = !!user && isPostOpen && myCommentCount < MAX_COMMENTS_PER_USER;
+  const canAddComment =
+    !!user && isPostOpen && myCommentCount < MAX_COMMENTS_PER_USER;
 
   const handleAccept = (commentId: string) => {
     const newAccepted = acceptedAnswerId === commentId ? null : commentId;
@@ -542,7 +543,9 @@ export default function CommentSection({
           borderBottom: "2px solid #e5e7eb",
         }}
       >
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" }}>
+        <h3
+          style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" }}
+        >
           {comments.length} Komentar
         </h3>
         {!isPostOpen && (
@@ -554,7 +557,12 @@ export default function CommentSection({
 
       {isLoading && (
         <div
-          style={{ textAlign: "center", padding: "24px 0", color: "#9ca3af", fontSize: 14 }}
+          style={{
+            textAlign: "center",
+            padding: "24px 0",
+            color: "#9ca3af",
+            fontSize: 14,
+          }}
         >
           Memuat komentar...
         </div>
@@ -562,7 +570,12 @@ export default function CommentSection({
 
       {error && (
         <div
-          style={{ textAlign: "center", padding: "24px 0", color: "#ef4444", fontSize: 14 }}
+          style={{
+            textAlign: "center",
+            padding: "24px 0",
+            color: "#ef4444",
+            fontSize: 14,
+          }}
         >
           {error}
         </div>
@@ -623,7 +636,9 @@ export default function CommentSection({
                   avatar_url={user.avatar_url ?? null}
                   onClick={() => navigate(`/profile/${user.id}`)}
                 />
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+                <span
+                  style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}
+                >
                   Tambah Komentar
                 </span>
                 {myCommentCount >= MAX_COMMENTS_PER_USER && (
@@ -665,7 +680,11 @@ export default function CommentSection({
             >
               <a
                 href="/login"
-                style={{ color: "#4f46e5", fontWeight: 600, textDecoration: "none" }}
+                style={{
+                  color: "#4f46e5",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
               >
                 Login
               </a>{" "}

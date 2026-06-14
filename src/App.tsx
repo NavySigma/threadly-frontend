@@ -51,7 +51,8 @@ function App() {
             <Route path="/posts/create" element={<CreatePostPage />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id" element={<EditPostPage />} />
-            <Route path="/profile:id" element={<ProfilePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile:id?" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
@@ -59,10 +60,19 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/category" element={<Navigate to="/tags" replace />} />
-            <Route path="/categories" element={<Navigate to="/tags" replace />} />
+            <Route
+              path="/categories"
+              element={<Navigate to="/tags" replace />}
+            />
           </Route>
-          <Route path="/categories/" element={<Navigate to="/tags" replace />} />
-          <Route path="/categories/" element={<Navigate to="/tags" replace />} />
+          <Route
+            path="/categories/"
+            element={<Navigate to="/tags" replace />}
+          />
+          <Route
+            path="/categories/"
+            element={<Navigate to="/tags" replace />}
+          />
           <Route path="/users" element={<UsersPage />} />
           <Route
             path="*"
