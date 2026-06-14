@@ -146,7 +146,7 @@ export default function PostDetailPage() {
                   </div>
                 </div>
 
-                <PostLike postId={post.id} />
+                <PostLike postId={post.id} initialLiked={post.is_liked} initialCount={post.likes_count} />
               </div>
             </div>
           </div>
