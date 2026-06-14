@@ -1,103 +1,127 @@
-import { useEffect, useReducer } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { fetchFollowers, fetchFollowing, type FollowUser } from "../../api/followApi";
-import FollowButton from "./FollowButton";
+import { Link } from "react-router-dom";
+import {
+  fetchFollowers,
+  fetchFollowing,
+  type FollowUser,
+} from "../../api/followApi";
 
-interface FollowersModalProps {
+interface Props {
   userId: string;
   mode: "followers" | "following";
   onClose: () => void;
 }
 
-type State = {
-  users: FollowUser[];
-  count: number;
-  isLoading: boolean;
-};
-
-type Action =
-  | { type: "FETCH_START" }
-  | { type: "FETCH_SUCCESS"; users: FollowUser[]; count: number }
-  | { type: "FETCH_ERROR" };
-
-const initialState: State = { users: [], count: 0, isLoading: true };
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "FETCH_START":
-      return { users: [], count: 0, isLoading: true };
-    case "FETCH_SUCCESS":
-      return { users: action.users, count: action.count, isLoading: false };
-    case "FETCH_ERROR":
-      return { ...state, isLoading: false };
-    default:
-      return state;
-  }
+interface FollowMeta {
+  followers_count?: number;
+  following_count?: number;
 }
 
-export default function FollowersModal({ userId, mode, onClose }: FollowersModalProps) {
-  const [{ users, count, isLoading }, dispatch] = useReducer(reducer, initialState);
+interface FollowResponse {
+  data: FollowUser[];
+  meta: FollowMeta;
+}
+
+export default function FollowersModal({ userId, mode, onClose }: Props) {
+  const [users, setUsers] = useState<FollowUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [count, setCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  // useRef untuk cancel fetch jika komponen unmount
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    dispatch({ type: "FETCH_START" }); // ✅ satu dispatch, bukan banyak setState
+    // cancel request sebelumnya jika ada
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    let cancelled = false;
+
     const fn = mode === "followers" ? fetchFollowers : fetchFollowing;
+
     fn(userId)
       .then((res) => {
-        dispatch({
-          type: "FETCH_SUCCESS",
-          users: res.data,
-          count:
-            "followers_count" in res.meta
-              ? (res.meta as { followers_count: number }).followers_count
-              : (res.meta as { following_count: number }).following_count,
-        });
+        if (cancelled) return;
+        const data = res as unknown as FollowResponse;
+        const list = Array.isArray(data.data) ? data.data : [];
+        setUsers(list);
+        setCount(
+          mode === "followers"
+            ? (data.meta?.followers_count ?? list.length)
+            : (data.meta?.following_count ?? list.length)
+        );
+        setError(null);
       })
-      .catch(() => dispatch({ type: "FETCH_ERROR" }));
+      .catch(() => {
+        if (cancelled) return;
+        setError("Gagal memuat data.");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      abortRef.current?.abort();
+    };
   }, [userId, mode]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
 
   return (
     <div
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={onClose}
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 200,
-        background: "rgba(0,0,0,0.35)",
+        background: "rgba(0,0,0,0.45)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 16,
+        zIndex: 1000,
       }}
     >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
-          background: "var(--white)",
-          borderRadius: 6,
-          width: "100%",
-          maxWidth: 400,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.14)",
+          background: "#fff",
+          borderRadius: 12,
+          width: 400,
+          maxWidth: "90vw",
+          maxHeight: "70vh",
           display: "flex",
           flexDirection: "column",
-          maxHeight: "80vh",
           overflow: "hidden",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
         }}
       >
+        {/* Header */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--black-100)",
+            padding: "16px 20px",
+            borderBottom: "1px solid #e5e7eb",
             flexShrink: 0,
           }}
         >
-          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--black-700)" }}>
+          <span style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>
             {mode === "followers" ? "Followers" : "Following"}
-            <span style={{ marginLeft: 6, fontWeight: 400, color: "var(--black-300)", fontSize: 12 }}>
-              ({count})
-            </span>
+            {count > 0 && (
+              <span style={{ color: "#6b7280", fontWeight: 400, marginLeft: 6 }}>
+                {count.toLocaleString()}
+              </span>
+            )}
           </span>
           <button
             onClick={onClose}
@@ -105,91 +129,102 @@ export default function FollowersModal({ userId, mode, onClose }: FollowersModal
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "var(--black-500)",
+              color: "#6b7280",
               display: "flex",
               alignItems: "center",
               padding: 4,
-              borderRadius: 4,
+              borderRadius: 6,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--black-075)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "#f3f4f6"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         </div>
 
+        {/* Body */}
         <div style={{ overflowY: "auto", flex: 1 }}>
-          {isLoading ? (
-            <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
-              <div
-                className="spinner"
-                style={{ width: 20, height: 20, borderColor: "var(--black-200)", borderTopColor: "var(--orange)" }}
-              />
+          {isLoading && (
+            <div style={{ padding: 40, textAlign: "center", color: "#9ca3af", fontSize: 14 }}>
+              Memuat...
             </div>
-          ) : users.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--black-400)", fontSize: 13 }}>
-              {mode === "followers" ? "Belum ada followers." : "Belum following siapapun."}
+          )}
+
+          {!isLoading && error && (
+            <div style={{ padding: 40, textAlign: "center", color: "#dc2626", fontSize: 14 }}>
+              {error}
             </div>
-          ) : (
-            users.map((user) => (
+          )}
+
+          {!isLoading && !error && users.length === 0 && (
+            <div style={{ padding: 40, textAlign: "center", color: "#9ca3af", fontSize: 14 }}>
+              {mode === "followers" ? "Belum ada followers." : "Belum mengikuti siapapun."}
+            </div>
+          )}
+
+          {!isLoading && !error && users.map((u) => (
+            <Link
+              key={u.id}
+              to={`/users/${u.id}`}
+              onClick={onClose}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "12px 20px",
+                textDecoration: "none",
+                color: "inherit",
+                borderBottom: "1px solid #f3f4f6",
+                transition: "background 0.1s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#f9fafb"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
               <div
-                key={user.id}
                 style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "#0d9488",
+                  overflow: "hidden",
+                  flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "10px 16px",
-                  borderBottom: "1px solid var(--black-100)",
-                  gap: 8,
+                  justifyContent: "center",
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: "#fff",
                 }}
               >
-                <Link
-                  to={`/users/${user.id}`}
-                  onClick={onClose}
+                {u.avatar_url ? (
+                  <img
+                    src={u.avatar_url}
+                    alt={u.username}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  u.username[0].toUpperCase()
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    textDecoration: "none",
-                    color: "inherit",
-                    minWidth: 0,
-                    flex: 1,
+                    fontWeight: 500,
+                    fontSize: 14,
+                    color: "#111827",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      background: "var(--black-100)",
-                      flexShrink: 0,
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {user.avatar_url ? (
-                      <img src={user.avatar_url} alt={user.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <span style={{ fontSize: 15, fontWeight: 600, color: "var(--black-500)" }}>
-                        {user.username[0].toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontWeight: 600, fontSize: 13, color: "var(--orange)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {user.username}
-                    </p>
-                    <p style={{ fontSize: 11, color: "var(--black-300)", margin: "2px 0 0" }}>
-                      {user.reputation_points.toLocaleString()} rep
-                    </p>
-                  </div>
-                </Link>
-                <FollowButton userId={user.id} initialIsFollowing={false} size="sm" />
+                  {u.username}
+                </div>
+                <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                  {u.reputation_points.toLocaleString()} rep
+                </div>
               </div>
-            ))
-          )}
+            </Link>
+          ))}
         </div>
       </div>
     </div>

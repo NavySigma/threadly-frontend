@@ -16,15 +16,17 @@ import {
   Bookmark,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
+import FollowButton from "../follow/FollowButton";
+import FollowersModal from "../follow/FollowersModal";
 import { QuestionsTab } from "./QuestionsTab";
 import { TagsTab } from "./TagsTab";
 import { PointsHistoryView } from "./history/PointsHistoryPage";
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { PostCard } from "../../components/post/PostCard";
-
 import type { MainTab, ActivityTab } from "../../types/profile.type";
+
+type ModalMode = "followers" | "following" | null;
 
 function getInitial(name: string) {
   return name ? name.charAt(0).toUpperCase() : "U";
@@ -76,9 +78,18 @@ function Avatar({
   );
 }
 
-function StatCard({ num, label }: { num: number; label: string }) {
+function StatCard({
+  num,
+  label,
+  onClick,
+}: {
+  num: number;
+  label: string;
+  onClick?: () => void;
+}) {
   return (
     <div
+      onClick={onClick}
       style={{
         background: "#f9fafb",
         borderRadius: 8,
@@ -86,6 +97,14 @@ function StatCard({ num, label }: { num: number; label: string }) {
         display: "flex",
         flexDirection: "column",
         gap: 2,
+        cursor: onClick ? "pointer" : "default",
+        transition: "background 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        if (onClick) e.currentTarget.style.background = "#f3f4f6";
+      }}
+      onMouseLeave={(e) => {
+        if (onClick) e.currentTarget.style.background = "#f9fafb";
       }}
     >
       <span style={{ fontSize: 22, fontWeight: 500 }}>{num}</span>
@@ -114,9 +133,11 @@ function EmptyState({ message }: { message: string }) {
 function ProfileContent({
   profileUser,
   isOwnProfile,
+  onOpenModal,
 }: {
   profileUser: PublicUser | null;
   isOwnProfile: boolean;
+  onOpenModal: (mode: "followers" | "following") => void;
 }) {
   const { user } = useAuth();
   const displayUser = profileUser ?? user;
@@ -124,33 +145,23 @@ function ProfileContent({
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       <div>
-        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>
-          Stats
-        </p>
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
-        >
-          <StatCard
-            num={displayUser?.reputation_points ?? 0}
-            label="reputation"
-          />
-          <StatCard
-            num={(displayUser as PublicUser)?.posts_count ?? 0}
-            label="posts"
-          />
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>Stats</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <StatCard num={displayUser?.reputation_points ?? 0} label="reputation" />
+          <StatCard num={(displayUser as PublicUser)?.posts_count ?? 0} label="posts" />
           <StatCard
             num={(displayUser as PublicUser)?.followers_count ?? 0}
             label="followers"
+            onClick={() => onOpenModal("followers")}
           />
           <StatCard
             num={(displayUser as PublicUser)?.following_count ?? 0}
             label="following"
+            onClick={() => onOpenModal("following")}
           />
         </div>
 
-        <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>
-          Communities
-        </p>
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>Communities</p>
         <div
           style={{
             background: "#f9fafb",
@@ -167,41 +178,18 @@ function ProfileContent({
       </div>
 
       <div>
-        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>
-          About
-        </p>
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 12px" }}>About</p>
         {displayUser?.bio ? (
-          <div
-            style={{
-              background: "#f9fafb",
-              borderRadius: 8,
-              padding: "16px",
-              fontSize: 14,
-              lineHeight: 1.6,
-            }}
-          >
+          <div style={{ background: "#f9fafb", borderRadius: 8, padding: "16px", fontSize: 14, lineHeight: 1.6 }}>
             {displayUser.bio}
           </div>
         ) : (
-          <div
-            style={{
-              background: "#f9fafb",
-              borderRadius: 8,
-              padding: "24px 16px",
-              textAlign: "center",
-              fontSize: 14,
-              color: "#9ca3af",
-            }}
-          >
+          <div style={{ background: "#f9fafb", borderRadius: 8, padding: "24px 16px", textAlign: "center", fontSize: 14, color: "#9ca3af" }}>
             {isOwnProfile ? (
               <>
                 Bagian about me kamu masih kosong.{" "}
                 <span
-                  style={{
-                    color: "#4f46e5",
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                  }}
+                  style={{ color: "#4f46e5", cursor: "pointer", textDecoration: "underline" }}
                   onClick={() => (window.location.href = "/profile/edit")}
                 >
                   Edit profil
@@ -213,19 +201,8 @@ function ProfileContent({
           </div>
         )}
 
-        <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>
-          Rank
-        </p>
-        <div
-          style={{
-            background: "#f9fafb",
-            borderRadius: 8,
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
+        <p style={{ fontSize: 17, fontWeight: 500, margin: "20px 0 12px" }}>Rank</p>
+        <div style={{ background: "#f9fafb", borderRadius: 8, padding: "20px", display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               style={{
@@ -255,35 +232,18 @@ function ProfileContent({
 
           {displayUser?.next_level_points !== undefined && (
             <div style={{ marginTop: 4 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 12,
-                  marginBottom: 6,
-                }}
-              >
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
                 <span style={{ color: "#6b7280" }}>Progress ke level berikutnya</span>
                 <span style={{ fontWeight: 600, color: "#0d9488" }}>
                   {displayUser.reputation_points} / {displayUser.next_level_points} pts
                 </span>
               </div>
-              <div
-                style={{
-                  height: 6,
-                  background: "#e5e7eb",
-                  borderRadius: 3,
-                  overflow: "hidden",
-                }}
-              >
+              <div style={{ height: 6, background: "#e5e7eb", borderRadius: 3, overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
                     background: "#0d9488",
-                    width: `${Math.min(
-                      100,
-                      (displayUser.reputation_points / (displayUser.next_level_points || 1)) * 100
-                    )}%`,
+                    width: `${Math.min(100, (displayUser.reputation_points / (displayUser.next_level_points || 1)) * 100)}%`,
                     transition: "width 0.5s ease-out",
                   }}
                 />
@@ -317,11 +277,11 @@ function ActivityContent({
   };
 
   const subTabs: { key: ActivityTab | "logout"; label: string; icon: React.ReactNode }[] = [
-    { key: "summary", label: "Summary", icon: <Activity size={16} /> },
-    { key: "answers", label: "Answers", icon: <MessageSquare size={16} /> },
-    { key: "questions", label: "Questions", icon: <MessageSquare size={16} /> },
-    { key: "tags", label: "Tags", icon: <Tag size={16} /> },
-    { key: "badges", label: "Rank", icon: <Award size={16} /> },
+    { key: "summary",    label: "Summary",    icon: <Activity size={16} /> },
+    { key: "answers",    label: "Answers",    icon: <MessageSquare size={16} /> },
+    { key: "questions",  label: "Questions",  icon: <MessageSquare size={16} /> },
+    { key: "tags",       label: "Tags",       icon: <Tag size={16} /> },
+    { key: "badges",     label: "Rank",       icon: <Award size={16} /> },
     { key: "reputation", label: "Reputation", icon: <TrendingUp size={16} /> },
   ];
 
@@ -337,11 +297,8 @@ function ActivityContent({
             <button
               key={t.key}
               onClick={() => {
-                if (t.key === "logout") {
-                  handleLogout();
-                } else {
-                  setActiveSubTab(t.key as ActivityTab);
-                }
+                if (t.key === "logout") handleLogout();
+                else setActiveSubTab(t.key as ActivityTab);
               }}
               style={{
                 textAlign: "left",
@@ -351,10 +308,8 @@ function ActivityContent({
                 fontSize: 14,
                 cursor: "pointer",
                 fontWeight: activeSubTab === t.key ? 500 : 400,
-                background: t.key === "logout"
-                  ? "transparent"
-                  : (activeSubTab === t.key ? "#f3f4f6" : "transparent"),
-                color: t.key === "logout" ? "#dc2626" : (activeSubTab === t.key ? "#111827" : "#6b7280"),
+                background: t.key === "logout" ? "transparent" : activeSubTab === t.key ? "#f3f4f6" : "transparent",
+                color: t.key === "logout" ? "#dc2626" : activeSubTab === t.key ? "#111827" : "#6b7280",
                 transition: "all .15s",
                 display: "flex",
                 alignItems: "center",
@@ -412,41 +367,26 @@ function LikesContent() {
   );
 }
 
-// ── Tambahan: Bookmarks content ────────────────────────────────────────
 function BookmarksContent() {
   const { bookmarks, isLoading, error } = useBookmarks();
   const navigate = useNavigate();
 
-  if (isLoading) {
-    return <div style={{ padding: "20px 0", color: "#6b7280", fontSize: 14 }}>Memuat bookmark...</div>;
-  }
-
-  if (error) {
-    return <div style={{ padding: "20px 0", color: "#dc2626", fontSize: 14 }}>{error}</div>;
-  }
-
-  if (bookmarks.length === 0) {
-    return (
-      <div>
-        <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
-        <EmptyState message="Belum ada konten yang di-bookmark." />
-      </div>
-    );
-  }
+  if (isLoading) return <div style={{ padding: "20px 0", color: "#6b7280", fontSize: 14 }}>Memuat bookmark...</div>;
+  if (error) return <div style={{ padding: "20px 0", color: "#dc2626", fontSize: 14 }}>{error}</div>;
+  if (bookmarks.length === 0) return (
+    <div>
+      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
+      <EmptyState message="Belum ada konten yang di-bookmark." />
+    </div>
+  );
 
   return (
     <div>
       <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Bookmarks</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {bookmarks.map((b) => (
-          b.post ? (
-            <PostCard
-              key={b.id}
-              post={b.post}
-              onClick={() => navigate(`/posts/${b.post_id}`)}
-            />
-          ) : null
-        ))}
+        {bookmarks.map((b) =>
+          b.post ? <PostCard key={b.id} post={b.post} onClick={() => navigate(`/posts/${b.post_id}`)} /> : null
+        )}
       </div>
     </div>
   );
@@ -462,42 +402,22 @@ export default function ProfilePage() {
 
   const [profileUser, setProfileUser] = useState<PublicUser | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
-
-  const { isFollowing, isLoading: followLoading, toggle } = useFollow(false);
-
+  const [modal, setModal] = useState<ModalMode>(null);
   const [mainTab, setMainTab] = useState<MainTab>("profile");
   const [activityTab, setActivityTab] = useState<ActivityTab>("questions");
 
   useEffect(() => {
     if (isOwnProfile || !id) return;
-
-    async function loadProfile() {
-      setLoadingProfile(true);
-      try {
-        const res = await fetchPublicProfile(id!);
-        setProfileUser(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingProfile(false);
-      }
-    }
-
-    loadProfile();
+    setLoadingProfile(true);
+    fetchPublicProfile(id)
+      .then((res) => setProfileUser(res.data))
+      .catch(console.error)
+      .finally(() => setLoadingProfile(false));
   }, [id, isOwnProfile]);
 
   if (!user) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          color: "#6b7280",
-          fontSize: 14,
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#6b7280", fontSize: 14 }}>
         Kamu belum login.
       </div>
     );
@@ -505,37 +425,21 @@ export default function ProfilePage() {
 
   if (!isOwnProfile && loadingProfile) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          color: "#6b7280",
-          fontSize: 14,
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#6b7280", fontSize: 14 }}>
         Memuat profil...
       </div>
     );
   }
 
-  const displayUsername = isOwnProfile
-    ? user.username
-    : (profileUser?.username ?? "");
-  const displayAvatarUrl = isOwnProfile
-    ? user.avatar_url
-    : (profileUser?.avatar_url ?? null);
-  const displayCreatedAt = isOwnProfile
-    ? user.created_at
-    : (profileUser?.created_at ?? "");
-  const displayEmail = isOwnProfile ? user.email : null;
+  const displayUsername   = isOwnProfile ? user.username   : (profileUser?.username   ?? "");
+  const displayAvatarUrl  = isOwnProfile ? user.avatar_url : (profileUser?.avatar_url ?? null);
+  const displayCreatedAt  = isOwnProfile ? user.created_at : (profileUser?.created_at ?? "");
+  const displayEmail      = isOwnProfile ? user.email      : null;
 
-  // ── Tambahan tab Bookmarks di samping Likes ──
   const mainTabs: { key: MainTab; label: string; icon: React.ReactNode }[] = [
-    { key: "profile",    label: "Profile",    icon: <User size={16} /> },
-    { key: "activity",   label: "Activity",   icon: <Activity size={16} /> },
-    { key: "likes",      label: "Likes",      icon: <Heart size={16} /> },
+    { key: "profile",   label: "Profile",   icon: <User size={16} /> },
+    { key: "activity",  label: "Activity",  icon: <Activity size={16} /> },
+    { key: "likes",     label: "Likes",     icon: <Heart size={16} /> },
   ];
 
   if (isOwnProfile) {
@@ -543,52 +447,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: 900,
-        margin: "0 auto",
-        padding: "36px 40px",
-        fontFamily: "inherit",
-        boxSizing: "border-box",
-      }}
-    >
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "36px 40px", fontFamily: "inherit", boxSizing: "border-box" }}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 20,
-          marginBottom: 20,
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 20 }}>
         <Avatar url={displayAvatarUrl} username={displayUsername} size={96} />
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 500, margin: "0 0 6px" }}>
-            {displayUsername}
-          </h1>
-          <div
-            style={{
-              display: "flex",
-              gap: 20,
-              flexWrap: "wrap",
-              marginBottom: 12,
-            }}
-          >
+          <h1 style={{ fontSize: 28, fontWeight: 500, margin: "0 0 6px" }}>{displayUsername}</h1>
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 12 }}>
             {displayCreatedAt && (
-              <span
-                style={{
-                  fontSize: 13,
-                  color: "#6b7280",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
+              <span style={{ fontSize: 13, color: "#6b7280", display: "flex", alignItems: "center", gap: 4 }}>
                 <Calendar size={14} /> Member sejak{" "}
-                {new Date(displayCreatedAt).toLocaleDateString("id-ID", {
-                  year: "numeric",
-                  month: "long",
-                })}
+                {new Date(displayCreatedAt).toLocaleDateString("id-ID", { year: "numeric", month: "long" })}
               </span>
             )}
             {displayEmail && (
@@ -618,41 +487,25 @@ export default function ProfilePage() {
                 <Edit2 size={14} /> Edit profil
               </button>
             ) : (
-              <button
-                onClick={() => targetUserId && toggle(targetUserId)}
-                disabled={followLoading}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 16px",
-                  border: isFollowing ? "0.5px solid #e5e7eb" : "none",
-                  borderRadius: 8,
-                  background: isFollowing ? "transparent" : "#4f46e5",
-                  color: isFollowing ? "#374151" : "#fff",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: followLoading ? "not-allowed" : "pointer",
-                  opacity: followLoading ? 0.7 : 1,
-                  transition: "all .15s",
+              <FollowButton
+                key={profileUser?.id}
+                userId={targetUserId ?? ""}
+                initialIsFollowing={profileUser?.is_following ?? false}
+                onFollowChange={(isNowFollowing) => {
+                  setProfileUser((prev) =>
+                    prev
+                      ? { ...prev, followers_count: prev.followers_count + (isNowFollowing ? 1 : -1) }
+                      : prev
+                  );
                 }}
-              >
-                {followLoading ? "..." : isFollowing ? "✓ Following" : "+ Follow"}
-              </button>
+              />
             )}
           </div>
         </div>
       </div>
 
-      {/* Main tab switcher */}
-      <div
-        style={{
-          display: "flex",
-          gap: 0,
-          borderBottom: "0.5px solid #e5e7eb",
-          marginBottom: 24,
-        }}
-      >
+      {/* Tabs */}
+      <div style={{ display: "flex", borderBottom: "0.5px solid #e5e7eb", marginBottom: 24 }}>
         {mainTabs.map((t) => (
           <button
             key={t.key}
@@ -660,10 +513,7 @@ export default function ProfilePage() {
             style={{
               padding: "10px 20px",
               border: "none",
-              borderBottom:
-                mainTab === t.key
-                  ? "2px solid #0d9488"
-                  : "2px solid transparent",
+              borderBottom: mainTab === t.key ? "2px solid #0d9488" : "2px solid transparent",
               background: mainTab === t.key ? "#f0fdfa" : "transparent",
               fontSize: 14,
               fontWeight: mainTab === t.key ? 500 : 400,
@@ -687,6 +537,7 @@ export default function ProfilePage() {
         <ProfileContent
           profileUser={isOwnProfile ? null : profileUser}
           isOwnProfile={isOwnProfile}
+          onOpenModal={(mode) => setModal(mode)}
         />
       )}
       {mainTab === "activity" && (
@@ -699,6 +550,15 @@ export default function ProfilePage() {
       )}
       {mainTab === "likes" && <LikesContent />}
       {mainTab === "bookmarks" && <BookmarksContent />}
+
+      {/* Modal followers/following */}
+      {modal && targetUserId && (
+        <FollowersModal
+          userId={targetUserId}
+          mode={modal}
+          onClose={() => setModal(null)}
+        />
+      )}
     </div>
   );
 }

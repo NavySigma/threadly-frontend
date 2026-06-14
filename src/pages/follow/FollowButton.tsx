@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useFollow } from "../../hooks/useFollow";
 
 interface FollowButtonProps {
@@ -13,13 +14,18 @@ export default function FollowButton({
   onFollowChange,
   size = "md",
 }: FollowButtonProps) {
-  const { isFollowing, isLoading, toggle } = useFollow(initialIsFollowing);
+  const { isFollowing, isLoading, toggle, setIsFollowing } = useFollow(initialIsFollowing);
+
+  useEffect(() => {
+    setIsFollowing(initialIsFollowing);
+  }, [initialIsFollowing]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const willFollow = !isFollowing;
     await toggle(userId);
-    onFollowChange?.(!isFollowing);
+    onFollowChange?.(willFollow);
   };
 
   const padding = size === "sm" ? "3px 10px" : "5px 14px";
@@ -62,7 +68,7 @@ export default function FollowButton({
     >
       {isLoading
         ? isFollowing ? "Unfollow..." : "Follow..."
-        : isFollowing ? "Following" : "+ Follow"}
+        : isFollowing ? "✓ Following" : "+ Follow"}
     </button>
   );
 }
