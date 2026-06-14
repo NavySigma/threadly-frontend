@@ -12,6 +12,9 @@ export interface Comment {
   body: string;
   parent_id: string | null;
   vote_score: number;
+  likes_count: number;
+  user_liked: boolean;
+  user_vote: "upvote" | "downvote" | null;
   created_at: string;
   updated_at: string;
   user: CommentUser;

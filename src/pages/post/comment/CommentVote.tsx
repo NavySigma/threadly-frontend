@@ -2,19 +2,24 @@ import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { commentVoteApi } from "../../../api/commentVote.api";
 
+type VoteType = "upvote" | "downvote";
+
 interface CommentVoteProps {
   commentId: string;
   voteScore: number;
+  initialUserVote?: VoteType | null;
 }
 
-type VoteType = "upvote" | "downvote";
-
-export default function CommentVote({ commentId, voteScore }: CommentVoteProps) {
+export default function CommentVote({
+  commentId,
+  voteScore,
+  initialUserVote = null,
+}: CommentVoteProps) {
   const [score, setScore] = useState(voteScore ?? 0);
-  const [userVote, setUserVote] = useState<VoteType | null>(null);
+  const [userVote, setUserVote] = useState<VoteType | null>(initialUserVote ?? null);
 
   // Ref agar onSuccess selalu baca userVote terbaru, bukan stale closure
-  const userVoteRef = useRef<VoteType | null>(null);
+  const userVoteRef = useRef<VoteType | null>(initialUserVote ?? null);
 
   const mutation = useMutation({
     mutationFn: (voteType: VoteType) =>
@@ -56,49 +61,69 @@ export default function CommentVote({ commentId, voteScore }: CommentVoteProps) 
   });
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      {/* UPVOTE — aktif: hijau */}
       <button
         type="button"
         onClick={() => mutation.mutate("upvote")}
         disabled={mutation.isPending}
         style={{
-          background: "none",
-          border: "1px solid #e5e7eb",
-          borderRadius: 4,
-          padding: "2px 7px",
-          cursor: mutation.isPending ? "not-allowed" : "pointer",
+          width: 28,
+          height: 28,
+          borderRadius: 6,
+          border: `1px solid ${userVote === "upvote" ? "#16a34a" : "#e5e7eb"}`,
+          background: userVote === "upvote" ? "#dcfce7" : "#ffffff",
+          color: userVote === "upvote" ? "#16a34a" : "#6b7280",
           fontSize: 12,
-          color: userVote === "upvote" ? "#e67c00" : "#6a737c",
-          borderColor: userVote === "upvote" ? "#e67c00" : "#e5e7eb",
+          fontWeight: 700,
+          cursor: mutation.isPending ? "not-allowed" : "pointer",
+          transition: "all 0.15s ease",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         ▲
       </button>
 
-      <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", minWidth: 16, textAlign: "center" }}>
+      <span
+        style={{
+          minWidth: 20,
+          textAlign: "center",
+          fontSize: 13,
+          fontWeight: 700,
+          color: "#374151",
+        }}
+      >
         {score}
       </span>
 
+      {/* DOWNVOTE — aktif: oranye */}
       <button
         type="button"
         onClick={() => mutation.mutate("downvote")}
         disabled={mutation.isPending}
         style={{
-          background: "none",
-          border: "1px solid #e5e7eb",
-          borderRadius: 4,
-          padding: "2px 7px",
-          cursor: mutation.isPending ? "not-allowed" : "pointer",
+          width: 28,
+          height: 28,
+          borderRadius: 6,
+          border: `1px solid ${userVote === "downvote" ? "#f97316" : "#e5e7eb"}`,
+          background: userVote === "downvote" ? "#ffedd5" : "#ffffff",
+          color: userVote === "downvote" ? "#f97316" : "#6b7280",
           fontSize: 12,
-          color: userVote === "downvote" ? "#6a737c" : "#6a737c",
-          borderColor: userVote === "downvote" ? "#6a737c" : "#e5e7eb",
+          fontWeight: 700,
+          cursor: mutation.isPending ? "not-allowed" : "pointer",
+          transition: "all 0.15s ease",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         ▼
       </button>
 
       {mutation.isError && (
-        <small style={{ color: "red", fontSize: 11 }}>
+        <small style={{ color: "#dc2626", fontSize: 11 }}>
           {(() => {
             const err = mutation.error;
             return err &&

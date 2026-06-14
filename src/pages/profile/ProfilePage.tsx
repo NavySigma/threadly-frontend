@@ -18,6 +18,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
 import { QuestionsTab } from "./QuestionsTab";
+import { PointsHistoryView } from "./history/PointsHistoryPage";
 
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
@@ -411,12 +412,7 @@ function ActivityContent({
           </div>
         )}
         {activeSubTab === "reputation" && (
-          <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
-              Reputation
-            </p>
-            <EmptyState message="Belum ada perubahan reputasi." />
-          </div>
+          <PointsHistoryView />
         )}
       </div>
     </div>
