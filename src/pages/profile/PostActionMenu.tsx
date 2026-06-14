@@ -7,6 +7,7 @@ interface PostActionMenuProps {
   postStatus: PostStatus;
   closedAt:   string | null;
   showDelete?: boolean;
+  isOwner?: boolean;
   onUpdated?: () => void;
   onDeleted?: () => void;
 }
@@ -16,6 +17,7 @@ export function PostActionMenu({
   postStatus,
   closedAt,
   showDelete = false,
+  isOwner = true,
   onUpdated,
   onDeleted,
 }: PostActionMenuProps) {
@@ -42,6 +44,7 @@ export function PostActionMenu({
       isLoadingDelete={isLoadingDelete}
       canReopen={canReopen}
       showDelete={showDelete}
+      isOwner={isOwner}
       onToggleMenu={handleToggleMenu}
       onClose={handleClose}
       onReopen={handleReopen}

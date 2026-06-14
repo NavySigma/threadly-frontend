@@ -95,6 +95,7 @@ export function PostActionView({
   isLoadingDelete,
   canReopen,
   showDelete,
+  isOwner,
   onToggleMenu,
   onClose,
   onReopen,
@@ -120,43 +121,44 @@ export function PostActionView({
       {isOpen && (
         <div className="absolute right-0 top-9 z-30 w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
 
-          {/* Edit — always shown */}
-          <MenuItem
-            onClick={onEdit}
-            icon={<IconEdit />}
-            label="Edit"
-          />
+          {/* Edit — only for owner */}
+          {isOwner && (
+            <MenuItem
+              onClick={onEdit}
+              icon={<IconEdit />}
+              label="Edit"
+            />
+          )}
 
-          <div className="border-t border-gray-100 dark:border-gray-800" />
-
-          {/* Private */}
-          <MenuItem
-            onClick={onClose}
-            loading={isLoadingClose}
-            disabled={isPrivate}
-            icon={<IconLock />}
-            label="Private"
-          />
-
-          {/* Public — only shown when private */}
-          {isPrivate && (
+          {/* Private / Public — only for owner */}
+          {isOwner && (
             <>
               <div className="border-t border-gray-100 dark:border-gray-800" />
               <MenuItem
-                onClick={onReopen}
-                loading={isLoadingReopen}
-                disabled={!canReopen}
-                icon={<IconUnlock />}
-                label="Public"
+                onClick={onClose}
+                loading={isLoadingClose}
+                disabled={isPrivate}
+                icon={<IconLock />}
+                label="Private"
               />
+              {isPrivate && (
+                <>
+                  <div className="border-t border-gray-100 dark:border-gray-800" />
+                  <MenuItem
+                    onClick={onReopen}
+                    loading={isLoadingReopen}
+                    disabled={!canReopen}
+                    icon={<IconUnlock />}
+                    label="Public"
+                  />
+                </>
+              )}
+              {isPrivate && !canReopen && (
+                <div className="px-3.5 py-2.5 text-xs text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 leading-snug border-t border-gray-100 dark:border-gray-800">
+                  Tidak dapat dipublikasi ulang setelah 24 jam.
+                </div>
+              )}
             </>
-          )}
-
-          {/* Cannot re-public info */}
-          {isPrivate && !canReopen && (
-            <div className="px-3.5 py-2.5 text-xs text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 leading-snug border-t border-gray-100 dark:border-gray-800">
-              Tidak dapat dipublikasi ulang setelah 24 jam.
-            </div>
           )}
 
           {/* Delete — shown only for mod/admin */}

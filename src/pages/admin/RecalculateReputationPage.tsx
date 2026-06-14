@@ -63,13 +63,7 @@ export default function RecalculateReputationPage() {
   };
 
   if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-gray-500 text-sm">Akses ditolak. Hanya untuk Admin.</p>
-      </div>
-    );
-  }
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
     <div className="w-full max-w-[900px] mx-auto">

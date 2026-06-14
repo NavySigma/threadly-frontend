@@ -219,7 +219,7 @@ function SingleComment({
         display: "flex",
         gap: 10,
         padding: "14px 0",
-        borderBottom: "1px solid #f3f4f6",
+        borderBottom: "2px solid #e5e7eb",
         position: "relative",
       }}
     >
@@ -415,6 +415,7 @@ function SingleComment({
                   display: "flex",
                   alignItems: "center",
                   gap: 4,
+                  marginLeft: "auto",
                 }}
               >
                 {deleteLoading ? "Menghapus..." : "🗑 Hapus"}
@@ -514,7 +515,7 @@ function CommentThread({
         <div
           style={{
             marginLeft: 42,
-            borderLeft: "2px solid #e5e7eb",
+            borderLeft: "2px solid #0d9488",
             paddingLeft: 16,
           }}
         >

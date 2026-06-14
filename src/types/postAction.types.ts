@@ -40,6 +40,7 @@ export interface PostActionViewProps {
   isLoadingDelete: boolean;
   canReopen: boolean;
   showDelete: boolean;
+  isOwner: boolean;
   onToggleMenu: () => void;
   onClose: () => void;
   onReopen: () => void;

@@ -87,13 +87,7 @@ export default function EditHistoryPage() {
   };
 
   if (!user) return <Navigate to="/login" replace />;
-  if (!isAdminOrMod) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-gray-500 text-sm">Akses ditolak. Hanya untuk Admin/Moderator.</p>
-      </div>
-    );
-  }
+  if (!isAdminOrMod) return <Navigate to="/" replace />;
 
   const items = data?.data ?? [];
   const meta = data?.meta;

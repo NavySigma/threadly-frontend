@@ -2,6 +2,8 @@ import { useState, Component, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { categoryApi, type Category } from "../../api/category.api";
 import { Pencil, Trash2, Plus, X, Check, ChevronRight } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import { Navigate } from "react-router-dom";
 
 // ── Error Boundary ─────────────────────────────────────────────────────
 class ErrorBoundary extends Component<
@@ -554,6 +556,12 @@ function AdminCategoryPageContent() {
 }
 
 export default function AdminCategoryPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.some((r) => r.name === "admin");
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
+
   return (
     <ErrorBoundary>
       <AdminCategoryPageContent />

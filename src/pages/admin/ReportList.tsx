@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { reportAdminApi } from "../../api/reportAdmin.api";
 import type { Report } from "../../types";
 import { AlertCircle, ChevronLeft, ChevronRight, FileText, MessageSquare } from "lucide-react";
 import { StatusBadge, formatDate } from "./ReportPage";
+import { useAuth } from "../../hooks/useAuth";
 
 const PER_PAGE = 10;
 
@@ -25,12 +26,18 @@ function TargetTypeBadge({ type }: { type: string }) {
 
 export default function ReportList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isModOrAdmin = user?.roles?.some((r) => ["admin", "moderator"].includes(r.name));
+
   const [reports, setReports] = useState<Report[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isModOrAdmin) return <Navigate to="/" replace />;
 
   useEffect(() => {
     const fetchReports = async () => {

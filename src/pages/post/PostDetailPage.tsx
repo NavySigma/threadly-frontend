@@ -66,6 +66,7 @@ export default function PostDetailPage() {
             postStatus={post.status}
             closedAt={post.closed_at ?? null}
             showDelete={showDelete}
+            isOwner={isOwner}
             onUpdated={refetch}
             onDeleted={() => navigate("/")}
           />

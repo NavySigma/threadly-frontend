@@ -1,16 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  FileText, 
-  Tag, 
-  Users, 
-  Folder, 
+import {
+  Home,
+  FileText,
+  Tag,
+  Users,
+  Folder,
   Coins,
   Shield,
   Rocket,
   ShieldAlert,
   Settings,
-  RotateCw
+  RotateCw,
+  History,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -31,6 +32,7 @@ const moderatorLinks = [
 const adminLinks = [
   { to: "/admin/categories", icon: <Settings size={20} />, label: "Admin Categories" },
   { to: "/admin/recalculate", icon: <RotateCw size={20} />, label: "Rekalkulasi Reputasi" },
+  { to: "/admin/user-points", icon: <History size={20} />, label: "Riwayat Poin User" },
 ];
 
 export default function Sidebar() {

@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { reportAdminApi } from "../../api/reportAdmin.api";
 import type { Report, ReportTargetPost, ReportTargetComment } from "../../types";
 import { ArrowLeft, CheckCircle, Trash2, AlertCircle, FileText, MessageSquare, Clock, Shield } from "lucide-react";
 import { StatusBadge, formatDate } from "./ReportPage";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function ReportDetail({ id }: { id: string }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isModOrAdmin = user?.roles?.some((r) => ["admin", "moderator"].includes(r.name));
 
   const [report, setReport] = useState<Report | null>(null);
   const [target, setTarget] = useState<ReportTargetPost | ReportTargetComment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isModOrAdmin) return <Navigate to="/" replace />;
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -194,7 +200,11 @@ export default function ReportDetail({ id }: { id: string }) {
                   {"title" in target && (
                     <h3 className="mb-2 text-sm font-bold text-zinc-900">{target.title}</h3>
                   )}
-                  <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-wrap">{target.body}</p>
+                  <p className="text-sm leading-relaxed text-zinc-700 whitespace-pre-wrap">
+                    {target.body?.includes("[komentar telah dihapus") && report.description
+                      ? report.description
+                      : target.body}
+                  </p>
                   <div className="mt-3 flex items-center gap-2 border-t border-zinc-100 pt-3 text-xs text-zinc-400">
                     <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-[10px] font-bold text-zinc-600">
                       {target.user.username.slice(0, 2).toUpperCase()}
