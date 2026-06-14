@@ -24,5 +24,34 @@ export interface ReportResponse {
 
 export interface ReportDetailResponse {
   data: Report;
-  target: unknown;
+  target: string | null;
+}
+
+export interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
+export interface ReportListResponse {
+  current_page: number;
+  data: Report[];
+  first_page_url: string;
+  from: number;
+  last_page_url: string;
+  last_page: number;
+  links: PaginationLink[];
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+  total: number;
+}
+
+export interface GetReportsParams {
+  page?: number;
+  per_page?: number;
+  status?: string;
+  target_type?: string;
 }

@@ -7,7 +7,9 @@ import {
   Folder, 
   Coins,
   Shield,
-  Rocket
+  Rocket,
+  ShieldAlert,
+  Settings
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -22,6 +24,8 @@ const links = [
 
 const adminLinks = [
   { to: "/admin/edit-history", icon: <Shield size={20} />, label: "Edit History" },
+  { to: "/admin/reports", icon: <ShieldAlert size={20} />, label: "Reports" },
+  { to: "/admin/categories", icon: <Settings size={20} />, label: "Admin Categories" },
 ];
 
 export default function Sidebar() {
@@ -93,61 +97,63 @@ export default function Sidebar() {
             </li>
           );
         })}
-        {isAdminOrMod && (
-          <>
-            <li className="pt-4 pb-1">
-              <span className="px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                Admin
-              </span>
-            </li>
-            {adminLinks.map((link) => {
-              let isActive = location.pathname === link.to;
-              return (
-                <li key={link.to}>
-                  <NavLink
-                    to={link.to}
-                    className={`
-                      group
-                      flex items-center gap-3
-                      rounded-xl
-                      px-4 py-3
-                      transition-all duration-200
-                      ${
-                        isActive
-                          ? "bg-[#f0fdfa] shadow-sm"
-                          : "hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
-                      }
-                    `}
-                  >
-                    <div
-                      className={`
-                        flex items-center justify-center
-                        transition-all
-                        ${
-                          isActive
-                            ? "text-[#0d9488]"
-                            : "text-black"
-                        }
-                      `}
-                    >
-                      {link.icon}
-                    </div>
-                    <span 
-                      className={`
-                        text-sm font-medium tracking-wide
-                        ${isActive ? "text-[#0d9488]" : "text-black"}
-                      `}
-                    >
-                      {link.label}
-                    </span>
-                  </NavLink>
-                </li>
-              );
-            })}
-          </>
-        )}
       </ul>
 
+      {/* Admin Navigation */}
+      {isAdminOrMod && (
+        <>
+      <div className="mt-6 px-5 mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Admin</p>
+      </div>
+      <ul className="p-3 space-y-1">
+        {adminLinks.map((link) => {
+          const isActive = location.pathname.startsWith(link.to);
+          return (
+            <li key={link.to}>
+              <NavLink
+                to={link.to}
+                className={`
+                  group
+                  flex items-center gap-3
+                  rounded-xl
+                  px-4 py-3
+                  transition-all duration-200
+                  ${
+                    isActive
+                      ? "bg-[#fff1f2] shadow-sm"
+                      : "hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                  }
+                `}
+              >
+                <div
+                  className={`
+                    flex items-center justify-center
+                    transition-all
+                    ${
+                      isActive
+                        ? "text-red-600"
+                        : "text-black"
+                    }
+                  `}
+                >
+                  {link.icon}
+                </div>
+
+                <span 
+                  className={`
+                    text-sm font-medium tracking-wide
+                    ${isActive ? "text-red-600" : "text-black"}
+                  `}
+                >
+                  {link.label}
+                </span>
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
+        </>
+      )}
       {/* Footer */}
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800">
         <a 
