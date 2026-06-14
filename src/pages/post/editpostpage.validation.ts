@@ -6,12 +6,12 @@ export const EditPostSchema = y.object({
     .string()
     .trim()
     .required("Judul tidak boleh kosong.")
-    .min(10, "Judul minimal 10 karakter.")
+    .min(2, "Judul minimal 2 karakter.")
     .max(300, "Judul maksimal 300 karakter."),
   body: y
     .string()
     .trim()
     .required("Konten tidak boleh kosong.")
-    .min(20, "Konten minimal 20 karakter."),
-  selectedTags: y.array().max(5, "Maksimal 5 tag."),
+    .min(10, "Konten minimal 10 karakter."),
+  selectedTags: y.array().max(10, "Maksimal 10 tag."),
 });

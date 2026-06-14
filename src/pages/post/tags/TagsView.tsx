@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import type { Tag, TagsParams } from "../../../api/tags";
 import { getTagColor } from "../../../lib/tagColor";
 
+
 type TagsViewProps = {
   tags: Tag[];
   currentPage: number;
@@ -73,6 +74,7 @@ function Pagination({
   const pages = Array.from({ length: last }, (_, i) => i + 1).filter(
     (p) => p === 1 || p === last || Math.abs(p - current) <= 2,
   );
+
 
   return (
     <div className="flex justify-center gap-1 mt-8 flex-wrap">
