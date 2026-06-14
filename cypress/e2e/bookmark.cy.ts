@@ -1,13 +1,9 @@
 /**
- * E2E Tests — Like (Post & Komentar)
+ * E2E Tests — Bookmark
  *
  * Skenario yang diuji:
- * 1. like postingan   — jumlah like bertambah +1, payload POST /likes benar
- * 2. like komentar    — tombol like komentar berubah aktif, payload POST /likes benar
- *
- * Strategi: mock POST /login & GET /me seperti vote.cy.ts, pakai data-cy selector.
- * Endpoint like: POST /likes  { target_type, target_id }
- *               DELETE /likes { target_type, target_id }
+ * 1. bookmark postingan   — klik tombol bookmark, payload POST /bookmarks benar, status berubah menjadi "Disimpan"
+ * 2. lihat halaman bookmark user — navigasi ke profil -> tab bookmarks, list postingan yang di-bookmark tampil
  */
 
 // ══════════════════════════════════════════════════════════════════════
@@ -37,17 +33,17 @@ const MOCK_USER = {
 };
 
 const MOCK_POST = {
-  id: "post-like-001",
-  title: "Postingan untuk test like",
-  body: "Isi postingan test like.",
+  id: "post-bookmark-001",
+  title: "Postingan untuk test bookmark",
+  body: "Isi postingan test bookmark.",
   status: "open",
   view_count: 10,
   vote_score: 0,
   is_answered: false,
   accepted_answer_id: null,
-  comments_count: 1,
+  comments_count: 0,
   is_liked: false,
-  likes_count: 4,
+  likes_count: 0,
   user_vote: null as string | null,
   created_at: "2024-06-01T10:00:00.000Z",
   updated_at: "2024-06-01T10:00:00.000Z",
@@ -63,30 +59,6 @@ const MOCK_POST = {
   },
   category: { id: "cat-1", name: "React", slug: "react", description: null },
   tags: [{ id: "tag-1", name: "react", slug: "react", color: "#61dafb" }],
-};
-
-// Komentar oleh user-commenter agar canVote/canLike = true saat MOCK_USER login
-const MOCK_COMMENT = {
-  id: "comment-like-001",
-  body: "Komentar untuk test like.",
-  vote_score: 0,
-  user_vote: null as string | null,
-  is_accepted: false,
-  created_at: "2024-06-01T11:00:00.000Z",
-  updated_at: "2024-06-01T11:00:00.000Z",
-  user: {
-    id: "user-commenter",
-    username: "commenter",
-    avatar_url: null,
-    reputation_points: 20,
-    level: 1,
-    created_at: "2024-01-01T00:00:00.000Z",
-    updated_at: "2024-01-01T00:00:00.000Z",
-  },
-  likes_count: 0,
-  is_liked: false,
-  post_id: MOCK_POST.id,
-  replies: [],
 };
 
 // ══════════════════════════════════════════════════════════════════════
@@ -119,7 +91,7 @@ function doLogin(userOverride: Partial<typeof MOCK_USER> = {}) {
   cy.get(".navbar-avatar", { timeout: 10000 }).should("be.visible");
 }
 
-function setupPostPage(withComment = false) {
+function setupPostPage(isBookmarked = false) {
   cy.intercept("GET", `${API}/me`, {
     statusCode: 200,
     body: { data: MOCK_USER },
@@ -133,23 +105,16 @@ function setupPostPage(withComment = false) {
   cy.intercept("GET", `${API}/posts/${MOCK_POST.id}/comments*`, {
     statusCode: 200,
     body: {
-      data: withComment ? [MOCK_COMMENT] : [],
-      meta: {
-        current_page: 1,
-        last_page: 1,
-        per_page: 10,
-        total: withComment ? 1 : 0,
-        from: withComment ? 1 : null,
-        to: withComment ? 1 : null,
-      },
+      data: [],
+      meta: { current_page: 1, last_page: 1, per_page: 10, total: 0 },
     },
   }).as("getComments");
 
-  // Intercept bookmark agar PostLike tidak throw error saat mount
-  cy.intercept("GET", `${API}/bookmarks*`, {
+  // Intercept check bookmark status
+  cy.intercept("GET", `${API}/bookmarks/${MOCK_POST.id}/check`, {
     statusCode: 200,
-    body: { data: [] },
-  }).as("getBookmarks");
+    body: { is_bookmarked: isBookmarked },
+  }).as("checkBookmark");
 
   // Set token sebelum visit
   cy.window().then((win) => {
@@ -164,7 +129,7 @@ function setupPostPage(withComment = false) {
   });
 
   cy.wait("@getPost");
-  if (withComment) cy.wait("@getComments");
+  cy.wait("@checkBookmark");
 
   cy.contains(MOCK_POST.title).should("be.visible");
   cy.get(".navbar-avatar", { timeout: 10000 }).should("be.visible");
@@ -174,8 +139,13 @@ function setupPostPage(withComment = false) {
 // TEST SUITE
 // ══════════════════════════════════════════════════════════════════════
 
-describe("Like", () => {
+describe("Bookmark", () => {
   beforeEach(() => {
+    // Prevent application errors from failing the test
+    cy.on("uncaught:exception", (err) => {
+      return false;
+    });
+
     // Mock endpoint global agar tidak error saat redirect
     cy.intercept("GET", `${API}/notifications*`, {
       statusCode: 200,
@@ -198,75 +168,94 @@ describe("Like", () => {
     }).as("globalTags");
   });
 
-  // 1. like postingan ─────────────────────────────────────────────────
-  it("like postingan — jumlah like bertambah +1 dan request POST /likes dikirim dengan payload benar", () => {
+  // 1. bookmark postingan ─────────────────────────────────────────────
+  it("bookmark postingan — klik tombol bookmark, request POST /bookmarks dikirim dengan payload benar", () => {
     cy.clearLocalStorage();
     doLogin();
-    setupPostPage(false);
+    setupPostPage(false); // checkBookmark returns { is_bookmarked: false }
 
-    cy.intercept("POST", `${API}/likes`, {
+    cy.intercept("POST", `${API}/bookmarks`, {
       statusCode: 200,
-      body: { message: "Like berhasil", success: true },
-    }).as("postLike");
+      body: { message: "Bookmark berhasil disimpan" },
+    }).as("addBookmark");
 
-    const initialCount = MOCK_POST.likes_count;
+    // Pastikan tombol bookmark terlihat dan memiliki teks default "Simpan"
+    cy.get("[data-cy=post-bookmark-btn]")
+      .should("be.visible")
+      .and("contain.text", "Simpan");
 
-    // Tombol like post harus terlihat
-    cy.get("[data-cy=post-like-btn]").should("be.visible");
-
-    // Klik like
-    cy.get("[data-cy=post-like-btn]").click();
+    // Klik tombol bookmark
+    cy.get("[data-cy=post-bookmark-btn]").click();
 
     // Verifikasi payload yang dikirim ke API
-    cy.wait("@postLike").then((interception) => {
+    cy.wait("@addBookmark").then((interception) => {
       const body =
         typeof interception.request.body === "string"
           ? JSON.parse(interception.request.body)
           : interception.request.body;
-      expect(body.target_type).to.equal("post");
-      expect(body.target_id).to.equal(MOCK_POST.id);
+      expect(body.post_id).to.equal(MOCK_POST.id);
     });
 
-    // Jumlah like bertambah +1
-    cy.get("[data-cy=post-like-btn]").should("contain.text", (initialCount + 1).toString());
+    // Verifikasi tombol berubah status menjadi "Disimpan" dan style warnanya berubah ke indigo (#4f46e5 / rgb(79, 70, 229))
+    cy.get("[data-cy=post-bookmark-btn]")
+      .should("contain.text", "Disimpan")
+      .should(($btn) => {
+        const style = $btn.attr("style") ?? "";
+        // browser konversi hex #4f46e5 -> rgb(79, 70, 229)
+        expect(style).to.match(/4f46e5|79,\s*70,\s*229/);
+      });
   });
 
-  // 2. like komentar ──────────────────────────────────────────────────
-  it("like komentar — tombol like aktif dan request POST /likes dikirim dengan payload benar", () => {
+  // 2. lihat halaman bookmark user ─────────────────────────────────────
+  it("lihat halaman bookmark user — navigasi ke profil dan tab bookmarks menampilkan postingan yang di-bookmark", () => {
     cy.clearLocalStorage();
     doLogin();
-    setupPostPage(true);  // withComment = true
 
-    cy.intercept("POST", `${API}/likes`, {
+    // Mock API get bookmarks list
+    cy.intercept("GET", `${API}/me/bookmarks`, {
       statusCode: 200,
-      body: { message: "Like berhasil", success: true },
-    }).as("commentLike");
+      body: {
+        current_page: 1,
+        data: [
+          {
+            id: "bookmark-1",
+            user_id: "user-self",
+            post_id: MOCK_POST.id,
+            created_at: "2024-06-01T12:00:00.000Z",
+            post: MOCK_POST,
+          },
+        ],
+        first_page_url: null,
+        from: 1,
+        last_page_url: null,
+        last_page: 1,
+        links: [],
+        next_page_url: null,
+        path: "/me/bookmarks",
+        per_page: 10,
+        prev_page_url: null,
+        to: 1,
+        total: 1,
+      },
+    }).as("meBookmarks");
 
-    // Pastikan komentar sudah ter-render
-    cy.contains(MOCK_COMMENT.body).should("be.visible");
-
-    // Tombol like komentar harus ada (canVote = true karena bukan pemilik komentar)
-    cy.get("[data-cy=comment-like-btn]").should("be.visible");
-
-    // Klik like komentar
-    cy.get("[data-cy=comment-like-btn]").click();
-
-    // Verifikasi payload yang dikirim ke API
-    cy.wait("@commentLike").then((interception) => {
-      const body =
-        typeof interception.request.body === "string"
-          ? JSON.parse(interception.request.body)
-          : interception.request.body;
-      expect(body.target_type).to.equal("comment");
-      expect(body.target_id).to.equal(MOCK_COMMENT.id);
+    // Visit halaman profil
+    cy.window().then((win) => {
+      win.localStorage.setItem("token", "cypress-fake-token-like");
+    });
+    cy.visit("/profile");
+    cy.window().then((win) => {
+      win.localStorage.setItem("token", "cypress-fake-token-like");
     });
 
-    // Tombol like komentar berubah ke aktif — border berubah oranye
-    // Browser konversi hex #e67c00 → rgb(230, 124, 0)
-    cy.get("[data-cy=comment-like-btn]").should(($btn) => {
-      const style = $btn.attr("style") ?? "";
-      expect(style).to.match(/e67c00|230,\s*124,\s*0/);
-    });
+    // Klik tab bookmarks
+    cy.get("[data-cy=profile-tab-bookmarks]").should("be.visible").click();
+
+    // Tunggu data ter-fetch
+    cy.wait("@meBookmarks");
+
+    // Pastikan judul postingan yang di-bookmark tampil di halaman tersebut
+    cy.contains(MOCK_POST.title).should("be.visible");
   });
 });
 

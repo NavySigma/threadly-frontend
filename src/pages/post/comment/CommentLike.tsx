@@ -46,6 +46,7 @@ export default function CommentLike({
 
   return (
     <button
+      data-cy="comment-like-btn"
       type="button"
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
