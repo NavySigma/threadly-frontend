@@ -29,6 +29,7 @@ import PointsHistoryPage from "./pages/profile/history/PointsHistoryPage";
 import SearchPage from "./pages/search/SearchPages";
 import NotificationsPage from "./pages/notification/NotificationsPage";
 import UsersPage from "./pages/users";
+import EditHistoryPage from "./pages/admin/EditHistoryPage";
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
             <Route path="/posts/:id" element={<EditPostPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/admin/edit-history" element={<EditHistoryPage />} />
             <Route path="/profile/:id?" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
