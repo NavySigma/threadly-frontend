@@ -1,4 +1,5 @@
 import type { Post } from "../../types";
+import { getTagColor } from "../../lib/tagColor";
 
 function timeAgo(dateStr: string): string {
   const diff  = Date.now() - new Date(dateStr).getTime();
@@ -79,18 +80,22 @@ export function PostCard({ post, onClick }: { post: Post; onClick?: (p: Post) =>
         {/* Tags */}
         {post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {post.tags.map((tag) => (
-              <span
-                key={tag.id}
-                className="px-2 py-0.5 rounded text-[11px] font-medium border"
-                style={tag.color
-                  ? { background: tag.color + "22", borderColor: tag.color + "66", color: tag.color }
-                  : { background: "#e8f0fe", borderColor: "#c5d8fd", color: "#1a56db" }
-                }
-              >
-                {tag.name}
-              </span>
-            ))}
+            {post.tags.map((tag) => {
+              const color = getTagColor(tag);
+              return (
+                <span
+                  key={tag.id}
+                  className="px-2 py-0.5 rounded text-[11px] font-medium border"
+                  style={{
+                    backgroundColor: color + "22",
+                    borderColor: color + "66",
+                    color: color,
+                  }}
+                >
+                  {tag.name}
+                </span>
+              );
+            })}
           </div>
         )}
 

@@ -52,6 +52,7 @@ function App() {
             <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id" element={<EditPostPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/users" element={<UsersPage />} />
             <Route path="/profile/:id?" element={<ProfilePage />} />
             <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
@@ -73,7 +74,7 @@ function App() {
             path="/categories/"
             element={<Navigate to="/tags" replace />}
           />
-          <Route path="/users" element={<UsersPage />} />
+          
           <Route
             path="*"
             element={

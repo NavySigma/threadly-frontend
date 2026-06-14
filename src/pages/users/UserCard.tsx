@@ -25,6 +25,7 @@ function timeJoined(dateStr: string): string {
 
 export default function UserCard({ user }: { user: UserItem }) {
   return (
+<<<<<<< HEAD
     <div
       style={{
         border: "1px solid var(--black-100)",
@@ -95,9 +96,37 @@ export default function UserCard({ user }: { user: UserItem }) {
           </span>
           <span style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
             <span style={{ fontWeight: 600, fontSize: 13, color: "var(--black-700)" }}>
+=======
+    <Link
+      to={`/users/${user.id}`}
+      className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-white hover:border-teal-500 hover:shadow-[0_2px_8px_rgba(13,148,136,0.1)] transition-all no-underline text-inherit"
+    >
+      <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 flex items-center justify-center overflow-hidden">
+        {user.avatar_url ? (
+          <img
+            src={user.avatar_url}
+            alt={user.username}
+            className="w-full h-full rounded-full object-cover"
+          />
+        ) : (
+          <span className="text-lg font-semibold text-gray-400">
+            {user.username[0].toUpperCase()}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-1 min-w-0">
+        <span className="font-semibold text-sm text-teal-700 truncate">
+          {user.username}
+        </span>
+
+        <div className="flex gap-2.5">
+          <span className="flex items-baseline gap-1">
+            <span className="font-semibold text-sm text-gray-700">
+>>>>>>> fd389ee8a69efe6e1020f2d7f036664e73329d49
               {user.reputation_points.toLocaleString()}
             </span>
-            <span style={{ fontSize: 11, color: "var(--black-500)" }}>rep</span>
+            <span className="text-[11px] text-gray-400">rep</span>
           </span>
           <span style={{ fontSize: 11, color: "var(--black-300)" }}>
             Joined {timeJoined(user.created_at)}
@@ -105,6 +134,7 @@ export default function UserCard({ user }: { user: UserItem }) {
         </div>
       </Link>
 
+<<<<<<< HEAD
       {/* Follow button terpisah dari Link */}
       <div
         style={{
@@ -119,6 +149,11 @@ export default function UserCard({ user }: { user: UserItem }) {
           initialIsFollowing={user.is_following ?? false}
           size="sm"
         />
+=======
+        <span className="text-[11px] text-gray-400">
+          Joined {timeJoined(user.created_at)}
+        </span>
+>>>>>>> fd389ee8a69efe6e1020f2d7f036664e73329d49
       </div>
     </div>
   );
