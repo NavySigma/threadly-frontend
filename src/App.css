@@ -21,6 +21,8 @@
   flex: 1;
   padding: 24px;
   min-width: 0;
+  max-width: 100%;
+  width: 100%;
 }
 
 /* ── Navbar ── */
@@ -190,13 +192,13 @@
 }
 
 .sidebar-link:hover {
-  color: #0d9488;
+  color: var(--black);
   background: #f0fdfa;
 }
 
 .sidebar-link.active {
   font-weight: 600;
-  color: #0d9488;
+  color: var(--black);
   background: #f0fdfa;
   border-right-color: #0d9488;
 }
@@ -313,8 +315,6 @@
   position: relative;
   display: flex;
   gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--black-075);
 }
 
 .post-votes {
@@ -354,12 +354,12 @@
 }
 
 .post-title a {
-  color: var(--blue);
+  color: #0074cc;
   text-decoration: none;
 }
 
 .post-title a:hover {
-  color: var(--blue-hover);
+  color: #0a95ff;
 }
 
 .post-excerpt {

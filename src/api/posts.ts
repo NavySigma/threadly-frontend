@@ -28,6 +28,8 @@ export const postsApi = {
     if (params?.search) query.set("search", params.search);
     if (params?.category_id) query.set("category_id", params.category_id);
     if (params?.page) query.set("page", String(params.page));
+    if (params?.sort) query.set("sort", params.sort);
+    if (params?.is_answered !== undefined) query.set("is_answered", String(params.is_answered));
     return apiFetch<PaginatedPosts>(
       `/posts${query.toString() ? `?${query}` : ""}`,
     );

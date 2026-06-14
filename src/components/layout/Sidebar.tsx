@@ -54,8 +54,8 @@ export default function Sidebar() {
                   transition-all duration-200
                   ${
                     isActive
-                      ? "bg-[#f0fdfa] text-[#0d9488] shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-[#0d9488] dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                      ? "bg-[#f0fdfa] shadow-sm"
+                      : "hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
                   }
                 `}
               >
@@ -66,14 +66,19 @@ export default function Sidebar() {
                     ${
                       isActive
                         ? "text-[#0d9488]"
-                        : "text-gray-400 group-hover:text-[#0d9488]"
+                        : "text-black"
                     }
                   `}
                 >
                   {link.icon}
                 </div>
 
-                <span className="text-sm font-medium tracking-wide">
+                <span 
+                  className={`
+                    text-sm font-medium tracking-wide
+                    ${isActive ? "text-[#0d9488]" : "text-black"}
+                  `}
+                >
                   {link.label}
                 </span>
               </NavLink>
@@ -93,7 +98,7 @@ export default function Sidebar() {
           </p>
           <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
             <span>Ask, Answer, Learn</span>
-            <Rocket size={12} className="text-[#0d9488]" />
+            <Rocket size={12} className="text-gray-500" />
           </div>
         </a>
       </div>

@@ -10,38 +10,35 @@ export function usePosts(search?: string) {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortType>("newest");
 
+  const queryParams = useMemo(() => {
+    let sortParam = "latest";
+    let isAnsweredParam: boolean | undefined = undefined;
+
+    if (sortBy === "popular") sortParam = "popular";
+    if (sortBy === "votes") sortParam = "votes";
+    if (sortBy === "unanswered") {
+      isAnsweredParam = false;
+      sortParam = "latest";
+    }
+
+    return {
+      page: currentPage,
+      search,
+      sort: sortParam,
+      is_answered: isAnsweredParam,
+    };
+  }, [currentPage, search, sortBy]);
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ["posts", currentPage, search ?? ""],
-    queryFn: () => postsApi.getAll({ page: currentPage, search }),
+    queryKey: ["posts", queryParams],
+    queryFn: () => postsApi.getAll(queryParams),
     staleTime: 30 * 1000,
   });
 
-  const sortedPosts = useMemo(() => {
+  const posts = useMemo(() => {
     if (!data?.data) return [];
-    
-    // STRICT FILTER: Hanya tampilkan yang statusnya 'open'
-    const posts = [...data.data].filter(p => p.status === "open");
-
-    switch (sortBy) {
-      case "votes":
-        return posts.sort((a, b) => b.vote_score - a.vote_score);
-      case "unanswered":
-        return posts.filter((p) => !p.is_answered);
-      case "popular":
-        // Popular: gabungan vote_score dan view_count (misal: 1 vote = 10 views)
-        return posts.sort((a, b) => {
-          const scoreA = a.vote_score * 10 + a.view_count;
-          const scoreB = b.vote_score * 10 + b.view_count;
-          return scoreB - scoreA;
-        });
-      case "newest":
-      default:
-        return posts.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
-    }
-  }, [data?.data, sortBy]);
+    return data.data;
+  }, [data?.data]);
 
   const goToPage = useCallback((page: number) => {
     setCurrentPage(page);
@@ -49,7 +46,7 @@ export function usePosts(search?: string) {
   }, []);
 
   return {
-    posts: sortedPosts,
+    posts,
     currentPage: data?.current_page ?? currentPage,
     lastPage: data?.last_page ?? 1,
     total: data?.total ?? 0,
@@ -60,7 +57,7 @@ export function usePosts(search?: string) {
     goToPage,
     refetch: () =>
       queryClient.invalidateQueries({
-        queryKey: ["posts", currentPage, search ?? ""],
+        queryKey: ["posts"],
       }),
   };
 }
