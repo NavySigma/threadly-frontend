@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useState, useEffect, useRef } from "react";
-=======
-import { useState, useEffect } from "react";
->>>>>>> asya
 import { useNavigate } from "react-router-dom";
 import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
@@ -385,7 +381,6 @@ function SingleComment({
               </button>
             )}
 
-<<<<<<< HEAD
             {!isReply &&
               currentUserId === postOwnerId &&
               currentUserId !== comment.user.id &&
@@ -405,21 +400,6 @@ function SingleComment({
                   {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
                 </button>
               )}
-=======
-            {isOwner && editLimitReached && (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#ef4444",
-                  background: "#fef2f2",
-                  padding: "2px 8px",
-                  borderRadius: 12,
-                }}
-              >
-                Batas edit tercapai (maks. {MAX_EDITS_PER_COMMENT}×)
-              </span>
-            )}
->>>>>>> asya
           </div>
         )}
       </div>
@@ -565,9 +545,9 @@ export default function CommentSection({
     initialAcceptedAnswerId,
   );
   const [editCounts, setEditCounts] = useState<Record<string, number>>({});
-<<<<<<< HEAD
   const [commentError, setCommentError] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [isAcceptLoading, setIsAcceptLoading] = useState(false);
   const editCountsInitialized = useRef(false);
 
   useEffect(() => {
@@ -585,16 +565,12 @@ export default function CommentSection({
       editCountsInitialized.current = true;
     }
   }, [comments]);
-=======
-  const [isAcceptLoading, setIsAcceptLoading] = useState(false);
->>>>>>> asya
 
   const isPostOpen = postStatus === "open";
   const myCommentCount = user ? countUserComments(user.id) : 0;
   const canAddComment =
     !!user && isPostOpen && myCommentCount < MAX_COMMENTS_PER_USER;
 
-<<<<<<< HEAD
   const handleAddComment = async (body: string) => {
     setCommentError(null);
     const result = await addComment(body);
@@ -613,10 +589,7 @@ export default function CommentSection({
     return result;
   };
 
-  const handleAccept = (commentId: string) => {
-=======
   const handleAccept = async (commentId: string) => {
->>>>>>> asya
     const newAccepted = acceptedAnswerId === commentId ? null : commentId;
     setIsAcceptLoading(true);
     try {
