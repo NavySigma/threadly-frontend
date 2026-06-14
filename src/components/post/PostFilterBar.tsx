@@ -1,6 +1,8 @@
-import type { ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Search, X } from "lucide-react";
 import { usePostFilter } from "../../contexts/PostFilterContext";
-import { useCategories } from "../../hooks";
+import { fetchTags } from "../../api/tags";
 import type { SortOption, AnswerFilter } from "../../types";
 
 const SORT_OPTIONS = [
@@ -17,17 +19,21 @@ const ANSWER_OPTIONS = [
 ];
 
 export function PostFilterBar() {
-  const { filter, setSearch, setCategory, setSort, setAnswer, resetFilter, hasActiveFilter } = usePostFilter();
-  const { categories, isLoading: loadingCats } = useCategories();
+  const { filter, setSearch, setTag, setSort, setAnswer, resetFilter, hasActiveFilter } = usePostFilter();
 
-  const flatCats = categories.flatMap((c) => [c, ...(c.children ?? [])]);
+  const { data: tagsData, isLoading: loadingTags } = useQuery({
+    queryKey: ["filter-tags"],
+    queryFn: () => fetchTags({ sort: "name", per_page: 100 }),
+    staleTime: 1000 * 60 * 5,
+  });
+  const tags = tagsData?.data ?? [];
 
   return (
     <div className="flex flex-col gap-3 bg-white border border-gray-200 rounded-xl p-4">
 
       {/* Search */}
       <div className="relative flex items-center">
-        <span className="absolute left-3 text-gray-400">🔍</span>
+        <Search size={16} className="absolute left-3 text-gray-400" />
         <input
           type="text"
           placeholder="Cari pertanyaan..."
@@ -39,27 +45,27 @@ export function PostFilterBar() {
           <button
             onClick={() => setSearch("")}
             className="absolute right-3 text-gray-400 hover:text-gray-600"
-          ><span className="text-gray-400">❌</span></button>
+          ><X size={14} className="text-gray-400" /></button>
         )}
       </div>
 
       {/* Controls */}
       <div className="flex flex-wrap gap-2 items-end">
-        {/* Category */}
+        {/* Tag */}
         <div className="flex flex-col gap-1 min-w-40 flex-1">
           <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-            Kategori
+            Tag
           </label>
           <select
-            value={filter.category_id}
-            onChange={(e) => setCategory(e.target.value)}
-            disabled={loadingCats}
+            value={filter.tag_id}
+            onChange={(e) => setTag(e.target.value)}
+            disabled={loadingTags}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 cursor-pointer disabled:opacity-50"
           >
-            <option value="">Semua Kategori</option>
-            {flatCats.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.parent_id ? `↳ ${cat.name}` : cat.name}
+            <option value="">Semua Tag</option>
+            {tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}
               </option>
             ))}
           </select>
@@ -113,10 +119,10 @@ export function PostFilterBar() {
           {filter.search && (
             <Badge label={`"${filter.search}"`} onRemove={() => setSearch("")} />
           )}
-          {filter.category_id && (
+          {filter.tag_id && (
             <Badge
-              label={flatCats.find((c) => c.id === filter.category_id)?.name ?? "Kategori"}
-              onRemove={() => setCategory("")}
+              label={tags.find((t) => t.id === filter.tag_id)?.name ?? "Tag"}
+              onRemove={() => setTag("")}
             />
           )}
           {filter.sort !== "latest" && (
@@ -142,7 +148,7 @@ function Badge({ label, onRemove }: { label: string; onRemove: () => void }) {
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-teal-50 border border-teal-200 text-teal-700 rounded-full text-xs font-medium">
       {label}
       <button onClick={onRemove} className="text-teal-400 hover:text-teal-700">
-        <span className="text-teal-400">❌</span>
+        <X size={12} className="text-teal-400" />
       </button>
     </span>
   );

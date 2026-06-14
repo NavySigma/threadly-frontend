@@ -35,7 +35,7 @@ function Avatar({
         width: 32,
         height: 32,
         borderRadius: "50%",
-        background: "#818cf8",
+        background: "#0d9488",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -380,26 +380,6 @@ function SingleComment({
                 Edit
               </button>
             )}
-
-            {!isReply &&
-              currentUserId === postOwnerId &&
-              currentUserId !== comment.user.id &&
-              onAccept && (
-                <button
-                  onClick={onAccept}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    color: isAccepted ? "#16a34a" : "#6b7280",
-                    padding: 0,
-                    fontWeight: isAccepted ? 600 : 400,
-                  }}
-                >
-                  {isAccepted ? "✓ Diterima" : "Terima sebagai jawaban"}
-                </button>
-              )}
           </div>
         )}
       </div>

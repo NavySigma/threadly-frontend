@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { bookmarkApi } from "../api/bookmark.api";
 
 export function usePostBookmark(postId: string) {
+  const queryClient = useQueryClient();
   const [bookmarked, setBookmarked] = useState(false);
   const bookmarkedRef = useRef(false);
 
@@ -29,6 +30,10 @@ export function usePostBookmark(postId: string) {
       const wasBookmarked = bookmarkedRef.current;
       bookmarkedRef.current = !wasBookmarked;
       setBookmarked(!wasBookmarked);
+
+      // Invalidate queries to refresh data automatically
+      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["bookmarkCheck", postId] });
     },
 
     onError: (error: unknown) => {

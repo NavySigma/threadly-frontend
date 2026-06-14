@@ -7,6 +7,13 @@ import { useAuth } from "../../hooks/useAuth";
 import type { Tag, UpdatePostPayload, InitialValueEditPost } from "../../types/posts";
 import { EditPostSchema } from "./editpostpage.validation";
 
+import { getTagColor } from "../../lib/tagColor";
+import { useQueryClient } from "@tanstack/react-query";
+import { tagsApi } from "../../api/posts";
+
+const generateTempTagId = () =>
+  `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return (
@@ -25,11 +32,12 @@ function TagBadge({
   onRemove?: () => void;
   onClick?: () => void;
 }) {
+  const color = getTagColor(tag);
   return (
     <span
       onClick={onClick}
       className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-white cursor-pointer transition-colors"
-      style={{ backgroundColor: tag.color ?? "#6366f1" }}
+      style={{ backgroundColor: color }}
     >
       {tag.name}
       {onRemove && (
@@ -54,6 +62,7 @@ export default function EditPostPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, loading } = useAuth();
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const {
     originalPost,
@@ -111,11 +120,17 @@ export default function EditPostPage() {
     validationSchema: EditPostSchema,
     onSubmit: async (values) => {
       setGlobalError(null);
+      const pendingTag = tagSearch.trim();
+      const selectedTags = pendingTag
+        ? await createTag(pendingTag)
+        : formik.values.selectedTags;
+      if (selectedTags === false) return;
+
       const payload: UpdatePostPayload = {
         category_id: values.category_id,
         title: values.title.trim(),
         body: values.body.trim(),
-        tags: values.selectedTags.map((t) => t.id),
+        tags: selectedTags.map((t) => t.id),
       };
 
       try {
@@ -143,7 +158,7 @@ export default function EditPostPage() {
   });
 
   const addTag = (tag: Tag) => {
-    if (formik.values.selectedTags.length >= 5) return;
+    if (formik.values.selectedTags.length >= 10) return;
     if (formik.values.selectedTags.some((t) => t.id === tag.id)) return;
     formik.setFieldValue("selectedTags", [...formik.values.selectedTags, tag]);
   };
@@ -153,6 +168,94 @@ export default function EditPostPage() {
       "selectedTags",
       formik.values.selectedTags.filter((t) => t.id !== tagId)
     );
+  };
+
+  const trimmedTagSearch = tagSearch.trim();
+  const exactTag = trimmedTagSearch
+    ? tags.find((t) => t.name.toLowerCase() === trimmedTagSearch.toLowerCase())
+    : undefined;
+
+  const filteredTags = tags.filter(
+    (t) => !formik.values.selectedTags.some((s) => s.id === t.id),
+  );
+
+  const canCreateTag =
+    trimmedTagSearch.length > 0 &&
+    !exactTag &&
+    !formik.values.selectedTags.some(
+      (t) => t.name.toLowerCase() === trimmedTagSearch.toLowerCase(),
+    );
+
+  const pendingTagPreview =
+    canCreateTag && trimmedTagSearch
+      ? {
+          id: `preview-${trimmedTagSearch}`,
+          name: trimmedTagSearch,
+          color: null,
+        }
+      : null;
+
+  const createTag = async (name: string): Promise<Tag[] | false> => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return formik.values.selectedTags;
+
+    const alreadySelected = formik.values.selectedTags.some(
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+    if (alreadySelected) {
+      setTagSearch("");
+      setShowTagDropdown(false);
+      return formik.values.selectedTags;
+    }
+
+    const existingTag = tags.find(
+      (t) => t.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+    if (existingTag) {
+      const nextSelectedTags = [...formik.values.selectedTags, existingTag];
+      formik.setFieldValue("selectedTags", nextSelectedTags);
+      setTagSearch("");
+      setShowTagDropdown(false);
+      return nextSelectedTags;
+    }
+
+    const tempId = generateTempTagId();
+    const tempTag: Tag = { id: tempId, name: trimmedName, color: null } as Tag;
+    const nextSelectedTags = [...formik.values.selectedTags, tempTag];
+    formik.setFieldValue("selectedTags", nextSelectedTags);
+    setTagSearch("");
+    setShowTagDropdown(false);
+
+    try {
+      const color = getTagColor({ name: trimmedName } as Tag);
+      const res = await tagsApi.create({ name: trimmedName, color });
+      const newTag = res.data;
+      const finalSelectedTags = nextSelectedTags.map((t) =>
+        t.id === tempId ? newTag : t,
+      );
+      formik.setFieldValue("selectedTags", finalSelectedTags);
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      return finalSelectedTags;
+    } catch (err) {
+      formik.setFieldValue(
+        "selectedTags",
+        nextSelectedTags.filter((t) => t.id !== tempId),
+      );
+      const e = err as Record<string, unknown>;
+      if (typeof e?.message === "string") setGlobalError(e.message);
+      else setGlobalError("Gagal membuat tag. Coba lagi.");
+      return false;
+    }
+  };
+
+  const handleTagSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault();
+      if (!trimmedTagSearch) return;
+      createTag(trimmedTagSearch);
+    }
   };
 
   // Loading state
@@ -184,13 +287,9 @@ export default function EditPostPage() {
     );
   }
 
-  const filteredTags = tags.filter(
-    (t) => !formik.values.selectedTags.some((s) => s.id === t.id),
-  );
-
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         {/* Header */}
         <div className="mb-8">
           <button
@@ -283,6 +382,9 @@ export default function EditPostPage() {
                   : "border-gray-300 dark:border-gray-700"
               }`}
             />
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] text-gray-400">Minimal 2 karakter</span>
+            </div>
             <div className="mt-1 flex justify-between">
               <FieldError
                 message={
@@ -319,6 +421,9 @@ export default function EditPostPage() {
                   : "border-gray-300 dark:border-gray-700"
               }`}
             />
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] text-gray-400">Minimal 10 karakter</span>
+            </div>
             <div className="mt-1 flex justify-between">
               <FieldError
                 message={
@@ -338,11 +443,11 @@ export default function EditPostPage() {
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
               Tags{" "}
               <span className="text-gray-400 font-normal">
-                (opsional, maks. 5)
+                (opsional, maks. 10)
               </span>
             </label>
 
-            {formik.values.selectedTags.length > 0 && (
+            {(formik.values.selectedTags.length > 0 || pendingTagPreview) && (
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {formik.values.selectedTags.map((tag) => (
                   <TagBadge
@@ -351,28 +456,35 @@ export default function EditPostPage() {
                     onRemove={() => removeTag(tag.id)}
                   />
                 ))}
+                {pendingTagPreview && (
+                  <TagBadge
+                    tag={pendingTagPreview as any}
+                    onRemove={() => setTagSearch("")}
+                  />
+                )}
               </div>
             )}
 
-            {formik.values.selectedTags.length < 5 && (
+            {formik.values.selectedTags.length < 10 && (
               <div className="relative">
                 <input
                   ref={tagInputRef}
                   type="text"
-                  placeholder="Cari tag..."
+                  placeholder="Cari atau tambah tag..."
                   value={tagSearch}
                   onChange={(e) => {
                     setTagSearch(e.target.value);
                     setShowTagDropdown(true);
                   }}
                   onFocus={() => setShowTagDropdown(true)}
+                  onKeyDown={handleTagSearchKeyDown}
                   className="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
                 />
 
                 {showTagDropdown && filteredTags.length > 0 && (
                   <div
                     ref={tagDropdownRef}
-                    className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                    className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto"
                   >
                     {filteredTags.map((tag) => (
                       <button
@@ -384,27 +496,32 @@ export default function EditPostPage() {
                           setShowTagDropdown(false);
                           tagInputRef.current?.focus();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-left transition-colors"
                       >
                         <TagBadge tag={tag} />
-                        {tag.usage_count > 0 && (
+                        {typeof tag.usage_count === "number" && tag.usage_count > 0 && (
                           <span className="text-xs text-gray-400 ml-auto">
                             {tag.usage_count}×
                           </span>
                         )}
                       </button>
                     ))}
+                    {canCreateTag && (
+                      <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-300">
+                        Tekan Enter untuk menambahkan tag "{trimmedTagSearch}".
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {showTagDropdown &&
-                  filteredTags.length === 0 &&
-                  tagSearch.length > 0 && (
+                  canCreateTag &&
+                  filteredTags.length === 0 && (
                     <div
                       ref={tagDropdownRef}
-                      className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-400"
+                      className="absolute z-20 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg px-3 py-2 text-sm text-gray-500 dark:text-gray-300"
                     >
-                      Tag "{tagSearch}" tidak ditemukan.
+                      Tag "{trimmedTagSearch}" tidak ditemukan. Tekan Enter untuk menambahkan.
                     </div>
                   )}
               </div>

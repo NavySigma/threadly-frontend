@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { type TagDetail, type TagDetailPost } from "../../../api/tags";
+import { getTagColor } from "../../../lib/tagColor";
 
 type TagDetailViewProps = {
   tag: TagDetail;
@@ -177,8 +178,8 @@ export default function TagDetailView({ tag, onBack }: TagDetailViewProps) {
         >
           <span
             style={{
-              background: tag.color ?? "#e1ecf4",
-              color: tag.color ? "#fff" : "#39739d",
+              background: getTagColor(tag as any),
+              color: "#fff",
               padding: "6px 14px",
               borderRadius: 6,
               fontSize: 16,

@@ -85,7 +85,7 @@ export default function PostDetailPage() {
       </div>
 
       {/* Body */}
-      <div className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+      <div className="border border-[#0d9488] rounded-xl bg-white shadow-sm overflow-hidden">
         <div className="p-5">
           <div className="flex gap-5 items-start">
             {/* Vote */}

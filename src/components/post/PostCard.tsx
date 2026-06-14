@@ -85,11 +85,9 @@ export function PostCard({ post, onClick }: { post: Post; onClick?: (p: Post) =>
               return (
                 <span
                   key={tag.id}
-                  className="px-2 py-0.5 rounded text-[11px] font-medium border"
+                  className="px-2 py-0.5 rounded text-[11px] font-semibold text-white"
                   style={{
-                    backgroundColor: color + "22",
-                    borderColor: color + "66",
-                    color: color,
+                    backgroundColor: color,
                   }}
                 >
                   {tag.name}

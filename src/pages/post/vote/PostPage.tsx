@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePostFilter } from "../../../contexts/PostFilterContext";
 import { usePosts } from "../../../hooks";
 import { PostFilterBar } from "../../../components/post/PostFilterBar";
@@ -10,6 +11,9 @@ import { postsApi } from "../../../api/posts";
 import {
   Flame,
   Search,
+  HelpCircle,
+  MessageCircle,
+  ThumbsUp,
 } from "lucide-react";
 import type { Post } from "../../../types";
 
@@ -30,9 +34,17 @@ function timeAgo(dateStr: string): string {
 }
 
 export function PostsPage() {
-  const { filter } = usePostFilter();
+  const { filter, setTag } = usePostFilter();
   const { posts, meta, isLoading, error, page, setPage } = usePosts(filter);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const tagIdParam = searchParams.get("tag_id");
+  useEffect(() => {
+    if (tagIdParam) {
+      setTag(tagIdParam);
+    }
+  }, [tagIdParam, setTag]);
 
   const { data: popularTagsData, isLoading: popularTagsLoading } = useQuery({
     queryKey: ["popular-tags"],
@@ -107,7 +119,7 @@ export function PostsPage() {
 
         {/* Post list */}
         {!isLoading && !error && posts.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+          <div className="bg-white border border-[#0d9488] rounded-xl overflow-hidden divide-y divide-gray-100">
             {posts.map((post: Post) => (
               <div
                 key={post.id}
@@ -163,7 +175,7 @@ export function PostsPage() {
                             key={tag.id}
                             onClick={(e) => {
                               e.preventDefault();
-                              navigate(`/posts?tag=${encodeURIComponent(tag.name)}`);
+                              navigate(`/posts?tag_id=${tag.id}`);
                             }}
                             className="px-2.5 py-1 text-xs font-bold rounded-md transition-colors"
                             style={{
@@ -233,19 +245,19 @@ export function PostsPage() {
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="text-sm text-gray-800">❓</span>
+              <HelpCircle size={16} className="text-gray-500" />
               <span className="text-sm text-gray-800">
                 {s?.questions ?? 0} questions
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="text-sm text-gray-800">💬</span>
+              <MessageCircle size={16} className="text-gray-500" />
               <span className="text-sm text-gray-800">
                 {s?.answers ?? 0} answers
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="text-sm text-gray-800">👍</span>
+              <ThumbsUp size={16} className="text-gray-500" />
               <span className="text-sm text-gray-800">
                 {s?.upvotes ?? 0} upvotes
               </span>
@@ -269,7 +281,7 @@ export function PostsPage() {
               {popularTags.map((t) => (
                 <Link
                   key={t.id}
-                  to={`/posts?tag=${encodeURIComponent(t.name)}`}
+                  to={`/posts?tag_id=${encodeURIComponent(t.id)}`}
                   className="px-2.5 py-1 text-xs font-bold rounded-md transition-opacity hover:opacity-80"
                   style={{
                     backgroundColor: t.color ? `${t.color}22` : "#ccfbf1",

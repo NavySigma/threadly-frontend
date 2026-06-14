@@ -7,10 +7,11 @@ export function useTags() {
   const [page, setPage]     = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort]     = useState<TagsParams["sort"]>("popular");
+  const PER_PAGE = 15;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["tags", { page, search, sort }],
-    queryFn:  () => fetchTags({ page, per_page: 36, search, sort }),
+    queryKey: ["tags", { search, sort }], // Remove page from query key if we want to fetch all and paginate locally, or keep it if API might support it
+    queryFn:  () => fetchTags({ search, sort, per_page: 1000 }), // Fetch more to allow local pagination if API doesn't support per_page
     placeholderData: (prev) => prev,
     staleTime: 1000 * 60 * 5,
   });
@@ -20,10 +21,13 @@ export function useTags() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const tags        = data?.data               ?? [];
-  const currentPage = data?.meta?.current_page ?? 1;
-  const lastPage    = data?.meta?.last_page    ?? 1;
-  const total       = data?.meta?.total        ?? 0;
+  const allTags = data?.data ?? [];
+  const total = allTags.length;
+  const lastPage = Math.max(1, Math.ceil(total / PER_PAGE));
+  
+  // Local pagination
+  const currentPage = Math.min(page, lastPage);
+  const tags = allTags.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
   return {
     tags,

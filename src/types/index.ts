@@ -53,7 +53,7 @@ export type AnswerFilter = "all" | "answered" | "unanswered";
 
 export interface PostFilter {
   search: string;
-  category_id: string;
+  tag_id: string;
   sort: SortOption;
   answer: AnswerFilter;
 }

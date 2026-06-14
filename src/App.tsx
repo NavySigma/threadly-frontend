@@ -52,7 +52,7 @@ function App() {
             <Route path="/posts" element={<PostsPage />} />
             <Route path="/posts/create" element={<CreatePostPage />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
-            <Route path="/posts/:id" element={<EditPostPage />} />
+            <Route path="/posts/:id/edit" element={<EditPostPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/admin/edit-history" element={<EditHistoryPage />} />
