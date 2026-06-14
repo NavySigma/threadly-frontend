@@ -72,7 +72,7 @@ export function useComments(postId: string) {
       body: string,
       isReply = false,
       parentId?: string,
-    ): Promise<boolean> => {
+    ): Promise<{ success: boolean; error?: string }> => {
       try {
         const res = await commentsApi.update(commentId, { body });
         if (isReply && parentId) {
@@ -95,9 +95,13 @@ export function useComments(postId: string) {
             ),
           );
         }
-        return true;
-      } catch {
-        return false;
+        return { success: true };
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Gagal mengedit komentar";
+        return { success: false, error: msg };
       }
     },
     [],

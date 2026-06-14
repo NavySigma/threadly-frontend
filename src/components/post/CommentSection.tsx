@@ -166,12 +166,13 @@ function SingleComment({
     newBody: string,
     isReply: boolean,
     parentId?: string,
-  ) => Promise<boolean>;
+  ) => Promise<{ success: boolean; error?: string }>;
   onAccept?: () => void;
 }) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const isOwner =
     !!currentUserId && currentUserId.trim() === comment.user.id.trim();
@@ -181,9 +182,14 @@ function SingleComment({
 
   const handleEdit = async (newBody: string) => {
     setEditLoading(true);
-    const ok = await onEdit(comment.id, newBody, isReply, parentId);
+    setEditError(null);
+    const res = await onEdit(comment.id, newBody, isReply, parentId);
     setEditLoading(false);
-    if (ok) setEditing(false);
+    if (res.success) {
+      setEditing(false);
+    } else if (res.error) {
+      setEditError(res.error);
+    }
   };
 
   return (
@@ -257,14 +263,24 @@ function SingleComment({
         </div>
 
         {editing ? (
-          <CommentBox
-            placeholder="Edit komentar..."
-            initialValue={comment.body}
-            onSubmit={handleEdit}
-            onCancel={() => setEditing(false)}
-            submitLabel="Simpan"
-            isSubmitting={editLoading}
-          />
+          <>
+            <CommentBox
+              placeholder="Edit komentar..."
+              initialValue={comment.body}
+              onSubmit={handleEdit}
+              onCancel={() => {
+                setEditError(null);
+                setEditing(false);
+              }}
+              submitLabel="Simpan"
+              isSubmitting={editLoading}
+            />
+            {editError && (
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#dc2626" }}>
+                ⚠️ {editError}
+              </p>
+            )}
+          </>
         ) : (
           <p
             style={{
@@ -403,7 +419,7 @@ function CommentThread({
     body: string,
     isReply: boolean,
     parentId?: string,
-  ) => Promise<boolean>;
+  ) => Promise<{ success: boolean; error?: string }>;
   onAccept: (commentId: string) => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
@@ -519,15 +535,15 @@ export default function CommentSection({
     body: string,
     isReply: boolean,
     parentId?: string,
-  ): Promise<boolean> => {
-    const ok = await editComment(commentId, body, isReply, parentId);
-    if (ok) {
+  ): Promise<{ success: boolean; error?: string }> => {
+    const result = await editComment(commentId, body, isReply, parentId);
+    if (result.success) {
       setEditCounts((prev) => ({
         ...prev,
         [commentId]: (prev[commentId] ?? 0) + 1,
       }));
     }
-    return ok;
+    return result;
   };
 
   return (
