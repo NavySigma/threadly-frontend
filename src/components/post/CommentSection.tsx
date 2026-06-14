@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
@@ -356,20 +356,6 @@ function SingleComment({
               </button>
             )}
 
-            {isOwner && editLimitReached && (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#ef4444",
-                  background: "#fef2f2",
-                  padding: "2px 8px",
-                  borderRadius: 12,
-                }}
-              >
-                Batas edit tercapai (maks. {MAX_EDITS_PER_COMMENT}×)
-              </span>
-            )}
-
             {!isReply &&
               currentUserId === postOwnerId &&
               currentUserId !== comment.user.id &&
@@ -406,6 +392,8 @@ function CommentThread({
   onReply,
   onEdit,
   onAccept,
+  replyError,
+  onReplyErrorClear,
 }: {
   comment: Comment;
   currentUserId?: string;
@@ -413,7 +401,7 @@ function CommentThread({
   acceptedAnswerId: string | null;
   isSubmitting: boolean;
   editCounts: Record<string, number>;
-  onReply: (parentId: string, body: string) => Promise<boolean>;
+  onReply: (parentId: string, body: string) => Promise<{ success: boolean; error?: string }>;
   onEdit: (
     commentId: string,
     body: string,
@@ -421,6 +409,8 @@ function CommentThread({
     parentId?: string,
   ) => Promise<{ success: boolean; error?: string }>;
   onAccept: (commentId: string) => void;
+  replyError?: string | null;
+  onReplyErrorClear?: () => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
   const isAccepted = acceptedAnswerId === comment.id;
@@ -428,8 +418,10 @@ function CommentThread({
     !!currentUserId && currentUserId.trim() !== comment.user.id.trim();
 
   const handleReplySubmit = async (body: string) => {
-    const ok = await onReply(comment.id, body);
-    if (ok) setReplyOpen(false);
+    const result = await onReply(comment.id, body);
+    if (result.success) {
+      setReplyOpen(false);
+    }
   };
 
   return (
@@ -476,10 +468,18 @@ function CommentThread({
           <CommentBox
             placeholder="Tulis balasan..."
             onSubmit={handleReplySubmit}
-            onCancel={() => setReplyOpen(false)}
+            onCancel={() => {
+              onReplyErrorClear?.();
+              setReplyOpen(false);
+            }}
             submitLabel="Balas"
             isSubmitting={isSubmitting}
           />
+          {replyError && (
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "#dc2626" }}>
+              ⚠️ {replyError}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -515,11 +515,48 @@ export default function CommentSection({
     initialAcceptedAnswerId,
   );
   const [editCounts, setEditCounts] = useState<Record<string, number>>({});
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [replyError, setReplyError] = useState<string | null>(null);
+  const editCountsInitialized = useRef(false);
+
+  useEffect(() => {
+    if (comments && !editCountsInitialized.current) {
+      const initial: Record<string, number> = {};
+      comments.forEach((c: any) => {
+        initial[c.id] = c.edits_count ?? 0;
+        if (c.replies) {
+          c.replies.forEach((r: any) => {
+            initial[r.id] = r.edits_count ?? 0;
+          });
+        }
+      });
+      setEditCounts(initial);
+      editCountsInitialized.current = true;
+    }
+  }, [comments]);
 
   const isPostOpen = postStatus === "open";
   const myCommentCount = user ? countUserComments(user.id) : 0;
   const canAddComment =
     !!user && isPostOpen && myCommentCount < MAX_COMMENTS_PER_USER;
+
+  const handleAddComment = async (body: string) => {
+    setCommentError(null);
+    const result = await addComment(body);
+    if (!result.success && result.error) {
+      setCommentError(result.error);
+    }
+    return result;
+  };
+
+  const handleAddReply = async (parentId: string, body: string) => {
+    setReplyError(null);
+    const result = await addReply(parentId, body);
+    if (!result.success && result.error) {
+      setReplyError(result.error);
+    }
+    return result;
+  };
 
   const handleAccept = (commentId: string) => {
     const newAccepted = acceptedAnswerId === commentId ? null : commentId;
@@ -542,6 +579,11 @@ export default function CommentSection({
       setEditCounts((prev) => ({
         ...prev,
         [commentId]: (prev[commentId] ?? 0) + 1,
+      }));
+    } else if (result.error?.includes("maksimal 2 kali")) {
+      setEditCounts((prev) => ({
+        ...prev,
+        [commentId]: MAX_EDITS_PER_COMMENT,
       }));
     }
     return result;
@@ -621,9 +663,11 @@ export default function CommentSection({
                   acceptedAnswerId={acceptedAnswerId}
                   isSubmitting={isSubmitting}
                   editCounts={editCounts}
-                  onReply={addReply}
+                  onReply={handleAddReply}
                   onEdit={handleEdit}
                   onAccept={handleAccept}
+                  replyError={replyError}
+                  onReplyErrorClear={() => setReplyError(null)}
                 />
               ))}
             </div>
@@ -672,11 +716,18 @@ export default function CommentSection({
                 )}
               </div>
               {canAddComment && (
-                <CommentBox
-                  placeholder="Tulis komentar kamu di sini..."
-                  onSubmit={addComment}
-                  isSubmitting={isSubmitting}
-                />
+                <>
+                  <CommentBox
+                    placeholder="Tulis komentar kamu di sini..."
+                    onSubmit={handleAddComment}
+                    isSubmitting={isSubmitting}
+                  />
+                  {commentError && (
+                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "#dc2626" }}>
+                      ⚠️ {commentError}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
