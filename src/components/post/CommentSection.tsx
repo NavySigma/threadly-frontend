@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useComments } from "../../hooks/useComments";
 import { useAuth } from "../../contexts/useAuth";
@@ -471,8 +471,9 @@ function CommentThread({
   const [replyOpen, setReplyOpen] = useState(false);
   const [localComment, setLocalComment] = useState(comment);
 
-  // Keep in sync when parent data updates
-  if (localComment.id !== comment.id) setLocalComment(comment);
+  useEffect(() => {
+    setLocalComment(comment);
+  }, [comment]);
 
   const isAccepted = acceptedAnswerId === localComment.id;
   const canVote =
