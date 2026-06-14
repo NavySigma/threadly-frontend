@@ -31,6 +31,8 @@ import NotificationsPage from "./pages/notification/NotificationsPage";
 import UsersPage from "./pages/users";
 import EditHistoryPage from "./pages/admin/EditHistoryPage";
 import CategoriesPage from "./pages/category/CategoriesPage";
+import AdminCategoryPage from "./pages/admin/AdminCategoryPage";
+
 
 function App() {
   return (
@@ -53,11 +55,11 @@ function App() {
             <Route path="/posts/create" element={<CreatePostPage />} />
             <Route path="/posts/:id" element={<PostDetailPage />} />
             <Route path="/posts/:id/edit" element={<EditPostPage />} />
+            <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/admin/edit-history" element={<EditHistoryPage />} />
-            <Route path="/profile/:id?" element={<ProfilePage />} />
-            <Route path="/profile/edit" element={<EditProfilePage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/tags/:id" element={<TagDetailPage />} />
@@ -65,6 +67,9 @@ function App() {
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/category" element={<Navigate to="/tags" replace />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/admin/categories" element={<AdminCategoryPage/>} />
+      
+          
           </Route>
           
           <Route
