@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import FollowButton from "../follow/FollowButton";
 
 export interface UserItem {
@@ -11,6 +11,7 @@ export interface UserItem {
   level: number;
   is_banned: number;
   is_following?: boolean;
+  role_name?: string;
   created_at: string;
   updated_at: string;
 }
@@ -23,31 +24,56 @@ function timeJoined(dateStr: string): string {
   });
 }
 
-export default function UserCard({ user }: { user: UserItem }) {
+export default function UserCard({
+  user,
+  currentUserId,
+}: {
+  user: UserItem;
+  currentUserId?: string;
+}) {
+  const navigate = useNavigate();
+  const isSelf = currentUserId === user.id;
+  const isAdmin = user.role_name === "admin";
+  const isModerator = user.role_name === "moderator";
+  const badge = isAdmin ? "👑" : isModerator ? "🛡️" : null;
+
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden flex flex-col transition-all bg-white">
-      <Link
-        to={`/users/${user.id}`}
-        className="flex items-center gap-3 p-4 no-underline text-inherit"
-      >
-        <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 flex items-center justify-center overflow-hidden">
-          {user.avatar_url ? (
-            <img
-              src={user.avatar_url}
-              alt={user.username}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-lg font-semibold text-gray-400">
-              {user.username[0].toUpperCase()}
+    <div
+      onClick={() => navigate(`/users/${user.id}`)}
+      className="border border-gray-200 rounded-xl overflow-hidden flex flex-col bg-white cursor-pointer hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-center gap-3 p-4 flex-1">
+        <div className="relative w-12 h-12 shrink-0">
+          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+            {user.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-lg font-semibold text-gray-400">
+                {user.username[0].toUpperCase()}
+              </span>
+            )}
+          </div>
+          {badge && (
+            <span className="absolute -top-2 -right-2 text-2xl leading-none drop-shadow-md rotate-29">
+              {badge}
             </span>
           )}
         </div>
 
-        <div className="flex flex-col gap-1 min-w-0">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
           <span className="font-semibold text-sm text-teal-700 truncate">
             {user.username}
           </span>
+
+          {user.bio && (
+            <span className="text-xs text-gray-500 line-clamp-2">
+              {user.bio}
+            </span>
+          )}
 
           <div className="flex gap-2.5">
             <span className="flex items-baseline gap-1">
@@ -61,14 +87,21 @@ export default function UserCard({ user }: { user: UserItem }) {
             </span>
           </div>
         </div>
-      </Link>
+      </div>
 
-      <div className="px-3 py-2 flex justify-end border-t border-gray-100">
-        <FollowButton
-          userId={user.id}
-          initialIsFollowing={user.is_following ?? false}
-          size="sm"
-        />
+      <div className="px-3 py-2 flex items-center justify-between border-t border-gray-100">
+        <span className="text-xs text-[#0d9488] font-medium">
+          Lihat selengkapnya &raquo;
+        </span>
+        {!isSelf && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <FollowButton
+              userId={user.id}
+              initialIsFollowing={user.is_following ?? false}
+              size="sm"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

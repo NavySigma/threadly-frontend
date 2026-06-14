@@ -26,7 +26,7 @@ function getInitial(name: string) {
 
 const AVATAR_BASE: React.CSSProperties = {
   borderRadius: 6,
-  background: "#c084fc",
+  background: "#0d9488",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",

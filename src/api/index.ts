@@ -52,7 +52,7 @@ export interface FetchPostsParams extends Record<
   string | number | undefined | null
 > {
   search?: string;
-  category_id?: string;
+  tag_id?: string;
   page?: number;
 }
 

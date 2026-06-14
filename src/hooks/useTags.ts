@@ -20,10 +20,11 @@ export function useTags() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const tags        = data?.data               ?? [];
-  const currentPage = data?.meta?.current_page ?? 1;
-  const lastPage    = data?.meta?.last_page    ?? 1;
-  const total       = data?.meta?.total        ?? 0;
+  const raw: any   = data;
+  const tags       = raw?.data ?? [];
+  const currentPage = raw?.current_page ?? 1;
+  const lastPage    = raw?.last_page ?? 1;
+  const total       = raw?.total ?? 0;
 
   return {
     tags,

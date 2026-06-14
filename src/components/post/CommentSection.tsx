@@ -35,7 +35,7 @@ function Avatar({
         width: 32,
         height: 32,
         borderRadius: "50%",
-        background: "#818cf8",
+        background: "#0d9488",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

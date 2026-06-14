@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import type { CSSProperties } from "react";
 import type { Tag, TagsParams } from "../../../api/tags";
 import { getTagColor } from "../../../lib/tagColor";
 
@@ -19,83 +18,43 @@ type TagsViewProps = {
 
 function TagCard({ tag }: { tag: Tag }) {
   const navigate = useNavigate();
+  const color = getTagColor(tag);
 
   return (
     <div
-      style={{
-        border: "1px solid #e3e6e8",
-        borderRadius: 6,
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        background: "#fff",
-        transition: "box-shadow .15s",
-        cursor: "default",
-      }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,.1)")
-      }
-      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+      onClick={() => navigate(`/posts?tag_id=${tag.id}`)}
+      className="border border-[#0d9488] rounded-xl bg-white shadow-sm p-4 flex flex-col min-h-[110px] cursor-pointer hover:shadow-md transition-shadow"
     >
-      <div>
-        <button
-          onClick={() => navigate(`/tags/${tag.id}`)}
-          style={{
-            background: tag.color ?? "#e1ecf4",
-            color: tag.color ? "#fff" : "#39739d",
-            border: "none",
-            borderRadius: 4,
-            padding: "4px 10px",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
+      <span
+        className="px-2.5 py-1 text-xs font-bold rounded-md self-start"
+        style={{
+          backgroundColor: `${color}22`,
+          color: color,
+          border: `1px solid ${color}`,
+        }}
+      >
+        <span style={{ filter: "brightness(0.45) saturate(1.8)" }}>
           {tag.name}
-        </button>
-      </div>
+        </span>
+      </span>
 
-      <div style={{ fontSize: 12, color: "#6a737c" }}>
-        <strong style={{ color: "#3b4045" }}>
-          {(tag.usage_count ?? tag.posts_count ?? 0).toLocaleString()}
-        </strong>{" "}
-        pertanyaan
-      </div>
+      <span className="text-xs text-gray-500 mt-2">
+        {(tag.usage_count ?? tag.posts_count ?? 0).toLocaleString()} pertanyaan
+      </span>
+
+      <span className="text-xs text-[#0d9488] font-medium mt-auto self-end">
+        Lihat selengkapnya &raquo;
+      </span>
     </div>
   );
 }
 
 function TagSkeleton() {
-  const box = (w: string, h: number, mb = 0) => (
-    <div
-      style={{
-        width: w,
-        height: h,
-        background: "#e3e6e8",
-        borderRadius: 4,
-        marginBottom: mb,
-      }}
-    />
-  );
-
   return (
-    <div
-      style={{
-        border: "1px solid #e3e6e8",
-        borderRadius: 6,
-        padding: 16,
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        opacity: 0.55,
-      }}
-    >
-      {box("35%", 24, 4)}
-      {box("100%", 12)}
-      {box("80%", 12)}
-      {box("60%", 12, 8)}
-      {box("40%", 12)}
+    <div className="border border-[#0d9488] rounded-xl bg-white p-4 flex flex-col min-h-[110px] animate-pulse">
+      <div className="w-1/2 h-5 bg-gray-200 rounded" />
+      <div className="w-full h-3 bg-gray-200 rounded mt-2" />
+      <div className="w-1/3 h-3 bg-gray-200 rounded mt-auto self-end" />
     </div>
   );
 }
@@ -115,29 +74,10 @@ function Pagination({
     (p) => p === 1 || p === last || Math.abs(p - current) <= 2,
   );
 
-  const btnStyle = (active: boolean): CSSProperties => ({
-    padding: "5px 10px",
-    border: "1px solid #d1d5db",
-    borderRadius: 4,
-    background: active ? "#f48024" : "#fff",
-    color: active ? "#fff" : "#3b4045",
-    cursor: active ? "default" : "pointer",
-    fontWeight: active ? 700 : 400,
-    fontSize: 13,
-  });
-
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        gap: 4,
-        marginTop: 32,
-        flexWrap: "wrap",
-      }}
-    >
+    <div className="flex justify-center gap-1 mt-8 flex-wrap">
       <button
-        style={btnStyle(false)}
+        className="px-2.5 py-1 text-xs border border-gray-300 rounded bg-white text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
         disabled={current === 1}
         onClick={() => onPage(current - 1)}
       >
@@ -147,15 +87,14 @@ function Pagination({
       {pages.map((p, idx, arr) => {
         const gap = idx > 0 && arr[idx - 1] !== p - 1;
         return (
-          <span
-            key={p}
-            style={{ display: "inline-flex", gap: 4, alignItems: "center" }}
-          >
-            {gap && (
-              <span style={{ padding: "5px 4px", color: "#6a737c" }}>…</span>
-            )}
+          <span key={p} className="inline-flex gap-1 items-center">
+            {gap && <span className="px-1 py-1 text-gray-500">…</span>}
             <button
-              style={btnStyle(p === current)}
+              className={`px-2.5 py-1 text-xs border border-gray-300 rounded ${
+                p === current
+                  ? "bg-[#0d9488] text-white font-bold border-[#0d9488]"
+                  : "bg-white text-gray-600 hover:bg-gray-100"
+              }`}
               onClick={() => p !== current && onPage(p)}
             >
               {p}
@@ -165,7 +104,7 @@ function Pagination({
       })}
 
       <button
-        style={btnStyle(false)}
+        className="px-2.5 py-1 text-xs border border-gray-300 rounded bg-white text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100"
         disabled={current === last}
         onClick={() => onPage(current + 1)}
       >
@@ -189,89 +128,47 @@ export default function TagsView({
   onPage,
 }: TagsViewProps) {
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Tags</h1>
-      <p
-        style={{
-          fontSize: 14,
-          color: "#3b4045",
-          marginBottom: 20,
-          lineHeight: 1.6,
-        }}
-      >
+    <div className="max-w-[1100px] w-full">
+      <h1 className="text-[28px] font-bold mb-2">Tags</h1>
+      <p className="text-sm text-gray-600 mb-5 leading-relaxed">
         Tag adalah kata kunci atau label yang mengkategorikan pertanyaan Anda
         dengan pertanyaan serupa. Menggunakan tag yang tepat membuat pertanyaan
         lebih mudah ditemukan.
       </p>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
-        <div style={{ position: "relative" }}>
-          <span
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#6a737c",
-              fontSize: 14,
-            }}
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+        <div className="relative">
+          <svg
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500"
+            width={16}
+            height={16}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
           >
-            🔍
-          </span>
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
           <input
             type="text"
             placeholder="Filter by tag name"
             value={search}
             onChange={(e) => onSearch(e.target.value)}
-            style={{
-              paddingLeft: 34,
-              paddingRight: 12,
-              paddingTop: 8,
-              paddingBottom: 8,
-              border: "1px solid #9fa6ad",
-              borderRadius: 4,
-              fontSize: 13,
-              width: 220,
-              outline: "none",
-              transition: "border-color .15s",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "#4f46e5")}
-            onBlur={(e) => (e.target.style.borderColor = "#9fa6ad")}
+            className="pl-8 pr-3 py-2 text-xs border border-gray-400 rounded outline-none transition-[border-color] focus:border-[#0d9488] w-[220px]"
           />
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 0,
-            border: "1px solid #d1d5db",
-            borderRadius: 4,
-            overflow: "hidden",
-          }}
-        >
+        <div className="flex border border-gray-300 rounded overflow-hidden">
           {(["popular", "name", "new"] as TagsParams["sort"][]).map((s) => (
             <button
               key={s}
               onClick={() => onSort(s)}
-              style={{
-                padding: "6px 14px",
-                border: "none",
-                borderRight: s !== "new" ? "1px solid #d1d5db" : "none",
-                background: sort === s ? "#e9ecef" : "#fff",
-                fontWeight: sort === s ? 700 : 400,
-                fontSize: 13,
-                cursor: "pointer",
-                color: "#3b4045",
-              }}
+              className={`px-3.5 py-1.5 text-xs border-r last:border-r-0 cursor-pointer ${
+                sort === s
+                  ? "bg-gray-200 font-bold text-gray-700"
+                  : "bg-white text-gray-600 hover:bg-gray-100"
+              }`}
             >
               {s === "popular" ? "Popular" : s === "name" ? "Name" : "New"}
             </button>
@@ -280,46 +177,25 @@ export default function TagsView({
       </div>
 
       {error ? (
-        <div
-          style={{
-            padding: 24,
-            border: "1px solid #f5c6cb",
-            borderRadius: 6,
-            background: "#f8d7da",
-            color: "#842029",
-          }}
-        >
+        <div className="p-6 border border-red-300 rounded-lg bg-red-100 text-red-800">
           Terjadi kesalahan saat memuat tag. Silakan coba lagi.
         </div>
       ) : (
         <>
-          <div
-            style={{
-              display: "grid",
-              gap: 16,
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            }}
-          >
+          <div className="grid gap-4 grid-cols-5">
             {isLoading
               ? Array.from({ length: 8 }, (_, idx) => <TagSkeleton key={idx} />)
               : tags.map((tag) => <TagCard key={tag.id} tag={tag} />)}
           </div>
 
           {!isLoading && tags.length === 0 && (
-            <div style={{ padding: 24, textAlign: "center", color: "#6a737c" }}>
+            <div className="p-6 text-center text-gray-500">
               Tidak ada tag yang sesuai dengan filter Anda.
             </div>
           )}
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 24,
-            }}
-          >
-            <div style={{ fontSize: 13, color: "#6a737c" }}>
+          <div className="flex justify-between items-center mt-6">
+            <div className="text-xs text-gray-500">
               Menampilkan {tags.length} dari {total.toLocaleString()} tag
             </div>
             <Pagination current={currentPage} last={lastPage} onPage={onPage} />

@@ -8,7 +8,7 @@ export type SortType = "newest" | "votes" | "unanswered" | "popular";
 export function usePosts(search?: string) {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<SortType>("newest");
+  const [sortBy, setSortBy] = useState<SortType>("popular");
 
   const queryParams = useMemo(() => {
     let sortParam = "latest";

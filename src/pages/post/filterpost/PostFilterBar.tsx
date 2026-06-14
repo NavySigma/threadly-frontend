@@ -4,7 +4,7 @@ export default function PostFilterBar() {
   const {
     filter,
     setSearch,
-    setCategory,
+    setTag,
     resetFilter,
   } = usePostFilter();
 
@@ -21,9 +21,9 @@ export default function PostFilterBar() {
 
         <input
           type="text"
-          placeholder="Category ID"
-          value={filter.category_id}
-          onChange={(e) => setCategory(e.target.value)}
+          placeholder="Tag ID"
+          value={filter.tag_id}
+          onChange={(e) => setTag(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
 
@@ -42,9 +42,9 @@ export default function PostFilterBar() {
           </span>
         )}
 
-        {filter.category_id && (
+        {filter.tag_id && (
           <span className="px-3 py-1 bg-teal-100 text-teal-600 rounded-full text-xs">
-            Category: {filter.category_id}
+            Tag: {filter.tag_id}
           </span>
         )}
       </div>

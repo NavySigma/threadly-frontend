@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Users, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import UserCard, { type UserItem } from "./UserCard";
 import { apiFetch } from "../../api/client";
+import { useAuth } from "../../contexts/useAuth";
 
 type SortOption = "reputation" | "newest" | "name";
 
@@ -41,6 +42,7 @@ function UserCardSkeleton() {
 }
 
 export default function UsersPage() {
+  const { user: currentUser } = useAuth();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("reputation");
@@ -119,7 +121,7 @@ export default function UsersPage() {
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {Array.from({ length: 12 }).map((_, i) => (
               <UserCardSkeleton key={i} />
             ))}
@@ -134,9 +136,9 @@ export default function UsersPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {users.map((u) => (
-              <UserCard key={u.id} user={u} />
+              <UserCard key={u.id} user={u} currentUserId={currentUser?.id} />
             ))}
           </div>
         )}
