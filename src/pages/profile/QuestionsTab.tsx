@@ -125,7 +125,7 @@ export function QuestionsTab({ userId }: QuestionsTabProps) {
                 <PostActionMenu
                   postId={post.id}
                   postStatus={post.status}
-                  closedAt={post.closed_at}
+                  closedAt={post.closed_at ?? null}
                   onDeleted={refetch}
                   onUpdated={refetch}
                 />

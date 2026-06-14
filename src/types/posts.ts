@@ -70,6 +70,8 @@ export interface PostsParams {
   search?: string;
   category_id?: string;
   page?: number;
+  sort?: string;
+  is_answered?: boolean;
 }
 
 export interface InitialValueCreatePost {
