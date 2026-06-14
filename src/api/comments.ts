@@ -38,6 +38,14 @@ export interface UpdateCommentPayload {
   body: string;
 }
 
+export interface AcceptAnswerResponse {
+  message: string;
+}
+
+export interface UnacceptAnswerResponse {
+  message: string;
+}
+
 export const commentsApi = {
   getByPost: (postId: string, page = 1) =>
     apiFetch<PaginatedComments>(`/posts/${postId}/comments?page=${page}`),

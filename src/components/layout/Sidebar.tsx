@@ -6,7 +6,9 @@ import {
   Users, 
   Folder, 
   Coins,
-  Rocket
+  Rocket,
+  ShieldAlert,
+  Settings
 } from "lucide-react";
 
 const links = [
@@ -16,6 +18,11 @@ const links = [
   { to: "/users", icon: <Users size={20} />, label: "Users" },
   { to: "/categories", icon: <Folder size={20} />, label: "Categories" },
   { to: "/profile?tab=activity&subtab=reputation", icon: <Coins size={20} />, label: "History Points" },
+];
+
+const adminLinks = [
+  { to: "/admin/reports", icon: <ShieldAlert size={20} />, label: "Reports" },
+  { to: "/admin/categories", icon: <Settings size={20} />, label: "Admin Categories" },
 ];
 
 export default function Sidebar() {
@@ -77,6 +84,58 @@ export default function Sidebar() {
                   className={`
                     text-sm font-medium tracking-wide
                     ${isActive ? "text-[#0d9488]" : "text-black"}
+                  `}
+                >
+                  {link.label}
+                </span>
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Admin Navigation */}
+      <div className="mt-6 px-5 mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Admin</p>
+      </div>
+      <ul className="p-3 space-y-1">
+        {adminLinks.map((link) => {
+          const isActive = location.pathname.startsWith(link.to);
+          return (
+            <li key={link.to}>
+              <NavLink
+                to={link.to}
+                className={`
+                  group
+                  flex items-center gap-3
+                  rounded-xl
+                  px-4 py-3
+                  transition-all duration-200
+                  ${
+                    isActive
+                      ? "bg-[#fff1f2] shadow-sm"
+                      : "hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                  }
+                `}
+              >
+                <div
+                  className={`
+                    flex items-center justify-center
+                    transition-all
+                    ${
+                      isActive
+                        ? "text-red-600"
+                        : "text-black"
+                    }
+                  `}
+                >
+                  {link.icon}
+                </div>
+
+                <span 
+                  className={`
+                    text-sm font-medium tracking-wide
+                    ${isActive ? "text-red-600" : "text-black"}
                   `}
                 >
                   {link.label}

@@ -92,13 +92,12 @@ export function PostActionView({
   isOpen,
   isLoadingClose,
   isLoadingReopen,
-  isLoadingDelete,
   canReopen,
   onToggleMenu,
   onClose,
   onReopen,
   onEdit,
-  onDelete,
+  
   menuRef,
 }: PostActionViewProps) {
   const isPrivate = postStatus === "closed";
