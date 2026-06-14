@@ -57,6 +57,7 @@ export default function PostLike({
       }}
     >
       <button
+        data-cy="post-like-btn"
         type="button"
         onClick={() => mutation.mutate()}
         disabled={mutation.isPending}
@@ -79,6 +80,7 @@ export default function PostLike({
 
       <button
         type="button"
+        data-cy="post-bookmark-btn"
         onClick={() => toggleBookmark()}
         disabled={isToggling}
         style={{

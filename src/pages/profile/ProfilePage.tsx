@@ -779,6 +779,7 @@ export default function ProfilePage() {
         {mainTabs.map((t) => (
           <button
             key={t.key}
+            data-cy={`profile-tab-${t.key}`}
             onClick={() => setMainTab(t.key)}
             style={{
               padding: "10px 20px",
