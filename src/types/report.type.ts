@@ -22,9 +22,29 @@ export interface ReportResponse {
   message: string;
 }
 
+export interface ReportTargetUser {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+}
+
+export interface ReportTargetPost {
+  id: string;
+  title: string;
+  body: string;
+  user: ReportTargetUser;
+}
+
+export interface ReportTargetComment {
+  id: string;
+  post_id: string;
+  body: string;
+  user: ReportTargetUser;
+}
+
 export interface ReportDetailResponse {
   data: Report;
-  target: string | null;
+  target: ReportTargetPost | ReportTargetComment | null;
 }
 
 export interface PaginationLink {
