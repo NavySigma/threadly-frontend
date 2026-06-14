@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import CommentSection from "../../components/post/CommentSection";
 import PostVote from "../post/vote/PostVote";
 import PostLike from "../post/like/PostLike";
+import PostReport from "../post/like/PostReport";
 import { PostActionMenu } from "../profile/PostActionMenu";
 import { ArrowLeft } from "lucide-react";
 
@@ -62,15 +63,19 @@ export default function PostDetailPage() {
         )}
       </div>
 
-      {/* Title */}
-      <h1 className="text-xl font-bold text-gray-900 mb-2 leading-snug flex items-center gap-2 flex-wrap">
-        {post.status?.toLowerCase() !== "open" && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
-            PRIVATE
-          </span>
-        )}
-        {post.title}
-      </h1>
+      {/* Title + Report */}
+      <div className="flex justify-between items-start gap-4 mb-2">
+        <h1 className="text-xl font-bold text-gray-900 leading-snug flex items-center gap-2 flex-wrap">
+          {post.status?.toLowerCase() !== "open" && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
+              PRIVATE
+            </span>
+          )}
+          {post.title}
+        </h1>
+
+        {!isOwner && <PostReport postId={post.id} />}
+      </div>
 
       {/* Meta */}
       <div className="flex items-center gap-4 text-xs text-gray-500 mb-5 flex-wrap">

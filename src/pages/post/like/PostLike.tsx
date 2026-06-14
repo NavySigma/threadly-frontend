@@ -40,14 +40,22 @@ export default function PostLike({
         typeof (error as { message: unknown }).message === "string"
           ? (error as { message: string }).message
           : "Gagal";
+
       console.error("PostLike error:", message);
     },
   });
 
-  const { bookmarked, toggleBookmark, isToggling } = usePostBookmark(postId);
+  const { bookmarked, toggleBookmark, isToggling } =
+    usePostBookmark(postId);
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
       <button
         type="button"
         onClick={() => mutation.mutate()}
