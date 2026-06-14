@@ -19,12 +19,12 @@ export default defineConfig({
         theme_color: "#111113",
         icons: [
           {
-            src: "/src/assets/threadly-removebg-preview.jpeg",
+            src: "/src/assets/192x192.png",
             sizes: "192x192",
             type: "image/jpeg",
           },
           {
-            src: "/src/assets/threadly-removebg-preview.jpeg",
+            src: "/src/assets/192x192.png",
             sizes: "512x512",
             type: "image/jpeg",
           },
@@ -37,7 +37,7 @@ export default defineConfig({
             url: "/",
             icons: [
               {
-                src: "/src/assets/threadly-removebg-preview.jpeg",
+                src: "/src/assets/192x192.png",
                 sizes: "192x192",
                 type: "image/jpeg",
               },

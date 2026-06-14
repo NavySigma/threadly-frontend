@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import threadlyLogo from "../../assets/threadly-removebg-preview.png";
+import threadlyLogo from "../../assets/threadly-removebg-preview.jpeg";
 import SearchBar from "../ui/SeacrhBar";
 import { Bell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
