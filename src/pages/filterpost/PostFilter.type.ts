@@ -1,4 +1,4 @@
-import type { SortOption, AnswerFilter } from "../../../../types";
+import type { SortOption, AnswerFilter } from "../../types";
 
 export interface PostFilterValues {
   search: string;

@@ -14,19 +14,22 @@ export interface UsePostActionProps {
   postStatus: PostStatus;
   closedAt: string | null;
   onUpdated?: () => void;
+  onDeleted?: () => void;
 }
 
 export interface UsePostActionReturn {
   isOpen: boolean;
   isLoadingClose: boolean;
   isLoadingReopen: boolean;
+  isLoadingDelete: boolean;
   canReopen: boolean;
   handleToggleMenu: () => void;
   handleClose: () => void;
   handleReopen: () => void;
   handleEdit: () => void;
+  handleDelete: () => void;
   closeMenu: () => void;
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export interface PostActionViewProps {
@@ -34,10 +37,13 @@ export interface PostActionViewProps {
   isOpen: boolean;
   isLoadingClose: boolean;
   isLoadingReopen: boolean;
+  isLoadingDelete: boolean;
   canReopen: boolean;
+  showDelete: boolean;
   onToggleMenu: () => void;
   onClose: () => void;
   onReopen: () => void;
   onEdit: () => void;
-  menuRef: React.RefObject<HTMLDivElement>;
+  onDelete: () => void;
+  menuRef: React.RefObject<HTMLDivElement | null>;
 }

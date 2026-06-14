@@ -92,12 +92,14 @@ export function PostActionView({
   isOpen,
   isLoadingClose,
   isLoadingReopen,
+  isLoadingDelete,
   canReopen,
+  showDelete,
   onToggleMenu,
   onClose,
   onReopen,
   onEdit,
-  
+  onDelete,
   menuRef,
 }: PostActionViewProps) {
   const isPrivate = postStatus === "closed";
@@ -136,7 +138,7 @@ export function PostActionView({
             label="Private"
           />
 
-          {/* Public — only added when private */}
+          {/* Public — only shown when private */}
           {isPrivate && (
             <>
               <div className="border-t border-gray-100 dark:border-gray-800" />
@@ -150,11 +152,25 @@ export function PostActionView({
             </>
           )}
 
-          {/* Info: sudah lewat 24 jam, tidak bisa public lagi */}
+          {/* Cannot re-public info */}
           {isPrivate && !canReopen && (
             <div className="px-3.5 py-2.5 text-xs text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-950/20 leading-snug border-t border-gray-100 dark:border-gray-800">
               Tidak dapat dipublikasi ulang setelah 24 jam.
             </div>
+          )}
+
+          {/* Delete — shown only for mod/admin */}
+          {showDelete && (
+            <>
+              <div className="border-t border-gray-100 dark:border-gray-800" />
+              <MenuItem
+                onClick={onDelete}
+                loading={isLoadingDelete}
+                variant="danger"
+                icon={<IconTrash />}
+                label="Hapus Postingan"
+              />
+            </>
           )}
         </div>
       )}

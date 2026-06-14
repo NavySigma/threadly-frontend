@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { postsApi } from "../api/posts";
-import type { Post } from "../types/posts";
 
 export type SortType = "newest" | "votes" | "unanswered" | "popular";
 

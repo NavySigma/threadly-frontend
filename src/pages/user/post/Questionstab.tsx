@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useMyPosts } from "../../../hooks/useMyPosts";
 import { PostActionMenu } from "./PostActionMenu";
+import { useAuth } from "../../../hooks/useAuth";
 import type { UserPost } from "../../../types/userPost.type.ts";
 
 function timeAgo(dateStr: string): string {
@@ -17,21 +18,14 @@ function timeAgo(dateStr: string): string {
 
 export default function QuestionsTab() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const {
     posts,
-    currentPage,
-    lastPage,
-    total,
     isLoading,
     error,
-    closePost,
-    reopenPost,
-    isClosing,
-    isReopening,
-    canReopen,
-    goToPage,
-  } = useMyPosts();
+    refetch,
+  } = useMyPosts(user?.id);
 
   if (isLoading) {
     return (
@@ -90,7 +84,7 @@ export default function QuestionsTab() {
           marginBottom: 12,
         }}
       >
-        {total} pertanyaan
+        {posts.length} pertanyaan
       </p>
 
       <div
@@ -122,12 +116,9 @@ export default function QuestionsTab() {
               }}
             >
               <PostActionMenu
-                post={post}
-                canReopen={canReopen}
-                onClose={closePost}
-                onReopen={reopenPost}
-                isClosing={isClosing}
-                isReopening={isReopening}
+                postId={post.id}
+                isPrivate={post.status === "closed"}
+                onDeleted={() => refetch()}
               />
 
               <div style={{ display: "flex", gap: 6 }}>
@@ -232,45 +223,6 @@ export default function QuestionsTab() {
           </div>
         ))}
       </div>
-
-      {lastPage > 1 && (
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            justifyContent: "center",
-            marginTop: 20,
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            disabled={currentPage === 1}
-            onClick={() => goToPage(currentPage - 1)}
-          >
-            ← Prev
-          </button>
-
-          {Array.from({ length: lastPage }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              onClick={() => goToPage(p)}
-              style={{
-                background: p === currentPage ? "#4f46e5" : "transparent",
-                color: p === currentPage ? "#fff" : "inherit",
-              }}
-            >
-              {p}
-            </button>
-          ))}
-
-          <button
-            disabled={currentPage === lastPage}
-            onClick={() => goToPage(currentPage + 1)}
-          >
-            Next →
-          </button>
-        </div>
-      )}
     </div>
   );
 }
