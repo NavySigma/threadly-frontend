@@ -58,7 +58,6 @@ export default function PostDetailPage() {
             postStatus={post.status}
             closedAt={post.closed_at}
             onUpdated={refetch}
-            onDeleted={() => navigate("/")}
           />
         )}
       </div>

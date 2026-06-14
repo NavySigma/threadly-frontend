@@ -1,31 +1,33 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../api/client";
 import type { Post } from "../types";
 
-export function useMyPosts(userId?: string) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchMyPosts = useCallback(async () => {
-    if (!userId) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await apiFetch<any>(`/users/${userId}/posts`);
-      // Laravel pagination returns the paginated posts object
-      console.log("My Posts response:", res.data);
-      setPosts(res.data || []);
-    } catch (err: any) {
-      setError(err?.message || "Gagal memuat postingan.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    fetchMyPosts();
-  }, [fetchMyPosts]);
-
-  return { posts, isLoading, error, refetch: fetchMyPosts };
+interface MyPostsResponse {
+  data: Post[];
 }
+
+interface ApiFetchError {
+  status: number;
+  message?: string;
+}
+
+export function useMyPosts(userId?: string) {
+  const query = useQuery<MyPostsResponse, ApiFetchError>({
+    queryKey: ["myPosts", userId],
+    queryFn: () => apiFetch<MyPostsResponse>(`/users/${userId}/posts?status=all`),
+    enabled: !!userId,
+    staleTime: 1000 * 30, // 30 seconds
+  });
+
+  const posts = query.data?.data ?? [];
+  const isLoading = query.isLoading;
+  const error = query.error ? (query.error.message || "Gagal memuat postingan.") : null;
+
+  return {
+    posts,
+    isLoading,
+    error,
+    refetch: query.refetch,
+  };
+}
+
