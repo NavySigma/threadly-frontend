@@ -12,10 +12,12 @@ export function usePostAction({
   postStatus,
   closedAt,
   onUpdated,
+  onDeleted,
 }: UsePostActionProps): UsePostActionReturn {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoadingClose, setIsLoadingClose] = useState(false);
   const [isLoadingReopen, setIsLoadingReopen] = useState(false);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -48,12 +50,9 @@ export function usePostAction({
     setIsLoadingClose(true);
     try {
       await postsApi.close(postId);
-
-      // Invalidate all post-related queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
       await queryClient.invalidateQueries({ queryKey: ["myPosts"] });
       await queryClient.invalidateQueries({ queryKey: ["post", postId] });
-
       if (onUpdated) onUpdated();
     } catch (err) {
       console.error("Failed to make post private:", err);
@@ -67,12 +66,9 @@ export function usePostAction({
     setIsLoadingReopen(true);
     try {
       await postsApi.reopen(postId);
-
-      // Invalidate all post-related queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
       await queryClient.invalidateQueries({ queryKey: ["myPosts"] });
       await queryClient.invalidateQueries({ queryKey: ["post", postId] });
-
       if (onUpdated) onUpdated();
     } catch (err) {
       console.error("Failed to make post public:", err);
@@ -82,10 +78,30 @@ export function usePostAction({
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Hapus postingan ini? Tindakan tidak dapat dibatalkan.")) return;
+    setIsLoadingDelete(true);
+    try {
+      await postsApi.delete(postId);
+      await queryClient.invalidateQueries({ queryKey: ["posts"] });
+      await queryClient.invalidateQueries({ queryKey: ["myPosts"] });
+      closeMenu();
+      if (onDeleted) {
+        onDeleted();
+      } else {
+        navigate(-1);
+      }
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    } finally {
+      setIsLoadingDelete(false);
+    }
+  };
+
   // 24 hours reopen limit check
   const canReopen = (() => {
     if (postStatus !== "closed") return false;
-    if (!closedAt) return true; // If closed but no time recorded, allow as fallback
+    if (!closedAt) return true;
     const elapsed = Date.now() - new Date(closedAt).getTime();
     return elapsed < 24 * 60 * 60 * 1000;
   })();
@@ -94,11 +110,13 @@ export function usePostAction({
     isOpen,
     isLoadingClose,
     isLoadingReopen,
+    isLoadingDelete,
     canReopen,
     handleToggleMenu,
     handleClose,
     handleReopen,
     handleEdit,
+    handleDelete,
     closeMenu,
     menuRef,
   };

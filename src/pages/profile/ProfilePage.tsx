@@ -184,7 +184,6 @@ function SummaryStatCard({
 }
 
 function SummaryContent({ userId }: { userId: string }) {
-  const { user } = useAuth();
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["user-summary", userId],
     queryFn: () => fetchPublicProfile(userId),

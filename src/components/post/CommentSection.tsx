@@ -150,9 +150,11 @@ function SingleComment({
   canVote,
   editCount,
   isAcceptLoading,
+  canDelete,
   onReply,
   onEdit,
   onAccept,
+  onDelete,
 }: {
   comment: Comment;
   currentUserId?: string;
@@ -163,6 +165,7 @@ function SingleComment({
   canVote: boolean;
   editCount: number;
   isAcceptLoading?: boolean;
+  canDelete?: boolean;
   onReply?: () => void;
   onEdit: (
     commentId: string,
@@ -171,11 +174,13 @@ function SingleComment({
     parentId?: string,
   ) => Promise<{ success: boolean; error?: string }>;
   onAccept?: () => void;
+  onDelete?: (commentId: string) => void;
 }) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const isOwner =
     !!currentUserId && currentUserId.trim() === comment.user.id.trim();
@@ -192,6 +197,19 @@ function SingleComment({
       setEditing(false);
     } else if (res.error) {
       setEditError(res.error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Hapus komentar ini? Tindakan tidak dapat dibatalkan.")) return;
+    setDeleteLoading(true);
+    try {
+      await commentsApi.delete(comment.id);
+      onDelete?.(comment.id);
+    } catch {
+      // silently fail — comment stays
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -382,6 +400,27 @@ function SingleComment({
               </button>
             )}
 
+            {canDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: deleteLoading ? "not-allowed" : "pointer",
+                  fontSize: 12,
+                  color: "#dc2626",
+                  padding: 0,
+                  opacity: deleteLoading ? 0.6 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                {deleteLoading ? "Menghapus..." : "🗑 Hapus"}
+              </button>
+            )}
+
             {currentUserId && (
               <CommentReport commentId={comment.id} />
             )}
@@ -400,9 +439,11 @@ function CommentThread({
   isSubmitting,
   isAcceptLoading,
   editCounts,
+  canDelete,
   onReply,
   onEdit,
   onAccept,
+  onDeleteComment,
   replyError,
   onReplyErrorClear,
 }: {
@@ -413,6 +454,7 @@ function CommentThread({
   isSubmitting: boolean;
   isAcceptLoading?: boolean;
   editCounts: Record<string, number>;
+  canDelete?: boolean;
   onReply: (parentId: string, body: string) => Promise<{ success: boolean; error?: string }>;
   onEdit: (
     commentId: string,
@@ -421,37 +463,54 @@ function CommentThread({
     parentId?: string,
   ) => Promise<{ success: boolean; error?: string }>;
   onAccept: (commentId: string) => void;
+  onDeleteComment: (commentId: string) => void;
   replyError?: string | null;
   onReplyErrorClear?: () => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
-  const isAccepted = acceptedAnswerId === comment.id;
+  const [localComment, setLocalComment] = useState(comment);
+
+  // Keep in sync when parent data updates
+  if (localComment.id !== comment.id) setLocalComment(comment);
+
+  const isAccepted = acceptedAnswerId === localComment.id;
   const canVote =
-    !!currentUserId && currentUserId.trim() !== comment.user.id.trim();
+    !!currentUserId && currentUserId.trim() !== localComment.user.id.trim();
 
   const handleReplySubmit = async (body: string) => {
-    const result = await onReply(comment.id, body);
+    const result = await onReply(localComment.id, body);
     if (result.success) {
       setReplyOpen(false);
     }
   };
 
+  // Remove a deleted reply from local state immediately
+  const handleReplyDeleted = (replyId: string) => {
+    setLocalComment((prev) => ({
+      ...prev,
+      replies: prev.replies.filter((r) => r.id !== replyId),
+    }));
+    onDeleteComment(replyId);
+  };
+
   return (
     <div>
       <SingleComment
-        comment={comment}
+        comment={localComment}
         currentUserId={currentUserId}
         postOwnerId={postOwnerId}
         isAccepted={isAccepted}
         canVote={canVote}
-        editCount={editCounts[comment.id] ?? 0}
+        editCount={editCounts[localComment.id] ?? 0}
         isAcceptLoading={isAcceptLoading}
+        canDelete={canDelete}
         onReply={() => setReplyOpen((p) => !p)}
         onEdit={onEdit}
-        onAccept={() => onAccept(comment.id)}
+        onAccept={() => onAccept(localComment.id)}
+        onDelete={onDeleteComment}
       />
 
-      {comment.replies && comment.replies.length > 0 && (
+      {localComment.replies && localComment.replies.length > 0 && (
         <div
           style={{
             marginLeft: 42,
@@ -459,20 +518,22 @@ function CommentThread({
             paddingLeft: 16,
           }}
         >
-          {comment.replies.map((reply) => (
+          {localComment.replies.map((reply) => (
             <SingleComment
               key={reply.id}
               comment={reply}
               currentUserId={currentUserId}
               postOwnerId={postOwnerId}
               isReply
-              parentId={comment.id}
+              parentId={localComment.id}
               isAccepted={acceptedAnswerId === reply.id}
               canVote={false}
               editCount={editCounts[reply.id] ?? 0}
               isAcceptLoading={isAcceptLoading}
+              canDelete={canDelete}
               onEdit={onEdit}
               onAccept={() => onAccept(reply.id)}
+              onDelete={handleReplyDeleted}
             />
           ))}
         </div>
@@ -533,7 +594,12 @@ export default function CommentSection({
   const [commentError, setCommentError] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [isAcceptLoading, setIsAcceptLoading] = useState(false);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const editCountsInitialized = useRef(false);
+
+  // Mod/admin check
+  const canDelete =
+    user?.roles?.some((r) => r.name === "admin" || r.name === "moderator") ?? false;
 
   useEffect(() => {
     if (comments && !editCountsInitialized.current) {
@@ -612,6 +678,13 @@ export default function CommentSection({
     return result;
   };
 
+  // Remove comment (or reply) from visible list immediately
+  const handleDeleteComment = (commentId: string) => {
+    setDeletedIds((prev) => new Set(prev).add(commentId));
+  };
+
+  const visibleComments = comments.filter((c) => !deletedIds.has(c.id));
+
   return (
     <div style={{ marginTop: 32 }}>
       <div
@@ -627,7 +700,7 @@ export default function CommentSection({
         <h3
           style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#111827" }}
         >
-          {comments.length} Komentar
+          {visibleComments.length} Komentar
         </h3>
         {!isPostOpen && (
           <span style={{ fontSize: 12, color: "#9ca3af" }}>
@@ -664,7 +737,7 @@ export default function CommentSection({
 
       {!isLoading && !error && (
         <>
-          {comments.length === 0 ? (
+          {visibleComments.length === 0 ? (
             <div
               style={{
                 textAlign: "center",
@@ -677,7 +750,7 @@ export default function CommentSection({
             </div>
           ) : (
             <div>
-              {comments.map((comment) => (
+              {visibleComments.map((comment) => (
                 <CommentThread
                   key={comment.id}
                   comment={comment}
@@ -687,9 +760,11 @@ export default function CommentSection({
                   isSubmitting={isSubmitting}
                   isAcceptLoading={isAcceptLoading}
                   editCounts={editCounts}
+                  canDelete={canDelete}
                   onReply={handleAddReply}
                   onEdit={handleEdit}
                   onAccept={handleAccept}
+                  onDeleteComment={handleDeleteComment}
                   replyError={replyError}
                   onReplyErrorClear={() => setReplyError(null)}
                 />

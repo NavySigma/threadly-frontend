@@ -4,6 +4,7 @@ export interface Tag {
   slug?: string;
   color: string | null;
   usage_count?: number;
+  isNew?: boolean;
 }
 
 export interface Category {

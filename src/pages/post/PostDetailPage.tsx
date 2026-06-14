@@ -17,6 +17,10 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
+function isModOrAdmin(roles?: { id: string; name: string }[]) {
+  return roles?.some((r) => r.name === "admin" || r.name === "moderator") ?? false;
+}
+
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -40,7 +44,10 @@ export default function PostDetailPage() {
     );
   }
 
-  const isOwner = user?.id === post.user.id;
+  const isOwner    = user?.id === post.user.id;
+  const isMod      = isModOrAdmin(user?.roles);
+  const showMenu   = isOwner || isMod;
+  const showDelete = isMod; // mod/admin can delete anyone's post
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
@@ -53,12 +60,14 @@ export default function PostDetailPage() {
           <ArrowLeft size={16} /> Kembali
         </button>
 
-        {isOwner && (
+        {showMenu && (
           <PostActionMenu
             postId={post.id}
             postStatus={post.status}
-            closedAt={post.closed_at}
+            closedAt={post.closed_at ?? null}
+            showDelete={showDelete}
             onUpdated={refetch}
+            onDeleted={() => navigate("/")}
           />
         )}
       </div>

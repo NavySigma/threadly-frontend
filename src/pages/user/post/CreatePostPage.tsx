@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import { useCreatePost } from "../../../hooks/useCreatePost";
 import { useAuth } from "../../../hooks/useAuth";
-import type { Tag, Category, CreatePostPayload, InitialValueCreatePost } from "../../../types/posts";
+import type { Tag, CreatePostPayload, InitialValueCreatePost } from "../../../types/posts";
 import { CreatePostSchema } from "./createpostpage.validation";
 
 const TITLE_MIN = 15;
@@ -338,7 +338,7 @@ export default function CreatePostPage() {
                       className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-left transition-colors"
                     >
                       <TagBadge tag={tag} />
-                      {tag.usage_count > 0 && <span className="text-xs text-gray-400 ml-auto">{tag.usage_count}&times;</span>}
+                      {(tag.usage_count ?? 0) > 0 && <span className="text-xs text-gray-400 ml-auto">{tag.usage_count}&times;</span>}
                     </button>
                   ))}
 

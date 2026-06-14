@@ -6,7 +6,6 @@ import {
   Eye,
   EyeOff,
   ChevronLeft,
-  Save,
   Sparkles,
   X,
 } from "lucide-react";

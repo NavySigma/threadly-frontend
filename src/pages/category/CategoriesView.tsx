@@ -1,5 +1,4 @@
-import type { Category, PaginationMeta } from "../types/category.types";
-import type { Post } from "../../types/post.type"; // sesuaikan path ke type Post asli
+import type { Category, PaginationMeta } from "../../types/category.types";
 import {
   SearchBar,
   CategoryCard,
@@ -7,7 +6,7 @@ import {
   EmptyCategories,
   ErrorState,
   Pagination,
-} from "../ui/category.ui";
+} from "./category.ui";
 
 // ─── Toolbar ──────────────────────────────────────────────────────────────────
 

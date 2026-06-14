@@ -71,4 +71,9 @@ export const commentsApi = {
     apiFetch<{ message: string }>(`/posts/${postId}/unaccept`, {
       method: "DELETE",
     }),
+
+  delete: (commentId: string) =>
+    apiFetch<{ message: string }>(`/comments/${commentId}`, {
+      method: "DELETE",
+    }),
 };

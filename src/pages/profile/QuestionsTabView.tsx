@@ -1,4 +1,4 @@
-import { Search, MessageSquare, Eye, ChevronUp } from "lucide-react";
+import { Search } from "lucide-react";
 import { PostActionMenu } from "./PostActionMenu";
 import type { UserPost } from "../../types/userPost.type";
 
@@ -13,14 +13,18 @@ function timeAgo(dateStr: string): string {
 
 interface QuestionsTabItemProps {
   post: UserPost;
+  showDelete: boolean;
   onClick: () => void;
   onUpdated: () => void;
+  onDeleted: (postId: string) => void;
 }
 
 function QuestionsTabItem({
   post,
+  showDelete,
   onClick,
   onUpdated,
+  onDeleted,
 }: QuestionsTabItemProps) {
   return (
     <div
@@ -175,7 +179,9 @@ function QuestionsTabItem({
           postId={post.id}
           postStatus={post.status}
           closedAt={post.closed_at ?? null}
+          showDelete={showDelete}
           onUpdated={onUpdated}
+          onDeleted={() => onDeleted(post.id)}
         />
       </div>
     </div>
@@ -186,16 +192,20 @@ interface QuestionsTabViewProps {
   posts: UserPost[];
   isLoading: boolean;
   error: string | null;
+  showDelete?: boolean;
   onItemClick: (postId: string) => void;
   onUpdated: () => void;
+  onDeleted?: (postId: string) => void;
 }
 
 export function QuestionsTabView({
   posts,
   isLoading,
   error,
+  showDelete = false,
   onItemClick,
   onUpdated,
+  onDeleted,
 }: QuestionsTabViewProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -278,8 +288,10 @@ export function QuestionsTabView({
             <QuestionsTabItem
               key={post.id}
               post={post}
+              showDelete={showDelete}
               onClick={() => onItemClick(post.id)}
               onUpdated={onUpdated}
+              onDeleted={onDeleted ?? (() => {})}
             />
           ))}
         </div>

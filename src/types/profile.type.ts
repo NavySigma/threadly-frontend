@@ -1,4 +1,4 @@
-export type MainTab = "profile" | "activity" | "likes";
+export type MainTab = "profile" | "activity" | "likes" | "bookmarks";
 
 export type ActivityTab =
   | "summary"
