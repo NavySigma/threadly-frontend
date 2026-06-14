@@ -25,81 +25,37 @@ export default function UserCard({ user }: { user: UserItem }) {
   return (
     <Link
       to={`/users/${user.id}`}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: 14,
-        border: "1px solid var(--black-100)",
-        borderRadius: 6,
-        textDecoration: "none",
-        color: "inherit",
-        transition: "border-color 0.15s, box-shadow 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--orange)";
-        e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,148,136,0.1)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--black-100)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
+      className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl bg-white hover:border-teal-500 hover:shadow-[0_2px_8px_rgba(13,148,136,0.1)] transition-all no-underline text-inherit"
     >
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: "50%",
-          background: "var(--black-100)",
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}
-      >
+      <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0 flex items-center justify-center overflow-hidden">
         {user.avatar_url ? (
           <img
             src={user.avatar_url}
             alt={user.username}
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
+            className="w-full h-full rounded-full object-cover"
           />
         ) : (
-          <span style={{ fontSize: 20, fontWeight: 600, color: "var(--black-500)" }}>
+          <span className="text-lg font-semibold text-gray-400">
             {user.username[0].toUpperCase()}
           </span>
         )}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-        <span
-          style={{
-            fontWeight: 600,
-            fontSize: 14,
-            color: "var(--orange)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
+      <div className="flex flex-col gap-1 min-w-0">
+        <span className="font-semibold text-sm text-teal-700 truncate">
           {user.username}
         </span>
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <span style={{ display: "flex", alignItems: "baseline", gap: 3 }}>
-            <span style={{ fontWeight: 600, fontSize: 13, color: "var(--black-700)" }}>
+        <div className="flex gap-2.5">
+          <span className="flex items-baseline gap-1">
+            <span className="font-semibold text-sm text-gray-700">
               {user.reputation_points.toLocaleString()}
             </span>
-            <span style={{ fontSize: 11, color: "var(--black-500)" }}>rep</span>
+            <span className="text-[11px] text-gray-400">rep</span>
           </span>
         </div>
 
-        <span style={{ fontSize: 11, color: "var(--black-300)" }}>
+        <span className="text-[11px] text-gray-400">
           Joined {timeJoined(user.created_at)}
         </span>
       </div>

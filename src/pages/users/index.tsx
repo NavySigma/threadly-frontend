@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import UserCard, { type UserItem } from "./UserCard";
-import { getToken } from "../../api/client";
+import { apiFetch } from "../../api/client";
 
 type SortOption = "reputation" | "newest" | "name";
 
@@ -18,47 +18,23 @@ async function fetchUsers(params: {
   search: string;
   sort: SortOption;
 }): Promise<UsersResponse> {
-  const token = getToken();
   const query = new URLSearchParams({
     page: String(params.page),
     sort: params.sort,
     ...(params.search ? { search: params.search } : {}),
   });
 
-  const res = await fetch(`/api/users?${query}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-
-  if (!res.ok) throw new Error("Gagal memuat data users");
-  return res.json();
+  return apiFetch(`/users?${query}`);
 }
 
 function UserCardSkeleton() {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: 14,
-        border: "1px solid var(--black-100)",
-        borderRadius: 6,
-        opacity: 0.5,
-      }}
-    >
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          borderRadius: "50%",
-          background: "var(--black-100)",
-          flexShrink: 0,
-        }}
-      />
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
-        <div style={{ height: 14, width: "60%", background: "var(--black-100)", borderRadius: 4 }} />
-        <div style={{ height: 12, width: "40%", background: "var(--black-100)", borderRadius: 4 }} />
-        <div style={{ height: 11, width: "50%", background: "var(--black-100)", borderRadius: 4 }} />
+    <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl">
+      <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
+      <div className="flex flex-col gap-2 flex-1">
+        <div className="h-3.5 w-3/5 bg-gray-100 rounded" />
+        <div className="h-3 w-2/5 bg-gray-100 rounded" />
+        <div className="h-2.5 w-1/2 bg-gray-100 rounded" />
       </div>
     </div>
   );
@@ -103,160 +79,109 @@ export default function UsersPage() {
         <h1>Users</h1>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-          flexWrap: "wrap",
-          gap: 8,
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Filter by user..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "7px 12px",
-            border: "1px solid var(--black-150)",
-            borderRadius: 4,
-            fontFamily: "var(--sans)",
-            fontSize: 13,
-            width: 220,
-            outline: "none",
-          }}
-        />
-        <div className="filter-bar">
-          {sortOptions.map((opt) => (
-            <button
-              key={opt.value}
-              className={`filter-btn${sort === opt.value ? " active" : ""}`}
-              onClick={() => {
-                setSort(opt.value);
-                setPage(1);
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Filter by user..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm font-sans w-60 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 transition"
+            />
+          </div>
+          <div className="filter-bar">
+            {sortOptions.map((opt) => (
+              <button
+                key={opt.value}
+                className={`filter-btn${sort === opt.value ? " active" : ""}`}
+                onClick={() => {
+                  setSort(opt.value);
+                  setPage(1);
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {!isLoading && !isError && (
-        <p style={{ fontSize: 13, color: "var(--black-500)", marginBottom: 12 }}>
-          {meta.total.toLocaleString()} users
-        </p>
-      )}
-
-      {isError && (
-        <div
-          style={{
-            padding: "12px 16px",
-            background: "#fee",
-            border: "1px solid #f99",
-            borderRadius: 4,
-            color: "#c0392b",
-            fontSize: 13,
-            marginBottom: 16,
-          }}
-        >
-          {error instanceof Error ? error.message : "Terjadi kesalahan"}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: 12,
-          }}
-        >
-          {Array.from({ length: 12 }).map((_, i) => (
-            <UserCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : users.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "64px 0", color: "var(--black-500)" }}>
-          <Users size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
-          <p style={{ fontSize: 14 }}>
-            {debouncedSearch
-              ? `Tidak ada user dengan nama "${debouncedSearch}"`
-              : "Belum ada user terdaftar."}
+        {!isLoading && !isError && (
+          <p className="text-sm text-gray-400 mb-3">
+            <span className="font-semibold text-gray-600">{meta.total.toLocaleString()}</span> users
           </p>
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: 12,
-          }}
-        >
-          {users.map((u) => (
-            <UserCard key={u.id} user={u} />
-          ))}
-        </div>
-      )}
+        )}
 
-      {!isLoading && meta.last_page > 1 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 6,
-            marginTop: 24,
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            className="filter-btn"
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-            style={{ display: "flex", alignItems: "center", gap: 4 }}
-          >
-            <ChevronLeft size={16} /> Prev
-          </button>
+        {isError && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 mb-4">
+            {error instanceof Error ? error.message : "Terjadi kesalahan"}
+          </div>
+        )}
 
-          {Array.from({ length: meta.last_page }, (_, i) => i + 1)
-            .filter(
-              (p) =>
-                p === 1 || p === meta.last_page || Math.abs(p - page) <= 2
-            )
-            .map((p, idx, arr) => {
-              const showEllipsis = idx > 0 && arr[idx - 1] !== p - 1;
-              return (
-                <span
-                  key={p}
-                  style={{ display: "inline-flex", gap: 6, alignItems: "center" }}
-                >
-                  {showEllipsis && (
-                    <span style={{ padding: "4px 8px", color: "var(--black-500)" }}>
-                      …
-                    </span>
-                  )}
-                  <button
-                    className={`filter-btn${p === page ? " active" : ""}`}
-                    onClick={() => setPage(p)}
-                  >
-                    {p}
-                  </button>
-                </span>
-              );
-            })}
+        {isLoading ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <UserCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : users.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white border border-gray-200 rounded-xl">
+            <Users size={36} className="text-gray-300" />
+            <p className="text-sm font-semibold text-gray-600">
+              {debouncedSearch
+                ? `Tidak ada user dengan nama "${debouncedSearch}"`
+                : "Belum ada user terdaftar."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+            {users.map((u) => (
+              <UserCard key={u.id} user={u} />
+            ))}
+          </div>
+        )}
 
-          <button
-            className="filter-btn"
-            disabled={page === meta.last_page}
-            onClick={() => setPage((p) => p + 1)}
-            style={{ display: "flex", alignItems: "center", gap: 4 }}
-          >
-            Next <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
-    </div>
+        {!isLoading && meta.last_page > 1 && (
+          <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
+            <button
+              className="filter-btn flex items-center gap-1"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft size={15} /> Prev
+            </button>
+
+            {Array.from({ length: meta.last_page }, (_, i) => i + 1)
+              .filter(
+                (p) =>
+                  p === 1 || p === meta.last_page || Math.abs(p - page) <= 2
+              )
+              .map((p, idx, arr) => {
+                const showEllipsis = idx > 0 && arr[idx - 1] !== p - 1;
+                return (
+                  <span key={p} className="inline-flex gap-1.5 items-center">
+                    {showEllipsis && (
+                      <span className="px-2 py-1 text-gray-400 text-sm">…</span>
+                    )}
+                    <button
+                      className={`filter-btn${p === page ? " active" : ""}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  </span>
+                );
+              })}
+
+            <button
+              className="filter-btn flex items-center gap-1"
+              disabled={page === meta.last_page}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next <ChevronRight size={15} />
+            </button>
+          </div>
+        )}
+      </div>
   );
 }
