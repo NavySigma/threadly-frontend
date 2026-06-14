@@ -234,7 +234,8 @@ export default function CreatePostPage() {
     setShowTagDropdown(false);
 
     try {
-      const res = await tagsApi.create({ name: trimmedName });
+      const color = getTagColor({ name: trimmedName } as Tag);
+      const res = await tagsApi.create({ name: trimmedName, color });
       const newTag = res.data;
       const finalSelectedTags = nextSelectedTags.map((t) =>
         t.id === tempId ? newTag : t,
