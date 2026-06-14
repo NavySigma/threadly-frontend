@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   User,
   Mail,
@@ -14,6 +15,8 @@ import {
   TrendingUp,
   LogOut,
   Bookmark,
+  CheckCircle,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
@@ -21,6 +24,7 @@ import FollowButton from "../follow/FollowButton";
 import FollowersModal from "../follow/FollowersModal";
 import { QuestionsTab } from "./QuestionsTab";
 import { TagsTab } from "./TagsTab";
+import { AnswersTab } from "./AnswersTab";
 import { PointsHistoryView } from "./history/PointsHistoryPage";
 import { useBookmarks } from "../../hooks/useBookmarks";
 import { PostCard } from "../../components/post/PostCard";
@@ -126,6 +130,113 @@ function EmptyState({ message }: { message: string }) {
       }}
     >
       {message}
+    </div>
+  );
+}
+
+function SummaryStatCard({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+}) {
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #e5e7eb",
+        borderRadius: 10,
+        padding: "16px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        transition: "all 0.15s",
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 10,
+          background: "#f0fdfa",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#0d9488",
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontSize: 22, fontWeight: 600, color: "#111827", lineHeight: 1.2 }}>
+          {value}
+        </div>
+        <div style={{ fontSize: 13, color: "#6b7280" }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryContent({ userId }: { userId: string }) {
+  const { user } = useAuth();
+  const { data: profileData, isLoading } = useQuery({
+    queryKey: ["user-summary", userId],
+    queryFn: () => fetchPublicProfile(userId),
+    enabled: !!userId,
+  });
+
+  if (isLoading)
+    return (
+      <div style={{ padding: "20px 0", color: "#6b7280", fontSize: 14 }}>
+        Memuat ringkasan...
+      </div>
+    );
+
+  const p = profileData?.data;
+
+  if (!p) return null;
+
+  return (
+    <div>
+      <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>
+        Summary
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <SummaryStatCard
+          icon={<TrendingUp size={18} />}
+          value={p.reputation_points ?? 0}
+          label="Reputation"
+        />
+        <SummaryStatCard
+          icon={<MessageSquare size={18} />}
+          value={p.posts_count ?? 0}
+          label="Questions"
+        />
+        <SummaryStatCard
+          icon={<MessageSquare size={18} />}
+          value={p.comments_count ?? 0}
+          label="Answers"
+        />
+        <SummaryStatCard
+          icon={<CheckCircle size={18} />}
+          value={p.accepted_count ?? 0}
+          label="Accepted"
+        />
+        <SummaryStatCard
+          icon={<Users size={18} />}
+          value={p.followers_count ?? 0}
+          label="Followers"
+        />
+        <SummaryStatCard
+          icon={<Users size={18} />}
+          value={p.following_count ?? 0}
+          label="Following"
+        />
+      </div>
     </div>
   );
 }
@@ -332,20 +443,10 @@ function ActivityContent({
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        {activeSubTab === "summary" && (
-          <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Summary</p>
-            <EmptyState message="Belum ada aktivitas." />
-          </div>
-        )}
+        {activeSubTab === "summary" && <SummaryContent userId={userId} />}
         {activeSubTab === "questions" && <QuestionsTab userId={userId} />}
         {activeSubTab === "tags" && <TagsTab userId={userId} />}
-        {activeSubTab === "answers" && (
-          <div>
-            <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Answers</p>
-            <EmptyState message="Belum ada jawaban." />
-          </div>
-        )}
+        {activeSubTab === "answers" && <AnswersTab userId={userId} />}
         {activeSubTab === "badges" && (
           <div>
             <p style={{ fontSize: 17, fontWeight: 500, margin: "0 0 16px" }}>Rank</p>
