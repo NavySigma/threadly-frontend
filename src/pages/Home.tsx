@@ -68,7 +68,7 @@ function PostCard({ post }: { post: Post }) {
         <div className="flex items-center gap-2 mb-1.5">
           {post.status?.toLowerCase() !== "open" && (
             <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200 uppercase">
-              Private
+              CLOSED
             </span>
           )}
           <Link

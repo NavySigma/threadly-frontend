@@ -2,6 +2,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { usePostDetail } from "../../../hooks/usePostDetail";
 import { useAuth } from "../../../contexts/useAuth";
 import CommentSection from "../../../components/post/CommentSection";
+import { PostActionMenu } from "./PostActionMenu";
+import { postsApi } from "../../../api/posts";
 
 
 
@@ -99,12 +101,25 @@ export default function PostDetailPage() {
             </div>
 
             {isOwner && (
-              <Link
-                to={`/posts/${post.id}/edit`}
-                style={{ fontSize: 13, color: "#4f46e5", textDecoration: "none", padding: "6px 14px", border: "1px solid #4f46e5", borderRadius: 6 }}
-              >
-                Edit
-              </Link>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <Link
+                  to={`/posts/${post.id}/edit`}
+                  style={{ fontSize: 13, color: "#4f46e5", textDecoration: "none", padding: "6px 14px", border: "1px solid #4f46e5", borderRadius: 6 }}
+                >
+                  Edit
+                </Link>
+                <PostActionMenu
+                  postId={post.id.toString()}
+                  isPrivate={post.status !== "open"}
+                  onPrivate={async (postId) => {
+                    await postsApi.close(postId);
+                    refetch();
+                  }}
+                  onDeleted={() => {
+                    navigate("/");
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>

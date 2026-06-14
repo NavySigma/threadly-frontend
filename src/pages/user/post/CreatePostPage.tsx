@@ -90,6 +90,8 @@ export default function CreatePostPage() {
   const formik = useFormik<InitialValueCreatePost & { selectedTags: (Tag & { isNew?: boolean })[] }>({
     initialValues: { category_id: "", title: "", body: "", selectedTags: [] },
     validationSchema: CreatePostSchema,
+    validateOnMount: true,
+    validateOnChange: true,
     onSubmit: async (values) => {
       setGlobalError(null);
       
@@ -233,7 +235,7 @@ export default function CreatePostPage() {
               ))}
             </select>
           )}
-          <FieldError message={formik.touched.category_id && formik.errors.category_id ? formik.errors.category_id : undefined} />
+          <FieldError message={formik.errors.category_id} />
         </div>
 
         {/* Title */}
@@ -252,14 +254,14 @@ export default function CreatePostPage() {
               onBlur={formik.handleBlur}
               maxLength={TITLE_MAX}
               className="peer w-full border-none bg-transparent px-3 py-3 text-sm placeholder-transparent focus:border-transparent focus:outline-none focus:ring-0 mt-0.5 rounded text-gray-900 dark:text-white"
-              style={{ borderColor: formik.touched.title && formik.errors.title ? "var(--red)" : undefined }}
+              style={{ borderColor: formik.errors.title ? "var(--red)" : undefined }}
             />
             <span className="pointer-events-none absolute inset-y-0 start-3 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none">
               Title <span className="text-red-500">*</span>
             </span>
           </label>
           <div className="flex justify-between items-start">
-            <FieldError message={formik.touched.title && formik.errors.title ? formik.errors.title : undefined} />
+            <FieldError message={formik.errors.title} />
             <CharHint current={formik.values.title.length} min={TITLE_MIN} max={TITLE_MAX} />
           </div>
         </div>
@@ -279,14 +281,14 @@ export default function CreatePostPage() {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               className="peer w-full border-none bg-transparent px-3 py-3 text-sm placeholder-transparent focus:border-transparent focus:outline-none focus:ring-0 mt-0.5 rounded text-gray-900 dark:text-white resize-y"
-              style={{ borderColor: formik.touched.body && formik.errors.body ? "var(--red)" : undefined }}
+              style={{ borderColor: formik.errors.body ? "var(--red)" : undefined }}
             />
             <span className="pointer-events-none absolute start-3 top-0 -translate-y-3.5 bg-white dark:bg-gray-950 px-0.5 text-xs font-medium text-gray-700 dark:text-gray-300 transition-all peer-placeholder-shown:translate-y-2.5 peer-placeholder-shown:text-sm peer-focus:-translate-y-3.5 peer-focus:text-xs h-fit leading-none">
               Content <span className="text-red-500">*</span>
             </span>
           </label>
           <div className="flex justify-between items-start">
-            <FieldError message={formik.touched.body && formik.errors.body ? formik.errors.body : undefined} />
+            <FieldError message={formik.errors.body} />
             <CharHint current={formik.values.body.length} min={BODY_MIN} max={99999} />
           </div>
         </div>

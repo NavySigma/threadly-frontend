@@ -77,6 +77,7 @@ export function PostActionMenu({
       <button
         onClick={() => setIsOpen((v) => !v)}
         type="button"
+        aria-label="Post actions"
         className="inline-flex justify-center rounded-md px-2 py-1 bg-white text-sm text-gray-700 hover:bg-gray-50"
       >
         <svg
