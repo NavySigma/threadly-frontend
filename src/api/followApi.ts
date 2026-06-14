@@ -21,8 +21,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
         const first = Object.values(body.errors)[0];
         if (Array.isArray(first) && first.length > 0) message = first[0] as string;
       }
-    } catch (_e) {
-      // intentionally ignored
+    } catch {
+      // response bukan JSON, pakai pesan default
     }
     throw new Error(message);
   }
@@ -49,6 +49,7 @@ export interface PublicUser {
   followers_count: number;
   following_count: number;
   posts_count: number;
+  is_following?: boolean;
 }
 
 export async function fetchPublicProfile(userId: string): Promise<{ data: PublicUser }> {
@@ -74,14 +75,20 @@ export async function unfollowUser(userId: string): Promise<{ message: string }>
   return handleResponse<{ message: string }>(res);
 }
 
-export async function fetchFollowers(userId: string): Promise<{ data: FollowUser[]; meta: { followers_count: number } }> {
+export async function fetchFollowers(userId: string): Promise<{
+  data: FollowUser[];
+  meta: { followers_count: number };
+}> {
   const res = await fetch(`${BASE_URL}/users/${userId}/followers`, {
     headers: authHeaders(),
   });
   return handleResponse(res);
 }
 
-export async function fetchFollowing(userId: string): Promise<{ data: FollowUser[]; meta: { following_count: number } }> {
+export async function fetchFollowing(userId: string): Promise<{
+  data: FollowUser[];
+  meta: { following_count: number };
+}> {
   const res = await fetch(`${BASE_URL}/users/${userId}/following`, {
     headers: authHeaders(),
   });
