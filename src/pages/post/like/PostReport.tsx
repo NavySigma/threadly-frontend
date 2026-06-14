@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { reportApi } from "../../../api/report.api";
 import { X, AlertTriangle } from "lucide-react";
-import type { ReportResponse } from "../../../types/report.type";
-import type { ApiError } from "../../../api";
+import type { ApiError, ReportResponse } from "../../../types";
+
 interface PostReportProps {
   postId: string;
 }

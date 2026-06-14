@@ -1,4 +1,4 @@
-import { usePostAction } from "./../hooks/usePostAction";
+import { usePostAction } from "../../hooks/usePostAction";
 import { PostActionView } from "./PostActionView";
 import type { PostStatus } from "./../../types/postAction.types";
 

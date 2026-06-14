@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, MessageSquare, Eye, ChevronUp } from "lucide-react";
 import { PostActionMenu } from "./PostActionMenu";
 import type { UserPost } from "../../types/userPost.type";
 
@@ -25,49 +25,122 @@ function QuestionsTabItem({
   return (
     <div
       onClick={onClick}
-      className="p-5 flex justify-between items-start hover:bg-gray-50/50 cursor-pointer transition group first:rounded-t-xl last:rounded-b-xl"
+      style={{
+        padding: "16px 20px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        cursor: "pointer",
+        transition: "all 0.15s",
+        borderBottom: "1px solid #e5e7eb",
+        background: "#fff",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "#f0fdfa";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "#fff";
+      }}
     >
-      <div className="flex gap-5 flex-1 min-w-0">
-        <div className="flex flex-col items-end gap-1.5 text-right min-w-[70px] text-gray-500 text-xs shrink-0">
+      <div style={{ display: "flex", gap: 20, flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 6,
+            minWidth: 70,
+            color: "#6b7280",
+            fontSize: 12,
+            flexShrink: 0,
+          }}
+        >
           <div>
-            <span className="font-semibold text-gray-700">
+            <span style={{ fontWeight: 600, color: "#374151" }}>
               {post.vote_score}
             </span>{" "}
             votes
           </div>
           <div>
-            <span className="font-semibold text-gray-700">
+            <span
+              style={{
+                fontWeight: 600,
+                color: post.is_answered ? "#16a34a" : "#374151",
+              }}
+            >
               {post.is_answered ? "✓" : "0"}
             </span>{" "}
             answers
           </div>
-          <div className="text-gray-400">{post.view_count} views</div>
+          <div style={{ color: "#9ca3af" }}>{post.view_count} views</div>
         </div>
 
-        <div className="flex-1 flex flex-col gap-1 min-w-0">
-          <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-800 line-clamp-2 flex items-center gap-2">
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#0d9488",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              margin: 0,
+            }}
+          >
             {post.status?.toLowerCase() !== "open" && (
-              <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase">
+              <span
+                style={{
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "1px 6px",
+                  borderRadius: 4,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  background: "#f3f4f6",
+                  color: "#6b7280",
+                  border: "1px solid #e5e7eb",
+                }}
+              >
                 Private
               </span>
             )}
-            <span>{post.title}</span>
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {post.title}
+            </span>
           </h3>
 
-          <p className="text-xs text-gray-500 line-clamp-2 mb-1">
+          <p
+            style={{
+              fontSize: 13,
+              color: "#6b7280",
+              lineHeight: 1.5,
+              margin: 0,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
             {post.body}
           </p>
 
           {post.tags && post.tags.length > 0 && (
             <div
-              className="flex flex-wrap gap-1.5 my-1"
+              style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 2 }}
               onClick={(e) => e.stopPropagation()}
             >
               {post.tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="px-2 py-0.5 rounded text-[11px] font-medium text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: tag.color ?? "#4a5568" }}
+                  style={{
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "#fff",
+                    background: tag.color ?? "#4a5568",
+                  }}
                 >
                   {tag.name}
                 </span>
@@ -75,8 +148,17 @@ function QuestionsTabItem({
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1">
-            <span className="font-medium text-gray-600">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 11,
+              color: "#9ca3af",
+              marginTop: 4,
+            }}
+          >
+            <span style={{ fontWeight: 500, color: "#6b7280" }}>
               {post.user?.username ?? "anonymous"}
             </span>
             <span>•</span>
@@ -86,7 +168,7 @@ function QuestionsTabItem({
       </div>
 
       <div
-        className="shrink-0 ml-4"
+        style={{ flexShrink: 0, marginLeft: 16 }}
         onClick={(e) => e.stopPropagation()}
       >
         <PostActionMenu
@@ -116,31 +198,82 @@ export function QuestionsTabView({
   onUpdated,
 }: QuestionsTabViewProps) {
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 bg-gray-50 border border-gray-200 rounded-xl">
-          <div className="w-8 h-8 border-2 border-gray-200 border-t-teal-600 rounded-full animate-spin" />
-          <p className="text-sm text-gray-400">Memuat pertanyaan...</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "64px 0",
+            gap: 12,
+            background: "#f9fafb",
+            border: "1px solid #e5e7eb",
+            borderRadius: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              border: "2px solid #e5e7eb",
+              borderTopColor: "#0d9488",
+              borderRadius: "50%",
+              animation: "spin 0.6s linear infinite",
+            }}
+          />
+          <p style={{ fontSize: 14, color: "#9ca3af", margin: 0 }}>
+            Memuat pertanyaan...
+          </p>
         </div>
       )}
 
       {!isLoading && error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
-          ⚠️ {error}
+        <div
+          style={{
+            padding: 16,
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: 12,
+            fontSize: 14,
+            color: "#dc2626",
+          }}
+        >
+          {error}
         </div>
       )}
 
       {!isLoading && !error && posts.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 gap-2 bg-gray-50 border border-gray-200 rounded-xl">
-          <Search size={32} className="text-gray-300" />
-          <p className="text-sm font-semibold text-gray-600">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "64px 0",
+            gap: 8,
+            background: "#f9fafb",
+            border: "1px solid #e5e7eb",
+            borderRadius: 12,
+          }}
+        >
+          <Search size={32} color="#d1d5db" />
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#6b7280", margin: 0 }}>
             Tidak ada pertanyaan ditemukan
           </p>
         </div>
       )}
 
       {!isLoading && !error && posts.length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl divide-y divide-gray-100">
+        <div
+          style={{
+            background: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
           {posts.map((post) => (
             <QuestionsTabItem
               key={post.id}

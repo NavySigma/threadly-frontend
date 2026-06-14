@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useCategories } from "../../hooks";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const PER_PAGE = 12;
 
@@ -73,6 +73,7 @@ const CategoriesPage = () => {
   const { categories, isLoading, error } = useCategories();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const navigate = useNavigate();
 
   const filtered = useMemo(() => {
     if (!search) return categories;
@@ -139,14 +140,12 @@ const CategoriesPage = () => {
               : paginated.map((category) => (
                   <div
                     key={category.id}
+                    onClick={() => navigate(`/posts?category_id=${category.id}`)}
                     className="border border-[#0d9488] rounded-xl bg-white shadow-sm p-4 flex flex-col cursor-pointer hover:shadow-md transition-shadow"
                   >
-                    <Link
-                      to={`/posts?category_id=${category.id}`}
-                      className="text-base font-bold text-[#0074cc] hover:text-[#0a95ff] transition-colors"
-                    >
+                    <span className="text-base font-bold text-[#0074cc] hover:text-[#0a95ff] transition-colors">
                       {category.name}
-                    </Link>
+                    </span>
                     <p className="text-xs text-gray-500 mt-1.5 mb-3 line-clamp-2">
                       {category.description || "Tidak ada deskripsi."}
                     </p>
@@ -157,6 +156,7 @@ const CategoriesPage = () => {
                           <Link
                             key={child.id}
                             to={`/posts?category_id=${child.id}`}
+                            onClick={(e) => e.stopPropagation()}
                             className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded hover:bg-gray-200 transition-colors"
                           >
                             {child.name}

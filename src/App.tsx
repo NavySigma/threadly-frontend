@@ -33,6 +33,8 @@ import EditHistoryPage from "./pages/admin/EditHistoryPage";
 import CategoriesPage from "./pages/category/CategoriesPage";
 import AdminCategoryPage from "./pages/admin/AdminCategoryPage";
 
+import ReportPage from "./pages/admin/ReportPage";
+
 
 function App() {
   return (
@@ -59,6 +61,7 @@ function App() {
             <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/:id" element={<ProfilePage />} />
             <Route path="/admin/edit-history" element={<EditHistoryPage />} />
             <Route path="/history" element={<PointsHistoryPage />} />
             <Route path="/tags" element={<TagsPage />} />
@@ -68,6 +71,9 @@ function App() {
             <Route path="/category" element={<Navigate to="/tags" replace />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/admin/categories" element={<AdminCategoryPage/>} />
+            <Route path="/admin/reports" element={<ReportPage />} />
+            <Route path="/admin/reports/:id" element={<ReportPage />} />
+
       
           
           </Route>

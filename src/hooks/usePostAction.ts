@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { postsApi } from "../../api/posts";
-import type { UsePostActionProps, UsePostActionReturn } from "../../types/postAction.types";
+import { postsApi } from "../api/posts";
+import type {
+  UsePostActionProps,
+  UsePostActionReturn,
+} from "../types/postAction.types";
 
 export function usePostAction({
   postId,
@@ -45,7 +48,7 @@ export function usePostAction({
     setIsLoadingClose(true);
     try {
       await postsApi.close(postId);
-      
+
       // Invalidate all post-related queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
       await queryClient.invalidateQueries({ queryKey: ["myPosts"] });
@@ -64,7 +67,7 @@ export function usePostAction({
     setIsLoadingReopen(true);
     try {
       await postsApi.reopen(postId);
-      
+
       // Invalidate all post-related queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
       await queryClient.invalidateQueries({ queryKey: ["myPosts"] });

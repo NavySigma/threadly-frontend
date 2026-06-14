@@ -6,6 +6,7 @@ import { commentsApi } from "../../api/comments";
 import type { Comment } from "../../api/comments";
 import CommentVote from "../../pages/post/comment/CommentVote";
 import CommentLike from "../../pages/post/comment/CommentLike";
+import CommentReport from "../../pages/post/comment/CommentReport";
 
 const MAX_COMMENTS_PER_USER = 1;
 const MAX_EDITS_PER_COMMENT = 2;
@@ -379,6 +380,10 @@ function SingleComment({
               >
                 Edit
               </button>
+            )}
+
+            {currentUserId && (
+              <CommentReport commentId={comment.id} />
             )}
           </div>
         )}

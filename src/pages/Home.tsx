@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "../api/client";
 import { getTagColor } from "../lib/tagColor";
+import { postsApi } from "../api/posts";
 
 interface CommunityStats {
   users_online: number;
