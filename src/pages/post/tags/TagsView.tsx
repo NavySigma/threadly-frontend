@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { Pencil, Trash2 } from "lucide-react";
 import type { Tag, TagsParams } from "../../../api/tags";
 import { getTagColor } from "../../../lib/tagColor";
-
 
 type TagsViewProps = {
   tags: Tag[];
@@ -15,17 +15,57 @@ type TagsViewProps = {
   onSearch: (value: string) => void;
   onSort: (sort: TagsParams["sort"]) => void;
   onPage: (page: number) => void;
+  isAdmin?: boolean;
+  onEdit?: (tag: Tag) => void;
+  onDelete?: (tag: Tag) => void;
 };
 
-function TagCard({ tag }: { tag: Tag }) {
+function TagCard({
+  tag,
+  isAdmin,
+  onEdit,
+  onDelete,
+}: {
+  tag: Tag;
+  isAdmin?: boolean;
+  onEdit?: (tag: Tag) => void;
+  onDelete?: (tag: Tag) => void;
+}) {
   const navigate = useNavigate();
   const color = getTagColor(tag);
 
   return (
     <div
       onClick={() => navigate(`/posts?tag_id=${tag.id}`)}
-      className="border border-[#0d9488] rounded-xl bg-white shadow-sm p-4 flex flex-col min-h-[110px] cursor-pointer hover:shadow-md transition-shadow"
+      className="relative border border-[#0d9488] rounded-xl bg-white shadow-sm p-4 flex flex-col min-h-[110px] cursor-pointer hover:shadow-md transition-shadow"
     >
+      {isAdmin && onEdit && onDelete && (
+        <div className="absolute right-3 top-3 flex gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(tag);
+            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-teal-600 shadow-sm transition hover:bg-teal-50 hover:text-teal-700"
+            title="Edit tag"
+          >
+            <Pencil size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(tag);
+            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-red-600 shadow-sm transition hover:bg-red-50 hover:text-red-700"
+            title="Hapus tag"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )}
+
       <span
         className="px-2.5 py-1 text-xs font-bold rounded-md self-start"
         style={{
@@ -74,7 +114,6 @@ function Pagination({
   const pages = Array.from({ length: last }, (_, i) => i + 1).filter(
     (p) => p === 1 || p === last || Math.abs(p - current) <= 2,
   );
-
 
   return (
     <div className="flex justify-center gap-1 mt-8 flex-wrap">
@@ -128,6 +167,9 @@ export default function TagsView({
   onSearch,
   onSort,
   onPage,
+  isAdmin,
+  onEdit,
+  onDelete,
 }: TagsViewProps) {
   return (
     <div className="max-w-[1100px] w-full">
@@ -187,7 +229,15 @@ export default function TagsView({
           <div className="grid gap-4 grid-cols-5">
             {isLoading
               ? Array.from({ length: 8 }, (_, idx) => <TagSkeleton key={idx} />)
-              : tags.map((tag) => <TagCard key={tag.id} tag={tag} />)}
+              : tags.map((tag) => (
+                  <TagCard
+                    key={tag.id}
+                    tag={tag}
+                    isAdmin={isAdmin}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                ))}
           </div>
 
           {!isLoading && tags.length === 0 && (

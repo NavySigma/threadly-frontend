@@ -4,14 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchTags, type TagsParams } from "../api/tags";
 
 export function useTags() {
-  const [page, setPage]     = useState(1);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [sort, setSort]     = useState<TagsParams["sort"]>("popular");
+  const [sort, setSort] = useState<TagsParams["sort"]>("popular");
   const PER_PAGE = 15;
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["tags", { search, sort }], // Remove page from query key if we want to fetch all and paginate locally, or keep it if API might support it
-    queryFn:  () => fetchTags({ search, sort, per_page: 1000 }), // Fetch more to allow local pagination if API doesn't support per_page
+    queryKey: ["tags", { page, search, sort }],
+    queryFn: () => fetchTags({ page, per_page: PER_PAGE, search, sort }),
     placeholderData: (prev) => prev,
     staleTime: 1000 * 60 * 5,
   });
@@ -21,13 +21,10 @@ export function useTags() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const allTags = data?.data ?? [];
-  const total = allTags.length;
-  const lastPage = Math.max(1, Math.ceil(total / PER_PAGE));
-  
-  // Local pagination
+  const tags = data?.data ?? [];
+  const total = data?.meta?.total ?? 0;
+  const lastPage = data?.meta?.last_page ? Math.max(1, data.meta.last_page) : 1;
   const currentPage = Math.min(page, lastPage);
-  const tags = allTags.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
   return {
     tags,
@@ -35,11 +32,17 @@ export function useTags() {
     lastPage,
     total,
     isLoading,
-    error:     error ? (error as Error).message : null,
+    error: error ? (error as Error).message : null,
     search,
-    setSearch: (v: string) => { setSearch(v); setPage(1); },
+    setSearch: (v: string) => {
+      setSearch(v);
+      setPage(1);
+    },
     sort,
-    setSort:   (v: TagsParams["sort"]) => { setSort(v); setPage(1); },
+    setSort: (v: TagsParams["sort"]) => {
+      setSort(v);
+      setPage(1);
+    },
     goToPage,
   };
 }
