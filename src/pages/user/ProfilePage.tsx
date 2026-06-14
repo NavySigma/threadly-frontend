@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useFollow } from "../../hooks/useFollow";
 import { fetchPublicProfile, type PublicUser } from "../../api/followApi";
-import QuestionsTab from "./post/QuestionsTab";
+import QuestionsTab from "./post/Questionstab";
 import type { MainTab, ActivityTab } from "../../types/profile.type";
 
 function getInitial(name: string) {

@@ -20,7 +20,7 @@ export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { post, isLoading, error } = usePostDetail(id!);
+  const { post, isLoading, error, refetch } = usePostDetail(id!);
 
   if (isLoading) {
     return (
