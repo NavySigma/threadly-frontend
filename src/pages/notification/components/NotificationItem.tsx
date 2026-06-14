@@ -13,6 +13,7 @@ import {
   Award,
   Bell,
   ArrowLeft,
+  TrendingUp,
 } from "lucide-react";
 
 interface NotificationItemProps {
@@ -41,6 +42,12 @@ function getIconAndColor(type: NotificationType) {
       return { icon: Settings, bg: "#f3e8ff", color: "#9333ea" };
     case "new_badge":
       return { icon: Award, bg: "#ffedd5", color: "#ea580c" };
+    case "report_confirmed":
+      return { icon: CheckCircle, bg: "#dcfce7", color: "#16a34a" };
+    case "report_penalized":
+      return { icon: Bell, bg: "#fee2e2", color: "#dc2626" };
+    case "level_up":
+      return { icon: TrendingUp, bg: "#dbeafe", color: "#2563eb" };
     default:
       return { icon: Bell, bg: "#f3f4f6", color: "#6b7280" };
   }
@@ -141,6 +148,25 @@ const NotificationItemComponent: React.FC<NotificationItemProps> = ({
         return (
           <>
             Pencapaian: <strong>{notif.message}</strong> Cek profilmu sekarang!
+          </>
+        );
+      case "report_confirmed":
+        return (
+          <>
+            Laporanmu telah ditindaklanjuti oleh admin.
+            {notif.message && <> <em>"{notif.message}"</em></>}
+          </>
+        );
+      case "report_penalized":
+        return (
+          <>
+            Kontenmu kena sanksi karena melanggar aturan. {notif.message && <em>"{notif.message}"</em>}
+          </>
+        );
+      case "level_up":
+        return (
+          <>
+            Naik level! Sekarang kamu Level <strong>{notif.message}</strong>
           </>
         );
       default:

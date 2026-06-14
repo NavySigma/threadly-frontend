@@ -11,7 +11,8 @@ export type NotificationType =
   | "complete_profile"
   | "report_confirmed"
   | "report_penalized"
-  | "new_badge";
+  | "new_badge"
+  | "level_up";
 
 export type NotificationCategory = "users" | "posts" | "comments" | "system";
 

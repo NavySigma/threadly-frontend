@@ -6,8 +6,10 @@ import {
   Users, 
   Folder, 
   Coins,
+  Shield,
   Rocket
 } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 const links = [
   { to: "/", icon: <Home size={20} />, label: "Home" },
@@ -18,8 +20,14 @@ const links = [
   { to: "/profile?tab=activity&subtab=reputation", icon: <Coins size={20} />, label: "History Points" },
 ];
 
+const adminLinks = [
+  { to: "/admin/edit-history", icon: <Shield size={20} />, label: "Edit History" },
+];
+
 export default function Sidebar() {
   const location = useLocation();
+  const { user } = useAuth();
+  const isAdminOrMod = user?.roles?.some((r) => ["admin", "moderator"].includes(r.name));
 
   return (
     <aside className="w-64 h-screen bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 shadow-sm sticky top-0">
@@ -85,6 +93,59 @@ export default function Sidebar() {
             </li>
           );
         })}
+        {isAdminOrMod && (
+          <>
+            <li className="pt-4 pb-1">
+              <span className="px-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Admin
+              </span>
+            </li>
+            {adminLinks.map((link) => {
+              let isActive = location.pathname === link.to;
+              return (
+                <li key={link.to}>
+                  <NavLink
+                    to={link.to}
+                    className={`
+                      group
+                      flex items-center gap-3
+                      rounded-xl
+                      px-4 py-3
+                      transition-all duration-200
+                      ${
+                        isActive
+                          ? "bg-[#f0fdfa] shadow-sm"
+                          : "hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                      }
+                    `}
+                  >
+                    <div
+                      className={`
+                        flex items-center justify-center
+                        transition-all
+                        ${
+                          isActive
+                            ? "text-[#0d9488]"
+                            : "text-black"
+                        }
+                      `}
+                    >
+                      {link.icon}
+                    </div>
+                    <span 
+                      className={`
+                        text-sm font-medium tracking-wide
+                        ${isActive ? "text-[#0d9488]" : "text-black"}
+                      `}
+                    >
+                      {link.label}
+                    </span>
+                  </NavLink>
+                </li>
+              );
+            })}
+          </>
+        )}
       </ul>
 
       {/* Footer */}
