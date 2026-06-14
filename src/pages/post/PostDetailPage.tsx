@@ -90,7 +90,11 @@ export default function PostDetailPage() {
         <div className="p-5">
           <div className="flex gap-5 items-start">
             {/* Vote */}
-            <PostVote postId={post.id} score={post.vote_score} />
+            <PostVote
+              postId={post.id}
+              score={post.vote_score}
+              userVote={post.user_vote ?? null}
+            />
 
             {/* Content */}
             <div className="flex-1 min-w-0">

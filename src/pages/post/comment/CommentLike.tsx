@@ -4,13 +4,20 @@ import { commentLikeApi } from "../../../api/commentLike.api";
 
 interface CommentLikeProps {
   commentId: string;
+  initialLiked?: boolean;
+  initialCount?: number;
 }
 
-export default function CommentLike({ commentId }: CommentLikeProps) {
-  const [liked, setLiked] = useState(false);
+export default function CommentLike({
+  commentId,
+  initialLiked = false,
+  initialCount = 0,
+}: CommentLikeProps) {
+  const [liked, setLiked] = useState(initialLiked);
+  const [likeCount, setLikeCount] = useState(initialCount);
 
   // Ref agar mutationFn selalu baca liked terbaru, bukan stale closure
-  const likedRef = useRef(false);
+  const likedRef = useRef(initialLiked);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -19,8 +26,10 @@ export default function CommentLike({ commentId }: CommentLikeProps) {
         : commentLikeApi.like(commentId),
 
     onSuccess: () => {
-      likedRef.current = !likedRef.current;
-      setLiked(likedRef.current);
+      const wasLiked = likedRef.current;
+      likedRef.current = !wasLiked;
+      setLiked(!wasLiked);
+      setLikeCount((prev) => (wasLiked ? prev - 1 : prev + 1));
     },
 
     onError: (error: unknown) => {
@@ -41,16 +50,23 @@ export default function CommentLike({ commentId }: CommentLikeProps) {
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
       style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
         padding: "2px 8px",
         border: `1px solid ${liked ? "#e67c00" : "#d1d5db"}`,
         borderRadius: "4px",
-        background: "none",
+        background: liked ? "#fff7ed" : "none",
         cursor: mutation.isPending ? "not-allowed" : "pointer",
         fontSize: 12,
         color: liked ? "#e67c00" : "#6b7280",
+        transition: "all 0.15s ease",
       }}
     >
-      {liked ? "❤️" : "🤍"}
+      <span>{liked ? "❤️" : "🤍"}</span>
+      {likeCount > 0 && (
+        <span style={{ fontWeight: 600 }}>{likeCount}</span>
+      )}
     </button>
   );
 }

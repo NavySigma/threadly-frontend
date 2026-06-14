@@ -42,6 +42,7 @@ export interface Post {
   answers_count?: number;
   views_count?: number;
   created_at_human?: string;
+  user_vote?: "upvote" | "downvote" | null;
 }
 
 export interface CreatePostPayload {

@@ -17,11 +17,10 @@ export default function PostVote({
 }: PostVoteProps) {
   const [currentScore, setCurrentScore] = useState(score ?? 0);
   const [userVote, setUserVote] = useState<VoteType | null>(
-    initialUserVote ?? null
+    initialUserVote ?? null,
   );
 
-  // Ref agar callback mutation selalu membaca nilai userVote terbaru,
-  // bukan stale closure dari saat mutation didefinisikan.
+  // Ref agar onSuccess selalu baca userVote terbaru, bukan stale closure
   const userVoteRef = useRef<VoteType | null>(initialUserVote ?? null);
 
   const voteMutation = useMutation({
@@ -31,23 +30,19 @@ export default function PostVote({
         : postVoteApi.downvote(postId),
 
     onSuccess: (_response, voteType) => {
-      // Baca state vote sebelumnya dari ref (selalu fresh)
       const previousVote = userVoteRef.current;
 
-      // Hitung delta score berdasarkan logika backend:
-      //   - Vote sama → toggle off (batalkan)
-      //   - Vote berbeda → ganti vote (delta ±2)
-      //   - Belum vote → vote baru (delta ±1)
+      // Logika delta score sesuai backend:
+      //   vote sama  → toggle off  → delta ∓1
+      //   vote beda  → ganti vote  → delta ±2
+      //   belum vote → vote baru   → delta ±1
       setCurrentScore((prev) => {
         if (previousVote === voteType) {
-          // Toggle off: batalkan vote
           return voteType === "upvote" ? prev - 1 : prev + 1;
         }
         if (previousVote !== null) {
-          // Ganti vote: reverse lama + apply baru
           return voteType === "upvote" ? prev + 2 : prev - 2;
         }
-        // Vote baru
         return voteType === "upvote" ? prev + 1 : prev - 1;
       });
 
@@ -57,8 +52,6 @@ export default function PostVote({
     },
 
     onError: (error: unknown) => {
-      // Tampilkan pesan error dari backend jika ada
-      // (misal: "Minimal 15 poin untuk downvote", "Tidak bisa vote konten sendiri")
       const message =
         error &&
         typeof error === "object" &&
@@ -66,15 +59,11 @@ export default function PostVote({
         typeof (error as { message: unknown }).message === "string"
           ? (error as { message: string }).message
           : "Vote gagal";
-      console.error("Vote error:", message);
+      console.error("PostVote error:", message);
     },
   });
 
-  const handleVote = (voteType: VoteType) => {
-    voteMutation.mutate(voteType);
-  };
-
-  // Ambil pesan error dari backend untuk ditampilkan di UI
+  // Ambil pesan error backend untuk UI
   const errorMessage = (() => {
     if (!voteMutation.isError) return null;
     const err = voteMutation.error;
@@ -89,6 +78,9 @@ export default function PostVote({
     return "Vote gagal";
   })();
 
+  const isUpvoteActive = userVote === "upvote";
+  const isDownvoteActive = userVote === "downvote";
+
   return (
     <div
       style={{
@@ -99,41 +91,51 @@ export default function PostVote({
         minWidth: 40,
       }}
     >
+      {/* UPVOTE — aktif: hijau */}
       <button
         type="button"
         disabled={voteMutation.isPending}
-        onClick={() => handleVote("upvote")}
+        onClick={() => voteMutation.mutate("upvote")}
         style={{
-          background: "none",
-          border: "1px solid #d1d5db",
-          borderRadius: "50%",
           width: 36,
           height: 36,
-          cursor: voteMutation.isPending ? "not-allowed" : "pointer",
+          borderRadius: "50%",
+          border: `1px solid ${isUpvoteActive ? "#16a34a" : "#d1d5db"}`,
+          background: isUpvoteActive ? "#dcfce7" : "none",
+          color: isUpvoteActive ? "#16a34a" : "#6b7280",
           fontSize: 16,
-          color: userVote === "upvote" ? "#e67c00" : undefined,
-          borderColor: userVote === "upvote" ? "#e67c00" : "#d1d5db",
+          cursor: voteMutation.isPending ? "not-allowed" : "pointer",
+          transition: "all 0.15s ease",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         ▲
       </button>
 
-      <span style={{ fontWeight: 700, fontSize: 20 }}>{currentScore}</span>
+      <span style={{ fontWeight: 700, fontSize: 20, minWidth: 24, textAlign: "center" }}>
+        {currentScore}
+      </span>
 
+      {/* DOWNVOTE — aktif: oranye */}
       <button
         type="button"
         disabled={voteMutation.isPending}
-        onClick={() => handleVote("downvote")}
+        onClick={() => voteMutation.mutate("downvote")}
         style={{
-          background: "none",
-          border: "1px solid #d1d5db",
-          borderRadius: "50%",
           width: 36,
           height: 36,
-          cursor: voteMutation.isPending ? "not-allowed" : "pointer",
+          borderRadius: "50%",
+          border: `1px solid ${isDownvoteActive ? "#f97316" : "#d1d5db"}`,
+          background: isDownvoteActive ? "#ffedd5" : "none",
+          color: isDownvoteActive ? "#f97316" : "#6b7280",
           fontSize: 16,
-          color: userVote === "downvote" ? "#6a737c" : undefined,
-          borderColor: userVote === "downvote" ? "#6a737c" : "#d1d5db",
+          cursor: voteMutation.isPending ? "not-allowed" : "pointer",
+          transition: "all 0.15s ease",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         ▼
@@ -144,7 +146,15 @@ export default function PostVote({
       )}
 
       {voteMutation.isError && (
-        <small style={{ color: "red", textAlign: "center", maxWidth: 80, lineHeight: 1.3 }}>
+        <small
+          style={{
+            color: "red",
+            textAlign: "center",
+            maxWidth: 80,
+            lineHeight: 1.3,
+            fontSize: 11,
+          }}
+        >
           {errorMessage}
         </small>
       )}
