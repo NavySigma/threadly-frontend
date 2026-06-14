@@ -25,7 +25,7 @@ function timeJoined(dateStr: string): string {
 
 export default function UserCard({ user }: { user: UserItem }) {
   return (
-    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden transition-all hover:border-teal-500 hover:shadow-[0_2px_8px_rgba(13,148,136,0.1)]">
+    <div className="border border-gray-200 rounded-xl overflow-hidden flex flex-col transition-all bg-white">
       <Link
         to={`/users/${user.id}`}
         className="flex items-center gap-3 p-4 no-underline text-inherit"
@@ -35,7 +35,7 @@ export default function UserCard({ user }: { user: UserItem }) {
             <img
               src={user.avatar_url}
               alt={user.username}
-              className="w-full h-full rounded-full object-cover"
+              className="w-full h-full object-cover"
             />
           ) : (
             <span className="text-lg font-semibold text-gray-400">
@@ -56,15 +56,14 @@ export default function UserCard({ user }: { user: UserItem }) {
               </span>
               <span className="text-[11px] text-gray-400">rep</span>
             </span>
+            <span className="text-[11px] text-gray-400">
+              Joined {timeJoined(user.created_at)}
+            </span>
           </div>
-
-          <span className="text-[11px] text-gray-400">
-            Joined {timeJoined(user.created_at)}
-          </span>
         </div>
       </Link>
 
-      <div className="px-4 pb-3 flex justify-end border-t border-gray-100 pt-2">
+      <div className="px-3 py-2 flex justify-end border-t border-gray-100">
         <FollowButton
           userId={user.id}
           initialIsFollowing={user.is_following ?? false}
