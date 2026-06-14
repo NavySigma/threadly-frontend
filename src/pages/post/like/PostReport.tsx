@@ -58,6 +58,7 @@ export default function PostReport({ postId }: PostReportProps) {
         type="button"
         onClick={() => !reported && setIsModalOpen(true)}
         disabled={reported || reportMutation.isPending}
+        data-cy="post-report-btn"
         style={{
           border: `1px solid ${reported ? "#dc2626" : "#d1d5db"}`,
           borderRadius: "6px",
@@ -156,6 +157,7 @@ export default function PostReport({ postId }: PostReportProps) {
                 </label>
                 <input
                   autoFocus
+                  data-cy="report-reason-input"
                   type="text"
                   placeholder="Ketik alasan (misal: Spam, Sara, dll.)"
                   value={reason}
@@ -198,6 +200,7 @@ export default function PostReport({ postId }: PostReportProps) {
                 <button
                   type="submit"
                   disabled={isInvalid}
+                  data-cy="report-submit-btn"
                   style={{
                     flex: 1,
                     padding: "10px",
